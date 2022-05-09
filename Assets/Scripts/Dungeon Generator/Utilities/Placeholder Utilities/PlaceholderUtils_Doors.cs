@@ -14,20 +14,6 @@ using SavedTileDictionary = System.Collections.Generic.Dictionary<UnityEngine.Ve
 
 namespace ProceduralDungeon.DungeonGeneration.Utilities.PlaceholderUtilities
 {
-    public struct DoorData
-    {
-        public Directions DoorDirection; // The direction this door is facing.
-        public RoomLevels DoorLevel; // The level this door is on.
-
-
-        // The positions of the two tiles of this door. The first one is always the upper-left-most of the two tiles.
-        public Vector3Int Tile1Position;
-        public Vector3Int Tile2Position;
-
-    }
-
-
-
     public static class PlaceholderUtils_Doors
     {
         private static RoomData _CurrentRoomData;
@@ -59,6 +45,16 @@ namespace ProceduralDungeon.DungeonGeneration.Utilities.PlaceholderUtilities
         };
 
 
+
+        public static Directions AdjustDoorDirectionForRoomRotation(Directions doorDirection, Directions roomDirection)
+        {
+            int result = (int)doorDirection + (int)roomDirection;
+
+            if (result > (int)Directions.West)
+                result -= (int)Directions.West;
+
+            return (Directions)result;
+        }
 
         public static void DetectDoorLocations(List<RoomData> roomsList)
         {
@@ -182,18 +178,7 @@ namespace ProceduralDungeon.DungeonGeneration.Utilities.PlaceholderUtilities
             }
 
 
-            // Which tile is the upper-left-most of the two? We want this one always stored in the first position field of the DoorData struct.
-            if (sTile.Position.x < neighbors[0].Position.x ||
-                sTile.Position.y > neighbors[0].Position.y)
-            {
-                door.Tile1Position = sTile.Position;
-                door.Tile2Position = neighbors[0].Position;
-            }
-            else
-            {
-                door.Tile1Position = neighbors[0].Position;
-                door.Tile2Position = sTile.Position;
-            }
+            door.SetDoorTilePositions(sTile.Position, neighbors[0].Position);
 
 
             // Get the direction and level of the door.
@@ -271,7 +256,7 @@ namespace ProceduralDungeon.DungeonGeneration.Utilities.PlaceholderUtilities
 
 
             // Is the door horizontal?
-            if (door.Tile2Position == door.Tile1Position + Vector3Int.right)
+            if (door.Tile1Position.y == door.Tile2Position.y)
             {
                 bool northResult = CheckFloorTilesAreNull(door.Tile1Position,
                                                           door.Tile1Position + Vector3Int.up,
