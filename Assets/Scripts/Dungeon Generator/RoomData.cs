@@ -29,11 +29,11 @@ namespace ProceduralDungeon.DungeonGeneration
     /// </summary>
     public class RoomData
     {
-        public Dictionary<Vector3Int, SavedTile> EnemyTiles;
         public Dictionary<Vector3Int, SavedTile> FloorTiles;
-        public Dictionary<Vector3Int, SavedTile> ItemTiles;
-        public Dictionary<Vector3Int, SavedTile> PlaceholderTiles;
         public Dictionary<Vector3Int, SavedTile> WallTiles;
+        public Dictionary<Vector3Int, SavedTile> Placeholders_General_Tiles;
+        public Dictionary<Vector3Int, SavedTile> Placeholders_Item_Tiles;
+        public Dictionary<Vector3Int, SavedTile> Placeholders_Enemy_Tiles;
 
 
         public string RoomName;
@@ -53,17 +53,17 @@ namespace ProceduralDungeon.DungeonGeneration
             DoorsList = new List<DoorData>();
 
 
-            EnemyTiles = new Dictionary<Vector3Int, SavedTile>();
             FloorTiles = new Dictionary<Vector3Int, SavedTile>();
-            ItemTiles = new Dictionary<Vector3Int, SavedTile>();
-            PlaceholderTiles = new Dictionary<Vector3Int, SavedTile>();
             WallTiles = new Dictionary<Vector3Int, SavedTile>();
+            Placeholders_General_Tiles = new Dictionary<Vector3Int, SavedTile>();
+            Placeholders_Item_Tiles = new Dictionary<Vector3Int, SavedTile>();
+            Placeholders_Enemy_Tiles = new Dictionary<Vector3Int, SavedTile>();
 
-            MiscellaneousUtils.CopyTilesListToDictionary(loadedRoom.EnemyTiles, EnemyTiles);
             MiscellaneousUtils.CopyTilesListToDictionary(loadedRoom.FloorTiles, FloorTiles);
-            MiscellaneousUtils.CopyTilesListToDictionary(loadedRoom.ItemTiles, ItemTiles);
-            MiscellaneousUtils.CopyTilesListToDictionary(loadedRoom.PlaceholderTiles, PlaceholderTiles);
             MiscellaneousUtils.CopyTilesListToDictionary(loadedRoom.WallTiles, WallTiles);
+            MiscellaneousUtils.CopyTilesListToDictionary(loadedRoom.Placeholders_General_Tiles, Placeholders_General_Tiles);
+            MiscellaneousUtils.CopyTilesListToDictionary(loadedRoom.Placeholders_Item_Tiles, Placeholders_Item_Tiles);
+            MiscellaneousUtils.CopyTilesListToDictionary(loadedRoom.Placeholders_Enemy_Tiles, Placeholders_Enemy_Tiles);
 
 
             RoomName = loadedRoom.RoomName;

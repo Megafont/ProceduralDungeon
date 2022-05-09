@@ -27,11 +27,11 @@ namespace ProceduralDungeon.TileMaps
     /// </summary>
     public class ScriptableRoom : ScriptableObject
     {
-        public List<SavedTile> EnemyTiles;
         public List<SavedTile> FloorTiles;
-        public List<SavedTile> ItemTiles;
-        public List<SavedTile> PlaceholderTiles;
         public List<SavedTile> WallTiles;
+        public List<SavedTile> Placeholders_General_Tiles;
+        public List<SavedTile> Placeholders_Item_Tiles;
+        public List<SavedTile> Placeholders_Enemy_Tiles;
 
         public string RoomName;
         public RoomLevels RoomLevel = RoomLevels.Level_1stFloor;

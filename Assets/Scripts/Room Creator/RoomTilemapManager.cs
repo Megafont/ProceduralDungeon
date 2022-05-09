@@ -72,7 +72,7 @@ namespace ProceduralDungeon.RoomCreator
             if (RoomMap.GetSaveDataFromTileMaps(newRoom))
             {
                 // Validate placeholders.
-                if (!(PlaceholderUtils_Doors.FindAndValidateRoomDoors(newRoom.PlaceholderTiles, newRoom.FloorTiles)))
+                if (!(PlaceholderUtils_Doors.FindAndValidateRoomDoors(newRoom.Placeholders_General_Tiles, newRoom.FloorTiles)))
                 {
                     return SaveRoomReturnCodes.Error_InvalidPlaceholders;
                 }
@@ -117,7 +117,9 @@ namespace ProceduralDungeon.RoomCreator
                 return LoadRoomReturnCodes.Success;
             }
             else
+            {
                 return LoadRoomReturnCodes.Error_InvalidTiles;
+            }
 
         }
 

@@ -19,10 +19,10 @@ namespace ProceduralDungeon.EditorScripts
         DungeonTilemapManager _DungeonTilemapManager = null;
 
 
-        SerializedProperty _EnemiesMap;
+        SerializedProperty _Placeholders_Enemies_Map;
         SerializedProperty _FloorsMap;
-        SerializedProperty _ItemsMap;
-        SerializedProperty _PlaceholdersMap;
+        SerializedProperty _Placeholders_Items_Map;
+        SerializedProperty _Placeholders_General_Map;
         SerializedProperty _WallsMap;
 
 
@@ -32,11 +32,11 @@ namespace ProceduralDungeon.EditorScripts
             _DungeonTilemapManager = (DungeonTilemapManager)target;
 
 
-            _EnemiesMap = serializedObject.FindProperty("_EnemiesMap");
             _FloorsMap = serializedObject.FindProperty("_FloorsMap");
-            _ItemsMap = serializedObject.FindProperty("_ItemsMap");
-            _PlaceholdersMap = serializedObject.FindProperty("_PlaceholdersMap");
             _WallsMap = serializedObject.FindProperty("_WallsMap");
+            _Placeholders_General_Map = serializedObject.FindProperty("_Placeholders_General_Map");
+            _Placeholders_Items_Map = serializedObject.FindProperty("_Placeholders_Items_Map");
+            _Placeholders_Enemies_Map = serializedObject.FindProperty("_Placeholders_Enemies_Map");
         }
 
 
@@ -54,11 +54,11 @@ namespace ProceduralDungeon.EditorScripts
 
             EditorGUILayout.LabelField("Tilemap References", EditorStyles.boldLabel);
 
-            EditorGUILayout.PropertyField(_EnemiesMap);
             EditorGUILayout.PropertyField(_FloorsMap);
-            EditorGUILayout.PropertyField(_ItemsMap);
-            EditorGUILayout.PropertyField(_PlaceholdersMap);
             EditorGUILayout.PropertyField(_WallsMap);
+            EditorGUILayout.PropertyField(_Placeholders_General_Map);
+            EditorGUILayout.PropertyField(_Placeholders_Items_Map);
+            EditorGUILayout.PropertyField(_Placeholders_Enemies_Map);
 
 
 
@@ -86,11 +86,11 @@ namespace ProceduralDungeon.EditorScripts
             {
                 GenericMenu menu = new GenericMenu();
 
-                menu.AddItem(new GUIContent("Clear Enemies"), false, HandleClearTilemapMenuSelection, "Enemies");
                 menu.AddItem(new GUIContent("Clear Floors"), false, HandleClearTilemapMenuSelection, "Floors");
-                menu.AddItem(new GUIContent("Clear Items"), false, HandleClearTilemapMenuSelection, "Items");
-                menu.AddItem(new GUIContent("Clear Placeholders"), false, HandleClearTilemapMenuSelection, "Placeholders");
                 menu.AddItem(new GUIContent("Clear Walls"), false, HandleClearTilemapMenuSelection, "Walls");
+                menu.AddItem(new GUIContent("Clear Items"), false, HandleClearTilemapMenuSelection, "Placeholders_Items");
+                menu.AddItem(new GUIContent("Clear Placeholders"), false, HandleClearTilemapMenuSelection, "Placeholders_General");
+                menu.AddItem(new GUIContent("Clear Enemies"), false, HandleClearTilemapMenuSelection, "Placeholders_Enemies");
                 menu.AddItem(new GUIContent("Clear ALL Tile Maps"), false, HandleClearTilemapMenuSelection, "ALL");
 
                 menu.ShowAsContext();
@@ -115,20 +115,20 @@ namespace ProceduralDungeon.EditorScripts
                 case "ALL":
                     _DungeonTilemapManager.DungeonMap.ClearAllTileMaps();
                     break;
-                case "Enemies":
-                    _DungeonTilemapManager.DungeonMap.ClearTileMap(TileMapTypes.Enemies);
-                    break;
                 case "Floors":
                     _DungeonTilemapManager.DungeonMap.ClearTileMap(TileMapTypes.Floors);
                     break;
-                case "Items":
-                    _DungeonTilemapManager.DungeonMap.ClearTileMap(TileMapTypes.Items);
-                    break;
-                case "Placeholders":
-                    _DungeonTilemapManager.DungeonMap.ClearTileMap(TileMapTypes.Placeholders);
-                    break;
                 case "Walls":
                     _DungeonTilemapManager.DungeonMap.ClearTileMap(TileMapTypes.Walls);
+                    break;
+                case "Placeholders_General":
+                    _DungeonTilemapManager.DungeonMap.ClearTileMap(TileMapTypes.Placeholders_General);
+                    break;
+                case "Placeholders_Items":
+                    _DungeonTilemapManager.DungeonMap.ClearTileMap(TileMapTypes.Placeholders_Items);
+                    break;
+                case "Placeholders_Enemies":
+                    _DungeonTilemapManager.DungeonMap.ClearTileMap(TileMapTypes.Placeholders_Enemies);
                     break;
 
                 default:

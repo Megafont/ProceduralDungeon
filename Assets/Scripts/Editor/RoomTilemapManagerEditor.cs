@@ -42,9 +42,9 @@ namespace ProceduralDungeon.EditorScripts
 
             _FloorsMap = serializedObject.FindProperty("_FloorsMap");
             _WallsMap = serializedObject.FindProperty("_WallsMap");
-            _Placeholders_General_Map = serializedObject.FindProperty("_PlaceholdersMap");
-            _Placeholders_Items_Map = serializedObject.FindProperty("_ItemsMap");
-            _Placeholders_Enemies_Map = serializedObject.FindProperty("_EnemiesMap");
+            _Placeholders_General_Map = serializedObject.FindProperty("_Placeholders_General_Map");
+            _Placeholders_Items_Map = serializedObject.FindProperty("_Placeholders_Items_Map");
+            _Placeholders_Enemies_Map = serializedObject.FindProperty("_Placeholders_Enemies_Map");
 
             _RoomName = serializedObject.FindProperty("_RoomName");
             _RoomSet = serializedObject.FindProperty("_RoomSet");
@@ -107,9 +107,9 @@ namespace ProceduralDungeon.EditorScripts
 
                 menu.AddItem(new GUIContent("Clear Floors"), false, HandleClearTilemapMenuSelection, "Floors");
                 menu.AddItem(new GUIContent("Clear Walls"), false, HandleClearTilemapMenuSelection, "Walls");
-                menu.AddItem(new GUIContent("Clear Placeholders"), false, HandleClearTilemapMenuSelection, "Placeholders: General");
-                menu.AddItem(new GUIContent("Clear Items"), false, HandleClearTilemapMenuSelection, "Placeholders: Items");
-                menu.AddItem(new GUIContent("Clear Enemies"), false, HandleClearTilemapMenuSelection, "Placeholders: Enemies");
+                menu.AddItem(new GUIContent("Clear Placeholders"), false, HandleClearTilemapMenuSelection, "Placeholders_General");
+                menu.AddItem(new GUIContent("Clear Items"), false, HandleClearTilemapMenuSelection, "Placeholders_Items");
+                menu.AddItem(new GUIContent("Clear Enemies"), false, HandleClearTilemapMenuSelection, "Placeholders_Enemies");
                 menu.AddItem(new GUIContent("Clear ALL Tile Maps"), false, HandleClearTilemapMenuSelection, "ALL");
 
                 menu.ShowAsContext();
@@ -130,7 +130,7 @@ namespace ProceduralDungeon.EditorScripts
                 if (result != SaveRoomReturnCodes.Success)
                 {
                     if (result == SaveRoomReturnCodes.Error_InvalidPlaceholders)
-                        EditorUtility.DisplayDialog("Save Room Asset", $"The room \"{_RoomTilemapManager.RoomName}\" has one or more invalid door placeholders. See the Unity debug console for errors.", "Ok");
+                        EditorUtility.DisplayDialog("Save Room Asset", $"The room \"{_RoomTilemapManager.RoomName}\" has one or more invalid door placeholders. See the Unity debug console for specific errors.", "Ok");
                     else if (result == SaveRoomReturnCodes.Error_InvalidTiles)
                         EditorUtility.DisplayDialog("Save Room Asset Error", $"Could not save the room, because at least one tile map was found to have an invalid tile type in it while attempting to save the room asset {_RoomTilemapManager.RoomName}! See the Unity console for the specific tiles.", "Ok");
 
@@ -231,13 +231,13 @@ namespace ProceduralDungeon.EditorScripts
                 case "Floors":
                     _RoomTilemapManager.RoomMap.ClearTileMap(TileMapTypes.Floors);
                     break;
-                case "Placeholders":
+                case "Placeholders_General":
                     _RoomTilemapManager.RoomMap.ClearTileMap(TileMapTypes.Placeholders_General);
                     break;
-                case "Items":
+                case "Placeholders_Items":
                     _RoomTilemapManager.RoomMap.ClearTileMap(TileMapTypes.Placeholders_Items);
                     break;
-                case "Enemies":
+                case "Placeholders_Enemies":
                     _RoomTilemapManager.RoomMap.ClearTileMap(TileMapTypes.Placeholders_Enemies);
                     break;
 

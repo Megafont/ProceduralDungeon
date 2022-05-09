@@ -68,7 +68,7 @@ namespace ProceduralDungeon.DungeonGeneration.Utilities.PlaceholderUtilities
             foreach (RoomData room in roomsList)
             {
                 _CurrentRoomData = room;
-                FindRoomDoors(room.PlaceholderTiles, room.FloorTiles);
+                FindRoomDoors(room.Placeholders_General_Tiles, room.FloorTiles);
 
             } // end foreach
 
@@ -78,24 +78,36 @@ namespace ProceduralDungeon.DungeonGeneration.Utilities.PlaceholderUtilities
         /// <summary>
         /// This public overload is used by the room editor to validate the positions of door placeholders.
         /// </summary>
-        /// <param name="placeholderTiles">A list of the room's placeholder tiles.</param>
+        /// <param name="placeholder_General_Tiles">A list of the room's general placeholder tiles.</param>
         /// <param name="floorTiles">A list of the room's floor tiles.</param>
-        public static bool FindAndValidateRoomDoors(List<SavedTile> placeholderTiles, List<SavedTile> floorTiles)
+        public static bool FindAndValidateRoomDoors(List<SavedTile> placeholder_General_Tiles, List<SavedTile> floorTiles)
         {
+
             _ErrorOccurred = false;
 
 
-            Assert.IsNotNull(placeholderTiles, "The passed in list of placeholder tiles is null!");
+            Assert.IsNotNull(placeholder_General_Tiles, "The passed in list of placeholder tiles is null!");
             Assert.IsNotNull(floorTiles, "The passed in list of floor tiles is null!");
 
-            Assert.IsFalse(placeholderTiles.Count == 0, "The passed in list of placeholder tiles is empty!");
-            Assert.IsFalse(floorTiles.Count == 0, "The passed in list of floor tiles is empty!");
+
+            if (placeholder_General_Tiles.Count < 1)
+            {
+                Debug.LogError($"PlaceholderUtility_Doors.FindAndValidateRoomDoors() - The passed in placeholders_general_tiles list is empty!");
+                _ErrorOccurred = true;
+                return false;
+            }
+            else if (floorTiles.Count < 1)
+            {
+                Debug.LogError($"PlaceholderUtility_Doors.FindAndValidateRoomDoors() - The passed in floorTiles list is empty!");
+                _ErrorOccurred = true;
+                return false;
+            }
 
 
             SavedTileDictionary placeholderTilesDict = new SavedTileDictionary();
             SavedTileDictionary floorTilesDict = new SavedTileDictionary();
 
-            MiscellaneousUtils.CopyTilesListToDictionary(placeholderTiles, placeholderTilesDict);
+            MiscellaneousUtils.CopyTilesListToDictionary(placeholder_General_Tiles, placeholderTilesDict);
             MiscellaneousUtils.CopyTilesListToDictionary(floorTiles, floorTilesDict);
 
 

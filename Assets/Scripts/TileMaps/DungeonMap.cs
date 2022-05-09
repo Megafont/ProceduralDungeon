@@ -54,31 +54,31 @@ namespace ProceduralDungeon.TileMaps
         {
             switch (tileMapToClear)
             {
-                case TileMapTypes.Enemies:
-                    _Placeholders_Enemies_Map.ClearAllTiles();
-                    break;
                 case TileMapTypes.Floors:
                     _FloorsMap.ClearAllTiles();
                     break;
-                case TileMapTypes.Items:
-                    _Placeholders_Items_Map.ClearAllTiles();
-                    break;
-                case TileMapTypes.Placeholders:
-                    _Placeholders_General_Map.ClearAllTiles();
-                    break;
                 case TileMapTypes.Walls:
                     _WallsMap.ClearAllTiles();
+                    break;
+                case TileMapTypes.Placeholders_General:
+                    _Placeholders_General_Map.ClearAllTiles();
+                    break;
+                case TileMapTypes.Placeholders_Items:
+                    _Placeholders_Items_Map.ClearAllTiles();
+                    break;
+                case TileMapTypes.Placeholders_Enemies:
+                    _Placeholders_Enemies_Map.ClearAllTiles();
                     break;
             }
         }
 
         public void ClearAllTileMaps()
         {
-            _Placeholders_Enemies_Map.ClearAllTiles();
             _FloorsMap.ClearAllTiles();
-            _Placeholders_Items_Map.ClearAllTiles();
-            _Placeholders_General_Map.ClearAllTiles();
             _WallsMap.ClearAllTiles();
+            _Placeholders_General_Map.ClearAllTiles();
+            _Placeholders_Items_Map.ClearAllTiles();
+            _Placeholders_Enemies_Map.ClearAllTiles();
         }
 
         public bool FillTileMapsWithTileData(ScriptableRoom loadedRoom)
@@ -88,20 +88,21 @@ namespace ProceduralDungeon.TileMaps
             bool hadError = false;
 
 
-            if (!CopyTileDataIntoTileMap(loadedRoom.EnemyTiles, _Placeholders_Enemies_Map, TileMapTypes.Enemies))
-                hadError = true;
-
             if (!CopyTileDataIntoTileMap(loadedRoom.FloorTiles, _FloorsMap, TileMapTypes.Floors))
-                hadError = true;
-
-            if (!CopyTileDataIntoTileMap(loadedRoom.ItemTiles, _Placeholders_Items_Map, TileMapTypes.Items))
-                hadError = true;
-
-            if (!CopyTileDataIntoTileMap(loadedRoom.PlaceholderTiles, _Placeholders_General_Map, TileMapTypes.Placeholders))
                 hadError = true;
 
             if (!CopyTileDataIntoTileMap(loadedRoom.WallTiles, _WallsMap, TileMapTypes.Walls))
                 hadError = true;
+
+            if (!CopyTileDataIntoTileMap(loadedRoom.Placeholders_General_Tiles, _Placeholders_General_Map, TileMapTypes.Placeholders_General))
+                hadError = true;
+
+            if (!CopyTileDataIntoTileMap(loadedRoom.Placeholders_Item_Tiles, _Placeholders_Items_Map, TileMapTypes.Placeholders_Items))
+                hadError = true;
+
+            if (!CopyTileDataIntoTileMap(loadedRoom.Placeholders_Enemy_Tiles, _Placeholders_Enemies_Map, TileMapTypes.Placeholders_Enemies))
+                hadError = true;
+
 
             return !hadError;
         }
@@ -113,19 +114,19 @@ namespace ProceduralDungeon.TileMaps
             bool temp = false;
 
 
-            roomData.EnemyTiles = GetTileDataFromMap(TileMapTypes.Enemies, out temp);
-            if (temp) { hadError = true; }
-
             roomData.FloorTiles = GetTileDataFromMap(TileMapTypes.Floors, out temp);
             if (temp) { hadError = true; }
 
-            roomData.ItemTiles = GetTileDataFromMap(TileMapTypes.Items, out temp);
-            if (temp) { hadError = true; }
-
-            roomData.PlaceholderTiles = GetTileDataFromMap(TileMapTypes.Placeholders, out temp);
-            if (temp) { hadError = true; }
-
             roomData.WallTiles = GetTileDataFromMap(TileMapTypes.Walls, out temp);
+            if (temp) { hadError = true; }
+
+            roomData.Placeholders_General_Tiles = GetTileDataFromMap(TileMapTypes.Placeholders_General, out temp);
+            if (temp) { hadError = true; }
+
+            roomData.Placeholders_Item_Tiles = GetTileDataFromMap(TileMapTypes.Placeholders_Items, out temp);
+            if (temp) { hadError = true; }
+
+            roomData.Placeholders_Enemy_Tiles = GetTileDataFromMap(TileMapTypes.Placeholders_Enemies, out temp);
             if (temp) { hadError = true; }
 
 
@@ -134,11 +135,11 @@ namespace ProceduralDungeon.TileMaps
 
         public void ShrinkAllTileMapBoundsToFit()
         {
-            _Placeholders_Enemies_Map.CompressBounds();
             _FloorsMap.CompressBounds();
-            _Placeholders_Items_Map.CompressBounds();
-            _Placeholders_General_Map.CompressBounds();
             _WallsMap.CompressBounds();
+            _Placeholders_General_Map.CompressBounds();
+            _Placeholders_Items_Map.CompressBounds();
+            _Placeholders_Enemies_Map.CompressBounds();
         }
 
 
@@ -174,7 +175,7 @@ namespace ProceduralDungeon.TileMaps
                         }
                         break;
 
-                    case TileMapTypes.Placeholders:
+                    case TileMapTypes.Placeholders_General:
                         if ((tileType < (int)RoomTileCategoryRanges.PLACEHOLDERS_GENERAL_START || tileType > (int)RoomTileCategoryRanges.PLACEHOLDERS_GENERAL_END))
                         {
                             Debug.LogError(String.Format("DungeonMap.CopyTileDataIntoTileMap() - Encountered invalid placeholder tile type \"{0}\" at position {1} while copying loaded tile data into the tilemap! This tile was ignored.", Enum.GetName(typeof(RoomTileTypes), sTile.Tile.TileType), sTile.Position));
@@ -182,7 +183,7 @@ namespace ProceduralDungeon.TileMaps
                         }
                         break;
 
-                    case TileMapTypes.Items:
+                    case TileMapTypes.Placeholders_Items:
                         if ((tileType < (int)RoomTileCategoryRanges.PLACEHOLDERS_ITEMS_START || tileType > (int)RoomTileCategoryRanges.PLACEHOLDERS_ITEMS_END))
                         {
                             Debug.LogError(String.Format("DungeonMap.CopyTileDataIntoTileMap() - Encountered invalid item placeholder tile type \"{0}\" at position {1} while copying loaded tile data into the tilemap! This tile was ignored.", Enum.GetName(typeof(RoomTileTypes), sTile.Tile.TileType), sTile.Position));
@@ -190,7 +191,7 @@ namespace ProceduralDungeon.TileMaps
                         }
                         break;
 
-                    case TileMapTypes.Enemies:
+                    case TileMapTypes.Placeholders_Enemies:
                         if (tileType < (int)RoomTileCategoryRanges.PLACEHOLDERS_ENEMIES_START || tileType > (int)RoomTileCategoryRanges.PLACEHOLDERS_ENEMIES_END)
                         {
                             Debug.LogError(String.Format("DungeonMap.CopyTileDataIntoTileMap() - Encountered invalid enemy placeholder tile type \"{0}\" at position {1} while copying loaded tile data into the tilemap! This tile was ignored.", Enum.GetName(typeof(RoomTileTypes), sTile.Tile.TileType), sTile.Position));
@@ -294,19 +295,20 @@ namespace ProceduralDungeon.TileMaps
         {
             switch (mapToGet)
             {
-                case TileMapTypes.Enemies:
-                    return _Placeholders_Enemies_Map;
                 case TileMapTypes.Floors:
                     return _FloorsMap;
-                case TileMapTypes.Items:
-                    return _Placeholders_Items_Map;
-                case TileMapTypes.Placeholders:
-                    return _Placeholders_General_Map;
                 case TileMapTypes.Walls:
                     return _WallsMap;
+                case TileMapTypes.Placeholders_General:
+                    return _Placeholders_General_Map;
+                case TileMapTypes.Placeholders_Items:
+                    return _Placeholders_Items_Map;
+                case TileMapTypes.Placeholders_Enemies:
+                    return _Placeholders_Enemies_Map;
 
                 default:
                     return null;
+
             } // end switch
 
         }

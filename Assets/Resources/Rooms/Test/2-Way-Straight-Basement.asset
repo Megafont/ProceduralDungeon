@@ -12,7 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c7f7091023b912242974db90c6b93e86, type: 3}
   m_Name: 2-Way-Straight-Basement
   m_EditorClassIdentifier: 
-  EnemyTiles: []
   FloorTiles:
   - Position: {x: -4, y: -3, z: 0}
     Rotation: {x: 0, y: 0, z: 0, w: 1}
@@ -170,8 +169,7 @@ MonoBehaviour:
   - Position: {x: 3, y: 2, z: 0}
     Rotation: {x: 0, y: 0, z: 0, w: 1}
     Tile: {fileID: 11400000, guid: 0cdaf94bdac1af04b8ca35276bd89d51, type: 2}
-  ItemTiles: []
-  PlaceholderTiles:
+  Placeholders_General_Tiles:
   - Position: {x: -5, y: -1, z: 0}
     Rotation: {x: 0, y: 0, z: 0, w: 1}
     Tile: {fileID: 11400000, guid: 66fcb8bb50e44354db04f0d5fc3c4d43, type: 2}

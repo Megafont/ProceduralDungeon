@@ -27,7 +27,7 @@ namespace ProceduralDungeon.DungeonGeneration.Utilities
                                     node.Position,
                                     node.Direction);
             Debug.Log("DRAW PLACEHOLDERS:");
-            CopyTilesIntoDungeonMap(node.RoomBlueprint.PlaceholderTiles,
+            CopyTilesIntoDungeonMap(node.RoomBlueprint.Placeholders_General_Tiles,
                                     manager.DungeonMap.Placeholders_General_Map,
                                     node.Position,
                                     node.Direction);

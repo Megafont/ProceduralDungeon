@@ -35,4 +35,4 @@ MonoBehaviour:
   m_Flags: 1
   m_ColliderType: 1
   RotateWithRoom: 0
-  TileType: 1000
+  TileType: 0
