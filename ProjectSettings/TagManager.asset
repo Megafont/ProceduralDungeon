@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!78 &1
+TagManager:
+  serializedVersion: 2
+  tags: []
+  layers:
+  - Default
+  - TransparentFX
+  - Ignore Raycast
+  - 
+  - Water
+  - UI
+  - GeneratorPlaceholders
+  - Walls
+  - Objects
+  - Floor
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  m_SortingLayers:
+  - name: Default
+    uniqueID: 0
+    locked: 0
+  - name: Floor
+    uniqueID: 2115625029
+    locked: 0
+  - name: Objects
+    uniqueID: 3364995191
+    locked: 0
+  - name: Walls
+    uniqueID: 3800475121
+    locked: 0
+  - name: GeneratorPlaceholders
+    uniqueID: 3070093029
+    locked: 0
