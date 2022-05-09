@@ -13,16 +13,6 @@ using ProceduralDungeon.TileMaps;
 
 namespace ProceduralDungeon.DungeonGeneration
 {
-    public enum Directions
-    {
-        North = 0,
-        East,
-        South,
-        West,
-    }
-
-
-
     /// <summary>
     /// This subclass of scriptable room is used within the dungeon generator.
     /// It adds storage for extended room data.

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Assertions;
 
+using ProceduralDungeon.DungeonGeneration.Utilities;
 using ProceduralDungeon.TileMaps;
 
 
@@ -32,6 +33,8 @@ namespace ProceduralDungeon.DungeonGeneration
         public DungeonGraphNode(RoomData roomData, Vector3Int position, Directions direction, uint distanceFromStart)
         {
             Assert.IsNotNull(roomData, "DungeonGraphNode.DungeonGraphNode() - The passed in RoomData object is null!");
+
+            _NeighboringRooms = new List<DungeonGraphNode>();
 
             _Direction = direction;
             _DistanceFromStart = distanceFromStart;

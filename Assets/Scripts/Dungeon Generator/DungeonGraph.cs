@@ -36,12 +36,14 @@ namespace ProceduralDungeon.DungeonGeneration
             _Nodes.Clear();
         }
 
-        public void AddNode(DungeonGraphNode newNode, DungeonGraphNode parent)
+        public DungeonGraphNode AddNode(DungeonGraphNode newNode, DungeonGraphNode parent)
         {
             _Nodes.Add(newNode);
 
             parent.AddNeighbor(newNode);
             newNode.AddNeighbor(parent);
+
+            return newNode;
         }
 
 

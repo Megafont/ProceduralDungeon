@@ -45,17 +45,6 @@ namespace ProceduralDungeon.DungeonGeneration.Utilities.PlaceholderUtilities
         };
 
 
-
-        public static Directions AdjustDoorDirectionForRoomRotation(Directions doorDirection, Directions roomDirection)
-        {
-            int result = (int)doorDirection + (int)roomDirection;
-
-            if (result > (int)Directions.West)
-                result -= (int)Directions.West;
-
-            return (Directions)result;
-        }
-
         public static void DetectDoorLocations(List<RoomData> roomsList)
         {
             Assert.IsNotNull(roomsList, "The passed in rooms list is null!");

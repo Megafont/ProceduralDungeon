@@ -38,15 +38,15 @@ public static class DungeonGizmos
         foreach (DungeonGraphNode node in DungeonGenerator.DungeonGraph.Nodes)
         {
             SavedTileDictionary placeholders_general_map = node.RoomBlueprint.Placeholders_General_Tiles;
-            Debug.Log("DOORS: " + node.RoomBlueprint.DoorsList.Count);
+
             foreach (DoorData doorData in node.RoomBlueprint.DoorsList)
             {
                 SavedTile doorTile1 = placeholders_general_map[doorData.Tile1Position];
                 SavedTile doorTile2 = placeholders_general_map[doorData.Tile2Position];
 
                 // Get and adjust the positions of the door tiles to take into account the position and rotation of the parent room.
-                Vector3Int Tile1AdjustedPos = DungeonConstructionUtils.AdjustTileCoordsForRoomRotationAndPosition(doorTile1, node.Position, node.Direction);
-                Vector3Int Tile2AdjustedPos = DungeonConstructionUtils.AdjustTileCoordsForRoomRotationAndPosition(doorTile2, node.Position, node.Direction);
+                Vector3Int Tile1AdjustedPos = DungeonConstructionUtils.AdjustTileCoordsForRoomRotationAndPosition(doorTile1.Position, node.Position, node.Direction);
+                Vector3Int Tile2AdjustedPos = DungeonConstructionUtils.AdjustTileCoordsForRoomRotationAndPosition(doorTile2.Position, node.Position, node.Direction);
 
 
                 // Get the min and max values of X and Y.
@@ -64,7 +64,10 @@ public static class DungeonGizmos
                 // ----------------------------------------------------------------------------------------------------
                 Gizmos.color = Color.yellow;
                 float length = 0.5f;
-                Directions adjustedDoorDirection = PlaceholderUtils_Doors.AdjustDoorDirectionForRoomRotation(doorData.DoorDirection, node.Direction);
+
+                // Adjust the door direction to take into account the parent room's rotation direction.
+                Directions adjustedDoorDirection = MiscellaneousUtils.AddRotationDirectionsTogether(doorData.DoorDirection, node.Direction);
+
                 //Debug.Log($"DOOR DIR: {doorData.DoorDirection}    ROOM DIR: {node.Direction}    ADJ. DIR: {adjustedDoorDirection}");
                 if (adjustedDoorDirection == Directions.North)
                 {

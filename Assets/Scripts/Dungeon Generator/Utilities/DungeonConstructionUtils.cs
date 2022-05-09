@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-using ProceduralDungeon.DungeonGeneration;
+using ProceduralDungeon.DungeonGeneration.Utilities;
 using ProceduralDungeon.InGame;
 using ProceduralDungeon.TileMaps;
 
@@ -65,7 +65,7 @@ namespace ProceduralDungeon.DungeonGeneration.Utilities
                     max = new Vector3Int(max.x, sTile.Position.y, 0);
 
 
-                pos = AdjustTileCoordsForRoomRotationAndPosition(sTile, roomPos, roomDirection);
+                pos = AdjustTileCoordsForRoomRotationAndPosition(sTile.Position, roomPos, roomDirection);
 
 
                 if ((!sTile.Tile.RotateWithRoom) || roomDirection == Directions.North)
@@ -91,7 +91,7 @@ namespace ProceduralDungeon.DungeonGeneration.Utilities
                 }
 
                 //pos = sTile.Position;
-                dst.SetTile(pos + roomPos, sTile.Tile);
+                dst.SetTile(pos, sTile.Tile);
 
 
                 Matrix4x4 matrix = Matrix4x4.TRS(Vector3.zero, // We set the position parameter to Vector3.zero, as we don't want to add any offset to the tile's position.
@@ -109,19 +109,26 @@ namespace ProceduralDungeon.DungeonGeneration.Utilities
 
         }
 
-        public static Vector3Int AdjustTileCoordsForRoomRotationAndPosition(SavedTile sTile, Vector3Int roomPos, Directions roomDirection)
+        /// <summary>
+        /// Adjusts a tile's position to take into account the position and rotation direction of its parent room.
+        /// </summary>
+        /// <param name="tilePos">The position of the tile within its parent room.</param>
+        /// <param name="roomPos">The position of the tile's parent room.</param>
+        /// <param name="roomDirection">The rotation direction of the tile's parent room.</param>
+        /// <returns>The adjust coordinates.</returns>
+        public static Vector3Int AdjustTileCoordsForRoomRotationAndPosition(Vector3Int tilePos, Vector3Int roomPos, Directions roomDirection)
         {
             Vector3Int pos = Vector3Int.zero;
 
 
             if (roomDirection == Directions.North)
-                pos = sTile.Position;
+                pos = tilePos;
             else if (roomDirection == Directions.East)
-                pos = new Vector3Int(sTile.Position.y, -sTile.Position.x, 0);
+                pos = new Vector3Int(tilePos.y, -tilePos.x, 0);
             else if (roomDirection == Directions.South)
-                pos = new Vector3Int(-sTile.Position.x, -sTile.Position.y, 0);
+                pos = new Vector3Int(-tilePos.x, -tilePos.y, 0);
             else if (roomDirection == Directions.West)
-                pos = new Vector3Int(-sTile.Position.y, sTile.Position.x, 0);
+                pos = new Vector3Int(-tilePos.y, tilePos.x, 0);
 
 
             pos += roomPos;

@@ -91,10 +91,20 @@ namespace ProceduralDungeon.DungeonGeneration
             int index = _AllRooms.Count - 2; //SelectRandomRoom();
 
             // Create a new DungeonGraph with a node for the starting room.
-            _DungeonGraph = new DungeonGraph(new DungeonGraphNode(_AllRooms[index], Vector3Int.zero, Directions.West, 0));
+            _DungeonGraph = new DungeonGraph(new DungeonGraphNode(_AllRooms[index], new Vector3Int(0, 0, 0), Directions.North, 0));
+            Vector3Int roomDoorPos = _DungeonGraph.StartNode.RoomBlueprint.DoorsList[0].Tile1Position;
+            Vector3Int adjustedRoom1DoorPos = DungeonConstructionUtils.AdjustTileCoordsForRoomRotationAndPosition(roomDoorPos, Vector3Int.zero, _DungeonGraph.StartNode.Direction);
+
+
+            Vector3Int room2DoorPos = roomDoorPos + Vector3Int.up; // Shift up one unit to get the position where the neighboring room's door will be.
+            Vector3Int adjustedRoom2DoorPos = DungeonConstructionUtils.AdjustTileCoordsForRoomRotationAndPosition(roomDoorPos, Vector3Int.zero, Directions.South);
+            Vector3Int room2Pos = room2DoorPos + -adjustedRoom2DoorPos;
+            room2Pos += Vector3Int.right; // Move right one to fix the position when the connected room is facing south (similar to the code in DrawDoorGizmos()).
+            DungeonGraphNode room2 = _DungeonGraph.AddNode(new DungeonGraphNode(_AllRooms[index], room2Pos, MiscellaneousUtils.FlipDirection(Directions.North), 1), _DungeonGraph.StartNode);
 
             // Place the starting room.            
             DungeonConstructionUtils.PlaceRoom(_DungeonTilemapManager, _DungeonGraph.StartNode);
+            DungeonConstructionUtils.PlaceRoom(_DungeonTilemapManager, room2);
         }
 
 
