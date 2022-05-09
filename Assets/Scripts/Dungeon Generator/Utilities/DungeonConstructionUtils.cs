@@ -41,7 +41,7 @@ namespace ProceduralDungeon.DungeonGeneration.Utilities
 
 
 
-        private static void CopyTilesIntoDungeonMap(Dictionary<Vector3Int, SavedTile> src, Tilemap dst, Vector3Int dstOffest, Directions direction)
+        private static void CopyTilesIntoDungeonMap(Dictionary<Vector3Int, SavedTile> src, Tilemap dst, Vector3Int roomPos, Directions roomDirection)
         {
             Vector3Int pos = Vector3Int.zero;
             Quaternion rot = new Quaternion();
@@ -65,17 +65,10 @@ namespace ProceduralDungeon.DungeonGeneration.Utilities
                     max = new Vector3Int(max.x, sTile.Position.y, 0);
 
 
-                if (direction == Directions.North)
-                    pos = sTile.Position;
-                else if (direction == Directions.East)
-                    pos = new Vector3Int(sTile.Position.y, -sTile.Position.x, 0);
-                else if (direction == Directions.South)
-                    pos = new Vector3Int(-sTile.Position.x, -sTile.Position.y, 0);
-                else if (direction == Directions.West)
-                    pos = new Vector3Int(-sTile.Position.y, sTile.Position.x, 0);
+                pos = AdjustTileCoordsForRoomRotationAndPosition(sTile, roomPos, roomDirection);
 
 
-                if ((!sTile.Tile.RotateWithRoom) || direction == Directions.North)
+                if ((!sTile.Tile.RotateWithRoom) || roomDirection == Directions.North)
                 {
                     rot = sTile.Rotation;
                 }
@@ -83,9 +76,9 @@ namespace ProceduralDungeon.DungeonGeneration.Utilities
                 {
                     float z = 0;
                     if (sTile.Rotation.eulerAngles.y == 180f) // Check if the tile has been rotated 180 degrees on the Y-axis (which mirrors the tile from its normal appearance since you're looking at the opposite side).
-                        z = Mathf.Round(sTile.Rotation.eulerAngles.z + _Rotations[(int)direction].eulerAngles.z);
+                        z = Mathf.Round(sTile.Rotation.eulerAngles.z + _Rotations[(int)roomDirection].eulerAngles.z);
                     else
-                        z = Mathf.Round(sTile.Rotation.eulerAngles.z - _Rotations[(int)direction].eulerAngles.z);
+                        z = Mathf.Round(sTile.Rotation.eulerAngles.z - _Rotations[(int)roomDirection].eulerAngles.z);
 
 
                     //rot = sTile.Rotation * _Rotations[(int)direction];
@@ -93,12 +86,12 @@ namespace ProceduralDungeon.DungeonGeneration.Utilities
                                            sTile.Rotation.eulerAngles.y,
                                            z); //Mathf.Round(sTile.Rotation.eulerAngles.z + _Rotations[(int)direction].eulerAngles.z));
 
-                    Debug.Log($"Tile Pos: {sTile.Position}        New Pos: {pos}        Tile Rotation: {sTile.Rotation.eulerAngles}        Room Rotation: {_Rotations[(int)direction].eulerAngles}        Sum: {rot.eulerAngles})");
+                    Debug.Log($"Tile Pos: {sTile.Position}        New Pos: {pos}        Tile Rotation: {sTile.Rotation.eulerAngles}        Room Rotation: {_Rotations[(int)roomDirection].eulerAngles}        Sum: {rot.eulerAngles})");
 
                 }
 
                 //pos = sTile.Position;
-                dst.SetTile(pos + dstOffest, sTile.Tile);
+                dst.SetTile(pos + roomPos, sTile.Tile);
 
 
                 Matrix4x4 matrix = Matrix4x4.TRS(Vector3.zero, // We set the position parameter to Vector3.zero, as we don't want to add any offset to the tile's position.
@@ -116,6 +109,26 @@ namespace ProceduralDungeon.DungeonGeneration.Utilities
 
         }
 
+        public static Vector3Int AdjustTileCoordsForRoomRotationAndPosition(SavedTile sTile, Vector3Int roomPos, Directions roomDirection)
+        {
+            Vector3Int pos = Vector3Int.zero;
+
+
+            if (roomDirection == Directions.North)
+                pos = sTile.Position;
+            else if (roomDirection == Directions.East)
+                pos = new Vector3Int(sTile.Position.y, -sTile.Position.x, 0);
+            else if (roomDirection == Directions.South)
+                pos = new Vector3Int(-sTile.Position.x, -sTile.Position.y, 0);
+            else if (roomDirection == Directions.West)
+                pos = new Vector3Int(-sTile.Position.y, sTile.Position.x, 0);
+
+
+            pos += roomPos;
+
+            return pos;
+
+        }
 
 
     }
