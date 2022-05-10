@@ -1,10 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
 using ProceduralDungeon.DungeonGeneration.Utilities;
+using ProceduralDungeon.DungeonGeneration.Utilities.PlaceholderUtilities;
 using ProceduralDungeon.InGame;
 using ProceduralDungeon.TileMaps;
 
@@ -19,24 +21,56 @@ namespace ProceduralDungeon.DungeonGeneration.Utilities
                                                    Quaternion.Euler(0, 0, 180f),
                                                    Quaternion.Euler(0, 0, 270f) };
 
+
+        public static Directions CalculateRoomRotationFromDoorRotation(Directions currentDoorDirection, Directions targetDoorDirection)
+        {
+            int result = (int)targetDoorDirection - (int)currentDoorDirection;
+            int west = (int)Directions.West;
+
+            if (result < 0)
+                result = west + result;
+
+            if (result > west)
+                result -= west;
+
+            Debug.Log($"CurDir {currentDoorDirection}    TarDir {targetDoorDirection}    Result {(Directions)result}");
+            return (Directions)result;
+        }
+
         public static void PlaceRoom(DungeonTilemapManager manager, DungeonGraphNode node)
         {
             Debug.Log("DRAW FLOOR:");
             CopyTilesIntoDungeonMap(node.RoomBlueprint.FloorTiles,
                                     manager.DungeonMap.FloorsMap,
-                                    node.Position,
-                                    node.Direction);
-            Debug.Log("DRAW PLACEHOLDERS:");
-            CopyTilesIntoDungeonMap(node.RoomBlueprint.Placeholders_General_Tiles,
-                                    manager.DungeonMap.Placeholders_General_Map,
-                                    node.Position,
-                                    node.Direction);
+                                    node.RoomPosition,
+                                    node.RoomDirection);
 
             Debug.Log("DRAW WALLS:");
             CopyTilesIntoDungeonMap(node.RoomBlueprint.WallTiles,
                                     manager.DungeonMap.WallsMap,
-                                    node.Position,
-                                    node.Direction);
+                                    node.RoomPosition,
+                                    node.RoomDirection);
+
+
+            if (!Application.isPlaying) // Only include the placeholders if the dungeon generator is running in Unity's edit mode.
+            {
+                Debug.Log("DRAW PLACEHOLDERS!");
+                CopyTilesIntoDungeonMap(node.RoomBlueprint.Placeholders_General_Tiles,
+                                        manager.DungeonMap.Placeholders_General_Map,
+                                        node.RoomPosition,
+                                        node.RoomDirection);
+
+                CopyTilesIntoDungeonMap(node.RoomBlueprint.Placeholders_Item_Tiles,
+                                        manager.DungeonMap.Placeholders_Items_Map,
+                                        node.RoomPosition,
+                                        node.RoomDirection);
+
+                CopyTilesIntoDungeonMap(node.RoomBlueprint.Placeholders_Enemy_Tiles,
+                                        manager.DungeonMap.Placeholders_Enemies_Map,
+                                        node.RoomPosition,
+                                        node.RoomDirection);
+            }
+
         }
 
 
@@ -65,7 +99,7 @@ namespace ProceduralDungeon.DungeonGeneration.Utilities
                     max = new Vector3Int(max.x, sTile.Position.y, 0);
 
 
-                pos = AdjustTileCoordsForRoomRotationAndPosition(sTile.Position, roomPos, roomDirection);
+                pos = AdjustTileCoordsForRoomPositionAndRotation(sTile.Position, roomPos, roomDirection);
 
 
                 if ((!sTile.Tile.RotateWithRoom) || roomDirection == Directions.North)
@@ -116,7 +150,7 @@ namespace ProceduralDungeon.DungeonGeneration.Utilities
         /// <param name="roomPos">The position of the tile's parent room.</param>
         /// <param name="roomDirection">The rotation direction of the tile's parent room.</param>
         /// <returns>The adjust coordinates.</returns>
-        public static Vector3Int AdjustTileCoordsForRoomRotationAndPosition(Vector3Int tilePos, Vector3Int roomPos, Directions roomDirection)
+        public static Vector3Int AdjustTileCoordsForRoomPositionAndRotation(Vector3Int tilePos, Vector3Int roomPos, Directions roomDirection)
         {
             Vector3Int pos = Vector3Int.zero;
 
@@ -124,11 +158,11 @@ namespace ProceduralDungeon.DungeonGeneration.Utilities
             if (roomDirection == Directions.North)
                 pos = tilePos;
             else if (roomDirection == Directions.East)
-                pos = new Vector3Int(tilePos.y, -tilePos.x, 0);
+                pos = new Vector3Int(tilePos.y, -tilePos.x);
             else if (roomDirection == Directions.South)
-                pos = new Vector3Int(-tilePos.x, -tilePos.y, 0);
+                pos = new Vector3Int(-tilePos.x, -tilePos.y);
             else if (roomDirection == Directions.West)
-                pos = new Vector3Int(-tilePos.y, tilePos.x, 0);
+                pos = new Vector3Int(-tilePos.y, tilePos.x);
 
 
             pos += roomPos;

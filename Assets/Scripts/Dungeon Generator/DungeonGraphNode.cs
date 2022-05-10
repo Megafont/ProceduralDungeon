@@ -14,18 +14,18 @@ namespace ProceduralDungeon.DungeonGeneration
     {
         private uint _DistanceFromStart;
         private uint _DistanceFromGoal;
-        private Vector3Int _Position; // This room's position offset relative to the origin.
-        private Directions _Direction; // Which way the room is rotated. North is no rotation. East is 90 degrees, and so on.
+        private Vector3Int _RoomPosition; // This room's position offset relative to the origin.
+        private Directions _RoomDirection; // Which way the room is rotated. North is no rotation. East is 90 degrees, and so on.
 
         private RoomData _RoomBlueprint;
         private List<DungeonGraphNode> _NeighboringRooms;
 
 
 
-        public Directions Direction { get { return _Direction; } }
         public uint DistanceFromGoal { get { return _DistanceFromGoal; } }
         public uint DistanceFromStart { get { return _DistanceFromStart; } }
-        public Vector3Int Position { get { return _Position; } }
+        public Directions RoomDirection { get { return _RoomDirection; } }
+        public Vector3Int RoomPosition { get { return _RoomPosition; } }
         public RoomData RoomBlueprint { get { return _RoomBlueprint; } }
 
 
@@ -36,9 +36,9 @@ namespace ProceduralDungeon.DungeonGeneration
 
             _NeighboringRooms = new List<DungeonGraphNode>();
 
-            _Direction = direction;
+            _RoomDirection = direction;
             _DistanceFromStart = distanceFromStart;
-            _Position = position;
+            _RoomPosition = position;
             _RoomBlueprint = roomData;
         }
 

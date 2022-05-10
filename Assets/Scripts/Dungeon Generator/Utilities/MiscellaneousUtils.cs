@@ -23,15 +23,6 @@ namespace ProceduralDungeon.DungeonGeneration.Utilities
 
     public static class MiscellaneousUtils
     {
-        public static void CopyTilesListToDictionary(List<SavedTile> srcTileList, Dictionary<Vector3Int, SavedTile> dstTileDict)
-        {
-            foreach (SavedTile sTile in srcTileList)
-            {
-                dstTileDict.Add(sTile.Position, sTile);
-            } // end foreach
-
-        }
-
         /// <summary>
         /// This function is used to adjust a rotation direction by adding another one to it.
         /// For example, it is used to adjust the direction of a door to take into account the rotation direction of the parent room.
@@ -44,9 +35,18 @@ namespace ProceduralDungeon.DungeonGeneration.Utilities
             int result = (int)direction1 + (int)direction2;
 
             if (result > (int)Directions.West)
-                result -= (int)Directions.West;
+                result -= (int)Directions.West + 1;
 
             return (Directions)result;
+        }
+
+        public static void CopyTilesListToDictionary(List<SavedTile> srcTileList, Dictionary<Vector3Int, SavedTile> dstTileDict)
+        {
+            foreach (SavedTile sTile in srcTileList)
+            {
+                dstTileDict.Add(sTile.Position, sTile);
+            } // end foreach
+
         }
 
         public static Directions FlipDirection(Directions direction)
@@ -62,6 +62,14 @@ namespace ProceduralDungeon.DungeonGeneration.Utilities
 
 
             throw new System.Exception("MiscellaneousUtils.FlipDirection() - Somehow the passed in direction is invalid!");
+        }
+
+        public static Vector3Int GetUpperLeftMostTile(Vector3Int tile1Position, Vector3Int tile2Position)
+        {
+            if (tile1Position.x < tile2Position.x || tile1Position.y > tile2Position.y)
+                return tile1Position;
+            else
+                return tile2Position;
         }
 
 

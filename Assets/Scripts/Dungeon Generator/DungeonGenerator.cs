@@ -86,12 +86,14 @@ namespace ProceduralDungeon.DungeonGeneration
             // Init the random number generators.
             InitRNG();
 
-
             // Select starting room.
-            int index = _AllRooms.Count - 2; //SelectRandomRoom();
+            int index = _AllRooms.Count - 2; // SelectRandomRoom();
+            int index2 = _AllRooms.Count - 2;
 
             // Create a new DungeonGraph with a node for the starting room.
-            _DungeonGraph = new DungeonGraph(new DungeonGraphNode(_AllRooms[index], new Vector3Int(0, 0, 0), Directions.North, 0));
+            _DungeonGraph = new DungeonGraph(new DungeonGraphNode(_AllRooms[index], new Vector3Int(0, 0), Directions.West, 0));
+
+            /*
             Vector3Int roomDoorPos = _DungeonGraph.StartNode.RoomBlueprint.DoorsList[0].Tile1Position;
             Vector3Int adjustedRoom1DoorPos = DungeonConstructionUtils.AdjustTileCoordsForRoomRotationAndPosition(roomDoorPos, Vector3Int.zero, _DungeonGraph.StartNode.Direction);
 
@@ -101,10 +103,17 @@ namespace ProceduralDungeon.DungeonGeneration
             Vector3Int room2Pos = room2DoorPos + -adjustedRoom2DoorPos;
             room2Pos += Vector3Int.right; // Move right one to fix the position when the connected room is facing south (similar to the code in DrawDoorGizmos()).
             DungeonGraphNode room2 = _DungeonGraph.AddNode(new DungeonGraphNode(_AllRooms[index], room2Pos, MiscellaneousUtils.FlipDirection(Directions.North), 1), _DungeonGraph.StartNode);
+            */
+
+
+            DungeonGraphNode newRoom = _DungeonGraph.GenerateNewRoomAndConnectToPrevious(_DungeonGraph.StartNode,
+                                                                                         _DungeonGraph.StartNode.RoomBlueprint.DoorsList[0],
+                                                                                         _AllRooms[index2],
+                                                                                         _AllRooms[index2].DoorsList[0]);
 
             // Place the starting room.            
             DungeonConstructionUtils.PlaceRoom(_DungeonTilemapManager, _DungeonGraph.StartNode);
-            DungeonConstructionUtils.PlaceRoom(_DungeonTilemapManager, room2);
+            DungeonConstructionUtils.PlaceRoom(_DungeonTilemapManager, newRoom);
         }
 
 

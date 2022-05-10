@@ -45,6 +45,23 @@ namespace ProceduralDungeon.DungeonGeneration.Utilities.PlaceholderUtilities
         };
 
 
+
+        public static Vector3Int CalculateDoorPositionFromConnectedDoor(Vector3Int doorPosition, Directions doorDirection)
+        {
+            if (doorDirection == Directions.North)
+                return new Vector3Int(doorPosition.x, doorPosition.y + 1);
+            else if (doorDirection == Directions.East)
+                return new Vector3Int(doorPosition.x + 1, doorPosition.y);
+            else if (doorDirection == Directions.South)
+                return new Vector3Int(doorPosition.x, doorPosition.y - 1);
+            else if (doorDirection == Directions.West)
+                return new Vector3Int(doorPosition.x - 1, doorPosition.y);
+
+
+            // Execution should never reach this line, but its here to stop the compiler saying not all paths return a value.
+            return Vector3Int.zero;
+        }
+
         public static void DetectDoorLocations(List<RoomData> roomsList)
         {
             Assert.IsNotNull(roomsList, "The passed in rooms list is null!");
@@ -290,7 +307,6 @@ namespace ProceduralDungeon.DungeonGeneration.Utilities.PlaceholderUtilities
 
             return result;
         }
-
 
         private static bool CheckFloorTilesAreNull(Vector3Int doorPosition, Vector3Int tile1Position, Vector3Int tile2Position, SavedTileDictionary floorTiles)
         {
