@@ -6,12 +6,12 @@ using UnityEngine;
 using UnityEngine.Assertions;
 
 using ProceduralDungeon.DungeonGeneration;
-using ProceduralDungeon.DungeonGeneration.Utilities;
-using ProceduralDungeon.DungeonGeneration.Utilities.PlaceholderUtilities;
+using ProceduralDungeon.DungeonGeneration.DungeonConstruction;
+using ProceduralDungeon.DungeonGeneration.DungeonConstruction.PlaceholderUtilities;
 using ProceduralDungeon.TileMaps;
 
 
-namespace ProceduralDungeon.DungeonGeneration
+namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 {
     /// <summary>
     /// This subclass of scriptable room is used within the dungeon generator.

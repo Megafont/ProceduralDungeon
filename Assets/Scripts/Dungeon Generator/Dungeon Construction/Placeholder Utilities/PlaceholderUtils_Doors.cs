@@ -6,13 +6,13 @@ using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Tilemaps;
 
-using ProceduralDungeon.DungeonGeneration.Utilities;
+using ProceduralDungeon.DungeonGeneration.DungeonConstruction;
 using ProceduralDungeon.TileMaps;
 
 using SavedTileDictionary = System.Collections.Generic.Dictionary<UnityEngine.Vector3Int, ProceduralDungeon.TileMaps.SavedTile>;
 
 
-namespace ProceduralDungeon.DungeonGeneration.Utilities.PlaceholderUtilities
+namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction.PlaceholderUtilities
 {
     public static class PlaceholderUtils_Doors
     {
@@ -70,8 +70,7 @@ namespace ProceduralDungeon.DungeonGeneration.Utilities.PlaceholderUtilities
             foreach (RoomData room in roomsList)
             {
                 _CurrentRoomData = room;
-                FindRoomDoors(room.Placeholders_General_Tiles, room.FloorTiles);
-
+                FindRoomDoors(room.Placeholders_General_Tiles, room.FloorTiles);                
             } // end foreach
 
         }

@@ -5,7 +5,7 @@ using System.IO;
 using UnityEditor;
 using UnityEngine;
 
-using ProceduralDungeon.DungeonGeneration.Utilities.PlaceholderUtilities;
+using ProceduralDungeon.DungeonGeneration.DungeonConstruction.PlaceholderUtilities;
 using ProceduralDungeon.RoomCreator;
 using ProceduralDungeon.TileMaps;
 
@@ -96,7 +96,7 @@ namespace ProceduralDungeon.EditorScripts
 
             if (GUILayout.Button("Compress Bounds to Fit on All Tile Maps"))
             {
-                _RoomTilemapManager.RoomMap.ShrinkAllTileMapBoundsToFit();
+                _RoomTilemapManager.RoomMap.CompressBoundsOfAllTileMaps();
             }
 
 

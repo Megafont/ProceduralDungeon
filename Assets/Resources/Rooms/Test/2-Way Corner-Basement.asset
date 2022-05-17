@@ -217,19 +217,6 @@ MonoBehaviour:
   - Position: {x: 0, y: 4, z: 0}
     Rotation: {x: 0, y: 0, z: 0, w: 1}
     Tile: {fileID: 11400000, guid: 0cdaf94bdac1af04b8ca35276bd89d51, type: 2}
-  Placeholders_General_Tiles:
-  - Position: {x: 4, y: -1, z: 0}
-    Rotation: {x: 0, y: 0, z: 0, w: 1}
-    Tile: {fileID: 11400000, guid: 66fcb8bb50e44354db04f0d5fc3c4d43, type: 2}
-  - Position: {x: 4, y: 0, z: 0}
-    Rotation: {x: 0, y: 0, z: 0, w: 1}
-    Tile: {fileID: 11400000, guid: 66fcb8bb50e44354db04f0d5fc3c4d43, type: 2}
-  - Position: {x: -1, y: 4, z: 0}
-    Rotation: {x: 0, y: 0, z: 0, w: 1}
-    Tile: {fileID: 11400000, guid: 66fcb8bb50e44354db04f0d5fc3c4d43, type: 2}
-  - Position: {x: 0, y: 4, z: 0}
-    Rotation: {x: 0, y: 0, z: 0, w: 1}
-    Tile: {fileID: 11400000, guid: 66fcb8bb50e44354db04f0d5fc3c4d43, type: 2}
   WallTiles:
   - Position: {x: -5, y: -5, z: 0}
     Rotation: {x: 1, y: 0.00000044703452, z: 0, w: 0}
@@ -327,6 +314,21 @@ MonoBehaviour:
   - Position: {x: 4, y: 4, z: 0}
     Rotation: {x: -0.00000044703452, y: 1, z: 0, w: 0}
     Tile: {fileID: 11400000, guid: e7ac5f0a715c9c64c81d71ae642e6c2b, type: 2}
+  Placeholders_General_Tiles:
+  - Position: {x: 4, y: -1, z: 0}
+    Rotation: {x: 0, y: 0, z: 0, w: 1}
+    Tile: {fileID: 11400000, guid: 66fcb8bb50e44354db04f0d5fc3c4d43, type: 2}
+  - Position: {x: 4, y: 0, z: 0}
+    Rotation: {x: 0, y: 0, z: 0, w: 1}
+    Tile: {fileID: 11400000, guid: 66fcb8bb50e44354db04f0d5fc3c4d43, type: 2}
+  - Position: {x: -1, y: 4, z: 0}
+    Rotation: {x: 0, y: 0, z: 0, w: 1}
+    Tile: {fileID: 11400000, guid: 66fcb8bb50e44354db04f0d5fc3c4d43, type: 2}
+  - Position: {x: 0, y: 4, z: 0}
+    Rotation: {x: 0, y: 0, z: 0, w: 1}
+    Tile: {fileID: 11400000, guid: 66fcb8bb50e44354db04f0d5fc3c4d43, type: 2}
+  Placeholders_Item_Tiles: []
+  Placeholders_Enemy_Tiles: []
   RoomName: 2-Way Corner-Basement
-  RoomLevel: 0
-  RoomTypeFlags: 0
+  RoomLevel: 1
+  RoomTypeFlags: 1

@@ -260,13 +260,13 @@ MonoBehaviour:
     Rotation: {x: 0, y: 0, z: 0, w: 1}
     Tile: {fileID: 11400000, guid: 0cdaf94bdac1af04b8ca35276bd89d51, type: 2}
   - Position: {x: -8, y: 4, z: 0}
-    Rotation: {x: 0, y: 0, z: -0.7071069, w: 0.7071067}
+    Rotation: {x: 0, y: 0, z: -0.7071069, w: 0.70710665}
     Tile: {fileID: 11400000, guid: 7a2bd36506ada5746bdd93facb32c87c, type: 2}
   - Position: {x: -7, y: 4, z: 0}
-    Rotation: {x: 0, y: 0, z: -0.7071069, w: 0.7071067}
+    Rotation: {x: 0, y: 0, z: -0.7071069, w: 0.70710665}
     Tile: {fileID: 11400000, guid: 7a2bd36506ada5746bdd93facb32c87c, type: 2}
   - Position: {x: -6, y: 4, z: 0}
-    Rotation: {x: 0, y: 0, z: -0.7071069, w: 0.7071067}
+    Rotation: {x: 0, y: 0, z: -0.7071069, w: 0.70710665}
     Tile: {fileID: 11400000, guid: 7a2bd36506ada5746bdd93facb32c87c, type: 2}
   - Position: {x: -5, y: 4, z: 0}
     Rotation: {x: 0, y: 0, z: 0, w: 1}
@@ -287,13 +287,13 @@ MonoBehaviour:
     Rotation: {x: 0, y: 0, z: 0, w: 1}
     Tile: {fileID: 11400000, guid: 0cdaf94bdac1af04b8ca35276bd89d51, type: 2}
   - Position: {x: -8, y: 5, z: 0}
-    Rotation: {x: 0, y: 0, z: -0.7071069, w: 0.7071067}
+    Rotation: {x: 0, y: 0, z: -0.7071069, w: 0.70710665}
     Tile: {fileID: 11400000, guid: 7a2bd36506ada5746bdd93facb32c87c, type: 2}
   - Position: {x: -7, y: 5, z: 0}
-    Rotation: {x: 0, y: 0, z: -0.7071069, w: 0.7071067}
+    Rotation: {x: 0, y: 0, z: -0.7071069, w: 0.70710665}
     Tile: {fileID: 11400000, guid: 7a2bd36506ada5746bdd93facb32c87c, type: 2}
   - Position: {x: -6, y: 5, z: 0}
-    Rotation: {x: 0, y: 0, z: -0.7071069, w: 0.7071067}
+    Rotation: {x: 0, y: 0, z: -0.7071069, w: 0.70710665}
     Tile: {fileID: 11400000, guid: 7a2bd36506ada5746bdd93facb32c87c, type: 2}
   - Position: {x: -5, y: 5, z: 0}
     Rotation: {x: 0, y: 0, z: 0, w: 1}
@@ -339,10 +339,10 @@ MonoBehaviour:
     Rotation: {x: 0, y: 0, z: 1, w: 0}
     Tile: {fileID: 11400000, guid: e7ac5f0a715c9c64c81d71ae642e6c2b, type: 2}
   - Position: {x: -1, y: -6, z: 0}
-    Rotation: {x: 0, y: 0, z: -0.7071069, w: 0.7071067}
+    Rotation: {x: 0, y: 0, z: -0.7071069, w: 0.70710665}
     Tile: {fileID: 11400000, guid: b9d56806626390e4984f842f4c90a41b, type: 2}
   - Position: {x: -1, y: -5, z: 0}
-    Rotation: {x: 0, y: 0, z: -0.7071069, w: 0.7071067}
+    Rotation: {x: 0, y: 0, z: -0.7071069, w: 0.70710665}
     Tile: {fileID: 11400000, guid: b9d56806626390e4984f842f4c90a41b, type: 2}
   - Position: {x: -10, y: -4, z: 0}
     Rotation: {x: 0, y: 0, z: 0, w: 1}
@@ -363,10 +363,10 @@ MonoBehaviour:
     Rotation: {x: 0, y: 0, z: 1, w: 0}
     Tile: {fileID: 11400000, guid: e7ac5f0a715c9c64c81d71ae642e6c2b, type: 2}
   - Position: {x: -1, y: -4, z: 0}
-    Rotation: {x: 0, y: 0, z: -0.7071069, w: 0.7071067}
+    Rotation: {x: 0, y: 0, z: -0.7071069, w: 0.70710665}
     Tile: {fileID: 11400000, guid: b9d56806626390e4984f842f4c90a41b, type: 2}
   - Position: {x: -5, y: -3, z: 0}
-    Rotation: {x: 0.70710725, y: -0.70710635, z: 0, w: 0}
+    Rotation: {x: 0.7071072, y: -0.70710635, z: 0, w: 0}
     Tile: {fileID: 11400000, guid: b9d56806626390e4984f842f4c90a41b, type: 2}
   - Position: {x: -1, y: -3, z: 0}
     Rotation: {x: 0, y: 0, z: 0, w: 1}
@@ -396,7 +396,7 @@ MonoBehaviour:
     Rotation: {x: 0, y: 0, z: 1, w: 0}
     Tile: {fileID: 11400000, guid: e7ac5f0a715c9c64c81d71ae642e6c2b, type: 2}
   - Position: {x: -5, y: -2, z: 0}
-    Rotation: {x: 0.70710725, y: -0.70710635, z: 0, w: 0}
+    Rotation: {x: 0.7071072, y: -0.70710635, z: 0, w: 0}
     Tile: {fileID: 11400000, guid: b9d56806626390e4984f842f4c90a41b, type: 2}
   - Position: {x: 7, y: -2, z: 0}
     Rotation: {x: 0, y: 0, z: 0, w: 1}
@@ -405,16 +405,16 @@ MonoBehaviour:
     Rotation: {x: 0, y: 0, z: 1, w: 0}
     Tile: {fileID: 11400000, guid: b9d56806626390e4984f842f4c90a41b, type: 2}
   - Position: {x: 9, y: -2, z: 0}
-    Rotation: {x: 0.70710635, y: 0.70710725, z: 0, w: 0}
+    Rotation: {x: 0.70710635, y: 0.7071072, z: 0, w: 0}
     Tile: {fileID: 11400000, guid: e7ac5f0a715c9c64c81d71ae642e6c2b, type: 2}
   - Position: {x: -5, y: -1, z: 0}
-    Rotation: {x: 0.70710725, y: -0.70710635, z: 0, w: 0}
+    Rotation: {x: 0.7071072, y: -0.70710635, z: 0, w: 0}
     Tile: {fileID: 11400000, guid: b9d56806626390e4984f842f4c90a41b, type: 2}
   - Position: {x: -5, y: 0, z: 0}
-    Rotation: {x: 0.70710725, y: -0.70710635, z: 0, w: 0}
+    Rotation: {x: 0.7071072, y: -0.70710635, z: 0, w: 0}
     Tile: {fileID: 11400000, guid: b9d56806626390e4984f842f4c90a41b, type: 2}
   - Position: {x: -5, y: 1, z: 0}
-    Rotation: {x: 0.70710725, y: -0.70710635, z: 0, w: 0}
+    Rotation: {x: 0.7071072, y: -0.70710635, z: 0, w: 0}
     Tile: {fileID: 11400000, guid: b9d56806626390e4984f842f4c90a41b, type: 2}
   - Position: {x: 7, y: 1, z: 0}
     Rotation: {x: 1, y: 0.00000044703452, z: 0, w: 0}
@@ -423,10 +423,10 @@ MonoBehaviour:
     Rotation: {x: -0.00000044703452, y: 1, z: 0, w: 0}
     Tile: {fileID: 11400000, guid: b9d56806626390e4984f842f4c90a41b, type: 2}
   - Position: {x: 9, y: 1, z: 0}
-    Rotation: {x: 0, y: 0, z: -0.7071069, w: 0.7071067}
+    Rotation: {x: 0, y: 0, z: -0.7071069, w: 0.70710665}
     Tile: {fileID: 11400000, guid: e7ac5f0a715c9c64c81d71ae642e6c2b, type: 2}
   - Position: {x: -5, y: 2, z: 0}
-    Rotation: {x: 0.70710725, y: -0.70710635, z: 0, w: 0}
+    Rotation: {x: 0.7071072, y: -0.70710635, z: 0, w: 0}
     Tile: {fileID: 11400000, guid: b9d56806626390e4984f842f4c90a41b, type: 2}
   - Position: {x: -1, y: 2, z: 0}
     Rotation: {x: 1, y: 0.00000044703452, z: 0, w: 0}
@@ -453,7 +453,7 @@ MonoBehaviour:
     Rotation: {x: -0.00000044703452, y: 1, z: 0, w: 0}
     Tile: {fileID: 11400000, guid: b9d56806626390e4984f842f4c90a41b, type: 2}
   - Position: {x: 7, y: 2, z: 0}
-    Rotation: {x: 0, y: 0, z: -0.7071069, w: 0.7071067}
+    Rotation: {x: 0, y: 0, z: -0.7071069, w: 0.70710665}
     Tile: {fileID: 11400000, guid: e7ac5f0a715c9c64c81d71ae642e6c2b, type: 2}
   - Position: {x: -10, y: 3, z: 0}
     Rotation: {x: 1, y: 0.00000044703452, z: 0, w: 0}
@@ -471,16 +471,16 @@ MonoBehaviour:
     Rotation: {x: 1, y: 0.00000044703452, z: 0, w: 0}
     Tile: {fileID: 11400000, guid: b9d56806626390e4984f842f4c90a41b, type: 2}
   - Position: {x: -5, y: 3, z: 0}
-    Rotation: {x: 0, y: 0, z: -0.7071069, w: 0.7071067}
+    Rotation: {x: 0, y: 0, z: -0.7071069, w: 0.70710665}
     Tile: {fileID: 11400000, guid: e7ac5f0a715c9c64c81d71ae642e6c2b, type: 2}
   - Position: {x: -1, y: 3, z: 0}
-    Rotation: {x: 0, y: 0, z: -0.7071069, w: 0.7071067}
+    Rotation: {x: 0, y: 0, z: -0.7071069, w: 0.70710665}
     Tile: {fileID: 11400000, guid: b9d56806626390e4984f842f4c90a41b, type: 2}
   - Position: {x: -1, y: 4, z: 0}
-    Rotation: {x: 0, y: 0, z: -0.7071069, w: 0.7071067}
+    Rotation: {x: 0, y: 0, z: -0.7071069, w: 0.70710665}
     Tile: {fileID: 11400000, guid: b9d56806626390e4984f842f4c90a41b, type: 2}
   - Position: {x: -1, y: 5, z: 0}
-    Rotation: {x: 0, y: 0, z: -0.7071069, w: 0.7071067}
+    Rotation: {x: 0, y: 0, z: -0.7071069, w: 0.70710665}
     Tile: {fileID: 11400000, guid: b9d56806626390e4984f842f4c90a41b, type: 2}
   - Position: {x: -10, y: 6, z: 0}
     Rotation: {x: 0, y: 0, z: 0, w: 1}
@@ -510,7 +510,7 @@ MonoBehaviour:
     Rotation: {x: 0, y: 0, z: 0, w: 1}
     Tile: {fileID: 11400000, guid: b9d56806626390e4984f842f4c90a41b, type: 2}
   - Position: {x: -1, y: 6, z: 0}
-    Rotation: {x: 0, y: 0, z: -0.7071069, w: 0.7071067}
+    Rotation: {x: 0, y: 0, z: -0.7071069, w: 0.70710665}
     Tile: {fileID: 11400000, guid: e7ac5f0a715c9c64c81d71ae642e6c2b, type: 2}
   Placeholders_General_Tiles:
   - Position: {x: -10, y: -6, z: 0}
@@ -534,5 +534,5 @@ MonoBehaviour:
   Placeholders_Item_Tiles: []
   Placeholders_Enemy_Tiles: []
   RoomName: 3-Way_ToBasement-1stFloor
-  RoomLevel: 1
+  RoomLevel: 2
   RoomTypeFlags: 0

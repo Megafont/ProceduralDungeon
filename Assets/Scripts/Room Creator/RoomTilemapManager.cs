@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Tilemaps;
 
-using ProceduralDungeon.DungeonGeneration.Utilities.PlaceholderUtilities;
+using ProceduralDungeon.DungeonGeneration.DungeonConstruction.PlaceholderUtilities;
 using ProceduralDungeon.TileMaps;
 
 
@@ -16,6 +16,11 @@ namespace ProceduralDungeon.RoomCreator
     [ExecuteInEditMode]
     public class RoomTilemapManager : MonoBehaviour
     {
+
+        // *********************************************************************************************************************************************
+        // * NOTE: Properties added to this class will not show up in the Unity Inspector until you add them to the RoomTilemapManagerEditor class!    *
+        // *********************************************************************************************************************************************
+
         [SerializeField] private Tilemap _FloorsMap;
         [SerializeField] private Tilemap _WallsMap;
         [SerializeField] private Tilemap _Placeholders_General_Map; // Holds special placeholder tiles used by the dungeon generator to tell it where it should place certain types of objects.

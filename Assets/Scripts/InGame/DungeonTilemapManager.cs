@@ -7,6 +7,8 @@ using UnityEngine.Assertions;
 using UnityEngine.Tilemaps;
 
 using ProceduralDungeon.DungeonGeneration;
+using ProceduralDungeon.DungeonGeneration.DungeonConstruction;
+using ProceduralDungeon.DungeonGeneration.MissionStructureGeneration;
 using ProceduralDungeon.TileMaps;
 
 
@@ -15,6 +17,11 @@ namespace ProceduralDungeon.InGame
     [ExecuteInEditMode]
     public class DungeonTilemapManager : MonoBehaviour
     {
+
+        // *********************************************************************************************************************************************
+        // * NOTE: Properties added to this class will not show up in the Unity Inspector until you add them to the DungeonTilemapManagerEditor class! *
+        // *********************************************************************************************************************************************
+
         [SerializeField] private Tilemap _FloorsMap;
         [SerializeField] private Tilemap _WallsMap;
         [SerializeField] private Tilemap _Placeholders_General_Map; // Holds special placeholder tiles used by the dungeon generator to tell it where it should place certain types of objects.
@@ -22,15 +29,14 @@ namespace ProceduralDungeon.InGame
         [SerializeField] private Tilemap _Placeholders_Enemies_Map;
 
 
-        [Header("Dungeon Generation Parameters")]
 
-        // Determines which folder a room will be saved/loaded to/from.
-        [SerializeField] public RoomSets _RoomSet;
+        [SerializeField] private GameObject _Player;
 
-        [SerializeField] public int _MaxRooms = 20;
+        [SerializeField] private RoomSets _RoomSet; // Determines which folder a room will be saved/loaded to/from.
 
 
 
+        public GameObject Player { get { return _Player; } }
         public string RoomSet { get { return Enum.GetName(typeof(RoomSets), _RoomSet); } }
 
 
@@ -61,16 +67,37 @@ namespace ProceduralDungeon.InGame
         void OnDrawGizmos()
         {
             if (DungeonGenerator.IsInitialized)
+            {
                 DungeonGizmos.DrawDungeonGizmos();
+                MissionStructureGraphGizmos.DrawDungeonGraphGizmos();
+            }
         }
 
+
+        public void PositionPlayerByStartDoor(Vector3 startDoorPos, Directions startDoorDirection)
+        {
+            Vector3 playerPos = startDoorPos;
+
+
+            // Shift the player position so he appears properly inside the door.
+            // The passed in position is the lower-left corner of the upper-left-most of the two door tiles.
+            if (startDoorDirection == Directions.North)
+                playerPos += new Vector3(1, -1, 0);
+            else if (startDoorDirection == Directions.East)
+                playerPos += Vector3.left;
+            else if (startDoorDirection == Directions.South)
+                playerPos += new Vector3(1, 2, 0);
+            else if (startDoorDirection == Directions.West)
+                playerPos += new Vector3(2, 0, 0);
+
+
+            _Player.transform.position = playerPos;
+        }
 
         private void InitDungeonMap()
         {
             _DungeonMap = new DungeonMap(_FloorsMap, _WallsMap, _Placeholders_General_Map, _Placeholders_Items_Map, _Placeholders_Enemies_Map);
         }
-
-
 
         public DungeonMap DungeonMap
         {

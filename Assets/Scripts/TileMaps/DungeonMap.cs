@@ -30,9 +30,6 @@ namespace ProceduralDungeon.TileMaps
         private Tilemap _Placeholders_General_Map;
 
 
-        private bool _ErrorOccurred;
-
-
 
         public DungeonMap(Tilemap floors, Tilemap walls, Tilemap placeholders_General, Tilemap placeholders_Items, Tilemap placeholders_Enemies)
         {
@@ -133,7 +130,7 @@ namespace ProceduralDungeon.TileMaps
             return !hadError;
         }
 
-        public void ShrinkAllTileMapBoundsToFit()
+        public void CompressBoundsOfAllTileMaps()
         {
             _FloorsMap.CompressBounds();
             _WallsMap.CompressBounds();

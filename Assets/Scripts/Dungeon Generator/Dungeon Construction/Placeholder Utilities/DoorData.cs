@@ -3,12 +3,18 @@ using UnityEngine;
 using ProceduralDungeon.TileMaps;
 
 
-namespace ProceduralDungeon.DungeonGeneration.Utilities.PlaceholderUtilities
+namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction.PlaceholderUtilities
 {
     public struct DoorData
     {
         public Directions DoorDirection; // The direction this door is facing.
         public RoomLevels DoorLevel; // The level this door is on.
+
+
+
+        private Vector3Int _TilePosition1;
+        private Vector3Int _TilePosition2;
+
 
 
         // These properties get the positions of the two tiles of this door. 
@@ -42,10 +48,6 @@ namespace ProceduralDungeon.DungeonGeneration.Utilities.PlaceholderUtilities
             _TilePosition2 = tilePosition2;
         }
 
-
-
-        private Vector3Int _TilePosition1;
-        private Vector3Int _TilePosition2;
 
     }
 

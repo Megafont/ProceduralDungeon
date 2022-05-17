@@ -6,8 +6,10 @@ using UnityEngine.Tilemaps;
 
 using ProceduralDungeon.DungeonGeneration;
 using ProceduralDungeon.TileMaps;
-using ProceduralDungeon.DungeonGeneration.Utilities;
-using ProceduralDungeon.DungeonGeneration.Utilities.PlaceholderUtilities;
+using ProceduralDungeon.DungeonGeneration.DungeonConstruction;
+using ProceduralDungeon.DungeonGeneration.DungeonConstruction.PlaceholderUtilities;
+using ProceduralDungeon.DungeonGeneration.DungeonGraphGeneration;
+using ProceduralDungeon.DungeonGeneration.MissionStructureGeneration;
 
 
 using SavedTileDictionary = System.Collections.Generic.Dictionary<UnityEngine.Vector3Int, ProceduralDungeon.TileMaps.SavedTile>;
@@ -28,6 +30,10 @@ namespace ProceduralDungeon.DungeonGeneration
 
         public static void DrawDungeonGizmos()
         {
+            if (!DungeonGenerator.IsInitialized || DungeonGenerator.DungeonGraph == null || DungeonGenerator.DungeonGraph.Nodes.Count < 1)
+                return;
+
+
             if (ENABLE_DUNGEON_GIZMOS)
             {
                 if (ENABLE_DOOR_GIZMOS)
@@ -40,7 +46,12 @@ namespace ProceduralDungeon.DungeonGeneration
         {
             foreach (DungeonGraphNode node in DungeonGenerator.DungeonGraph.Nodes)
             {
+                if (node.RoomBlueprint == null)
+                    continue;
+
                 SavedTileDictionary placeholders_general_map = node.RoomBlueprint.Placeholders_General_Tiles;
+
+
                 foreach (DoorData doorData in node.RoomBlueprint.DoorsList)
                 {
                     // Get and adjust the positions of the door tiles to take into account the position and rotation of the parent room.
@@ -94,9 +105,10 @@ namespace ProceduralDungeon.DungeonGeneration
 
                     // Draw door outline
                     // ----------------------------------------------------------------------------------------------------
-                    //Gizmos.color = new Color32(127, 51, 0, 255); // brown
-                    Gizmos.color = new Color32(0, 255, 255, 255); // cyan
+                    Gizmos.color = new Color32(127, 51, 0, 255); // brown
+                    //Gizmos.color = new Color32(0, 255, 255, 255); // cyan
 
+                    // Draw a box around the two tiles of the door.
                     Gizmos.DrawLine(new Vector3(minX, minY, 0), new Vector3(maxX, minY, 0)); // Top
                     Gizmos.DrawLine(new Vector3(minX, maxY, 0), new Vector3(maxX, maxY, 0)); // Bottom
                     Gizmos.DrawLine(new Vector3(minX, minY, 0), new Vector3(minX, maxY, 0)); // Left
@@ -120,6 +132,7 @@ namespace ProceduralDungeon.DungeonGeneration
                 }
 
             } // end foreach doorData
+
 
         } // end foreach rData
 

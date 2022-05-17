@@ -22,6 +22,7 @@ namespace ProceduralDungeon.TileMaps
     /// </summary>
     public enum RoomLevels
     {
+        Level_AnyFloor = 0,
         Level_Basement,
         Level_1stFloor,
         Level_2ndFloor
@@ -42,9 +43,9 @@ namespace ProceduralDungeon.TileMaps
     [Flags]
     public enum RoomTypeFlags
     {
-        Start = 1,
-        Goal = 2,
-        Treasure = 4,
+        CanBeStart = 1,
+        CanBeGoal = 2,
+        CanHaveTreasure = 4,
 
 
         Miniboss = 1024,

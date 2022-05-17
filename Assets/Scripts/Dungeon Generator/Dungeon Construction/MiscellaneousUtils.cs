@@ -9,7 +9,7 @@ using ProceduralDungeon.InGame;
 using ProceduralDungeon.TileMaps;
 
 
-namespace ProceduralDungeon.DungeonGeneration.Utilities
+namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 {
     public enum Directions
     {

@@ -26,6 +26,10 @@ namespace ProceduralDungeon.EditorScripts
         SerializedProperty _WallsMap;
 
 
+        SerializedProperty _Player;
+        SerializedProperty _RoomSet;
+
+
 
         void OnEnable()
         {
@@ -37,6 +41,9 @@ namespace ProceduralDungeon.EditorScripts
             _Placeholders_General_Map = serializedObject.FindProperty("_Placeholders_General_Map");
             _Placeholders_Items_Map = serializedObject.FindProperty("_Placeholders_Items_Map");
             _Placeholders_Enemies_Map = serializedObject.FindProperty("_Placeholders_Enemies_Map");
+
+            _Player = serializedObject.FindProperty("_Player");
+            _RoomSet = serializedObject.FindProperty("_RoomSet");
         }
 
 
@@ -62,6 +69,16 @@ namespace ProceduralDungeon.EditorScripts
 
 
 
+            // Dungeon Generation Parameters
+            // ----------------------------------------------------------------------------------------------------
+
+            EditorGUILayout.LabelField("Dungeon Generation Settings", EditorStyles.boldLabel);
+
+            EditorGUILayout.PropertyField(_Player);
+            EditorGUILayout.PropertyField(_RoomSet);
+
+
+
             // Commands section
             // ----------------------------------------------------------------------------------------------------
 
@@ -77,7 +94,7 @@ namespace ProceduralDungeon.EditorScripts
 
             if (GUILayout.Button("Compress Bounds to Fit on All Tile Maps"))
             {
-                _DungeonTilemapManager.DungeonMap.ShrinkAllTileMapBoundsToFit();
+                _DungeonTilemapManager.DungeonMap.CompressBoundsOfAllTileMaps();
             }
 
 

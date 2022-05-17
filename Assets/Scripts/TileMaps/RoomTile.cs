@@ -18,6 +18,11 @@ namespace ProceduralDungeon.TileMaps
     [CreateAssetMenu(fileName = "New Room Tile", menuName = "2D/Tiles/Room Tile")]
     public class RoomTile : Tile
     {
+
+        // *********************************************************************************************************************************************
+        // * NOTE: Properties added to this class must also be added to the RoomTileEditor class to get them to show up in the Unity Inspector!        *
+        // *********************************************************************************************************************************************
+
         [SerializeField]
         public bool RotateWithRoom = true;
 
