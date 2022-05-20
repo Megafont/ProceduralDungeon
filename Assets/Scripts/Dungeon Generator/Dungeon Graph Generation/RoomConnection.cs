@@ -17,11 +17,11 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonGraphGeneration
     /// </summary>
     public class DungeonDoor
     {
-        public uint ParentRoom_DoorIndex; // The index of the door in the current room.
-        public DungeonGraphNode ParentRoom_Node; // A reference to the DungeonGraphNode of the current room.
+        public uint ThisRoom_DoorIndex; // The index of the door in the current room.
+        public DungeonGraphNode ThisRoom_Node; // A reference to the DungeonGraphNode of the current room.
 
-        public uint ChildRoom_DoorIndex; // The index of the connected door on the connected room.
-        public DungeonGraphNode ChildRoom_Node; // A reference to the DungeonGraphNode of the connected room.
+        public uint OtherRoom_DoorIndex; // The index of the connected door on the connected room.
+        public DungeonGraphNode OtherRoom_Node; // A reference to the DungeonGraphNode of the connected room.
 
         public DungeonDoorFlags Flags; // Holds flags defining characterics of this room connection.
 

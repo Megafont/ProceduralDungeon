@@ -70,7 +70,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction.PlaceholderUti
             foreach (RoomData room in roomsList)
             {
                 _CurrentRoomData = room;
-                FindRoomDoors(room.Placeholders_General_Tiles, room.FloorTiles);                
+                FindRoomDoors(room.Placeholders_General_Tiles, room.FloorTiles);
             } // end foreach
 
         }
@@ -194,7 +194,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction.PlaceholderUti
                 door.DoorLevel = RoomLevels.Level_Basement;
             else if (sTile.Tile.TileType == RoomTileTypes.Placeholders_Doors_1stFloor)
                 door.DoorLevel = RoomLevels.Level_1stFloor;
-            else if (sTile.Tile.TileType == RoomTileTypes.Floors_2ndFloor)
+            else if (sTile.Tile.TileType == RoomTileTypes.Placeholders_Doors_2ndFloor)
                 door.DoorLevel = RoomLevels.Level_2ndFloor;
 
 
@@ -251,6 +251,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction.PlaceholderUti
             if (floorTile1Level != door.DoorLevel || floorTile2Level != door.DoorLevel)
             {
                 Debug.LogError($"PlaceholderUtility_Doors.CheckFloorLevelAtDoor() - The door placeholder at {door.Tile1Position} is on one or more floor tiles that are not associated with the same level as the door!");
+                //Debug.Log($"DoorLevel: \"{door.DoorLevel}\"    Tile1 Level: \"{floorTile1Level}\"    Tile2 Level: \"{floorTile2Level}\"");
                 _ErrorOccurred = true;
             }
         }

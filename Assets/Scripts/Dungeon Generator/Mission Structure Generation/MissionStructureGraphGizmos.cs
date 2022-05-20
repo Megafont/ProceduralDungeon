@@ -12,6 +12,7 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
     {
         // This overrides all other constants below.
         public const bool ENABLE_MISSION_STRUCTURE_GRAPH_GIZMOS = true;
+        public const bool ENABLE_SNAPPING_GIZMOS_TO_GENERATED_ROOMS = true;
 
 
         private static List<Vector3> _CirclePoints;
@@ -27,8 +28,9 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
 
         private static float _NodeDoubleLinesGap = 0.3f; // How big the gap between double lines is.
         private static Vector2 _NodeGap = new Vector2(5, 3); // Spacing of the drawn nodes on the x and y dimensions. This defines the size of the gaps between nodes.
+        private static float _NodeRadius = 0.5f; // The radius of a node drawn in the gizmo drawings.
         private static Vector3 _NodeOffset = new Vector3(0, 0, 0); // Defines how much the entire mission structure node graph is offset when drawn.
-        private static Vector3 _NodeTextOffset = new Vector3(-0.5f, -0.75f); // Defines how much the node text is offset from the center of the node.
+        private static Vector3 _NodeTextOffset = new Vector3(-_NodeRadius, -_NodeRadius * 1.25f); // Defines how much the node text is offset from the center of the node.
         private static Color32 _NodeTextColor = Color.white;
         private static Color32 _NonTerminalNodeColor = new Color32(255, 191, 0, 255); // Light Orange
         private static Color32 _TerminalNodeColor = new Color32(255, 128, 0, 255); // Orange
@@ -60,7 +62,11 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
         {
             foreach (MissionStructureGraphNode node in DungeonGenerator.MissionStructureGraph.Nodes)
             {
-                Vector3 nodePos = new Vector3(node.Position.x * _NodeGap.x, node.Position.y * _NodeGap.y) + _NodeOffset;
+                Vector3 nodePos = Vector3.zero;
+                if (node.DungeonRoomNode != null && ENABLE_SNAPPING_GIZMOS_TO_GENERATED_ROOMS)
+                    nodePos = node.DungeonRoomNode.RoomCenterPoint;
+                else
+                    nodePos = new Vector3(node.Position.x * _NodeGap.x, node.Position.y * _NodeGap.y) + _NodeOffset;
 
 
                 Color32 color = GetColor(node.GrammarSymbol);
@@ -84,30 +90,49 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
                          "Node:  " + Enum.GetName(typeof(GenerativeGrammar.Symbols), node.GrammarSymbol));
 
 
-                // Draw the lines between the nodes.
-                Vector3 doubleLinesOffset = Vector3.up * (_NodeDoubleLinesGap * 0.5f);
 
                 foreach (MissionStructureGraphNode childNode in node.ChildNodes)
                 {
-                    Vector3 childNodePos = new Vector3(childNode.Position.x * _NodeGap.x, childNode.Position.y * _NodeGap.y) + _NodeOffset;
+                    Vector3 childNodePos = Vector3.zero;
+                    if (childNode.DungeonRoomNode != null && ENABLE_SNAPPING_GIZMOS_TO_GENERATED_ROOMS)
+                        childNodePos = childNode.DungeonRoomNode.RoomCenterPoint;
+                    else
+                        childNodePos = new Vector3(childNode.Position.x * _NodeGap.x, childNode.Position.y * _NodeGap.y) + _NodeOffset;
+
+
+                    Vector3 startPos = nodePos;
+                    Vector3 endPos = childNodePos;
+                    Vector3 direction = endPos - startPos;
+                    direction.Normalize();
+                    direction *= _NodeRadius; // Make the vector length equal to the radius of a node circle in the gizmo drawings.
+
+                    startPos += direction;
+                    endPos -= direction;
+
+
 
                     if (!childNode.IsTightlyCoupled)
                     {
                         // The child node is not tightly coupled to its parent, so draw a single line connecting them.
-                        DrawArrowLine(nodePos + Vector3.right * 0.5f,
-                                      childNodePos + Vector3.left * 0.5f,
+                        DrawArrowLine(startPos,
+                                      endPos,
                                       color);
                     }
                     else
                     {
+                        // Calculate arrow head end points.
+                        Vector3 perpendicularOffset = Quaternion.Euler(0f, 0f, 90f) * direction;
+                        perpendicularOffset.Normalize();
+                        perpendicularOffset *= _NodeDoubleLinesGap / 2;
+
                         // If the child node is tightly coupled to its parent, then draw double lines connecting them rather than a single line.
                         // This is just like the diagrams in the generative grammars for dungeon generation paper linked in GenerativeGrammar.cs.
-                        DrawArrowLine((nodePos + Vector3.right * 0.5f) + doubleLinesOffset,
-                                      (childNodePos + Vector3.left * 0.5f) + doubleLinesOffset,
+                        DrawArrowLine(startPos + perpendicularOffset,
+                                      endPos + perpendicularOffset,
                                       color);
 
-                        DrawArrowLine((nodePos + Vector3.right * 0.5f) - doubleLinesOffset,
-                                      (childNodePos + Vector3.left * 0.5f) - doubleLinesOffset,
+                        DrawArrowLine(startPos - perpendicularOffset,
+                                      endPos - perpendicularOffset,
                                       color);
                     }
 
@@ -122,8 +147,8 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
         {
             Gizmos.color = color;
 
-            Vector3 upperLeft = new Vector3(pos.x - 0.5f, pos.y + 0.5f);
-            Vector4 lowerRight = new Vector3(pos.x + 0.5f, pos.y - 0.5f);
+            Vector3 upperLeft = new Vector3(pos.x - _NodeRadius, pos.y + _NodeRadius);
+            Vector4 lowerRight = new Vector3(pos.x + _NodeRadius, pos.y - _NodeRadius);
 
             Gizmos.DrawLine(new Vector3(upperLeft.x, upperLeft.y), new Vector3(lowerRight.x, upperLeft.y));   // Top side
             Gizmos.DrawLine(new Vector3(upperLeft.x, lowerRight.y), new Vector3(lowerRight.x, lowerRight.y)); // Bottom side
@@ -219,19 +244,19 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
             _Colors.Add(GenerativeGrammar.Symbols.T_Goal, Color.green);
             _Colors.Add(GenerativeGrammar.Symbols.T_Boss_Main, Color.red);
             _Colors.Add(GenerativeGrammar.Symbols.T_Boss_Mini, new Color32(179, 0, 0, 255));
-            _Colors.Add(GenerativeGrammar.Symbols.T_Lock, new Color32(0, 128, 32, 255));
+            _Colors.Add(GenerativeGrammar.Symbols.T_Lock, new Color32(0, 180, 32, 255));
             _Colors.Add(GenerativeGrammar.Symbols.T_Lock_Goal, new Color32(102, 0, 0, 255));
-            _Colors.Add(GenerativeGrammar.Symbols.T_Lock_Multi, new Color32(0, 128, 32, 255));
+            _Colors.Add(GenerativeGrammar.Symbols.T_Lock_Multi, new Color32(0, 180, 90, 255));
             _Colors.Add(GenerativeGrammar.Symbols.T_Treasure_Bonus, Color.yellow);
             _Colors.Add(GenerativeGrammar.Symbols.T_Treasure_Key_Goal, Color.cyan);
             _Colors.Add(GenerativeGrammar.Symbols.T_Treasure_Key, new Color32(0, 153, 204, 255));
             _Colors.Add(GenerativeGrammar.Symbols.T_Treasure_Key_Multipart, new Color32(0, 153, 204, 255));
             _Colors.Add(GenerativeGrammar.Symbols.T_Treasure_MainDungeonItem, Color.blue);
-            _Colors.Add(GenerativeGrammar.Symbols.T_Test, new Color32(77, 0, 153, 255));
-            _Colors.Add(GenerativeGrammar.Symbols.T_Test_Combat, new Color32(77, 0, 153, 255));
-            _Colors.Add(GenerativeGrammar.Symbols.T_Test_MainDungeonItem, new Color32(0, 0, 153, 255));
-            _Colors.Add(GenerativeGrammar.Symbols.T_Test_PreviousItem, new Color32(77, 0, 153, 255));
-            _Colors.Add(GenerativeGrammar.Symbols.T_Test_Secret, new Color32(77, 0, 153, 255));
+            _Colors.Add(GenerativeGrammar.Symbols.T_Test, new Color32(255, 0, 255, 255));
+            _Colors.Add(GenerativeGrammar.Symbols.T_Test_Combat, new Color32(255, 0, 255, 255));
+            _Colors.Add(GenerativeGrammar.Symbols.T_Test_MainDungeonItem, new Color32(0, 0, 180, 255));
+            _Colors.Add(GenerativeGrammar.Symbols.T_Test_PreviousItem, new Color32(255, 0, 255, 255));
+            _Colors.Add(GenerativeGrammar.Symbols.T_Test_Secret, new Color32(180, 0, 180, 255));
 
 
 
@@ -241,7 +266,7 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
         {
             _CirclePoints = new List<Vector3>();
 
-            Vector3 vector = Vector3.right * 0.5f;
+            Vector3 vector = Vector3.right * _NodeRadius;
             float rotationIncrement = 360f / _CirclePointCount;
 
             for (int i = 0; i < _CirclePointCount; i++)

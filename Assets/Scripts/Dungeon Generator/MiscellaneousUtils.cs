@@ -5,11 +5,12 @@ using UnityEngine;
 using UnityEngine.Tilemaps;
 
 using ProceduralDungeon.DungeonGeneration;
+using ProceduralDungeon.DungeonGeneration.MissionStructureGeneration;
 using ProceduralDungeon.InGame;
 using ProceduralDungeon.TileMaps;
 
 
-namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
+namespace ProceduralDungeon.DungeonGeneration
 {
     public enum Directions
     {
@@ -70,6 +71,17 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
                 return tile1Position;
             else
                 return tile2Position;
+        }
+
+        public static void AddChildNodesToQueue(Queue<MissionStructureGraphNode> queue, MissionStructureGraphNode node)
+        {
+            foreach (MissionStructureGraphNode childNode in node.ChildNodes)
+            {
+                // Check that the node is not already in the queue. If the same node gets in the queue
+                // multiple times it can cause us to get stuck in an infinite loop and lock up the Unity Editor.
+                if (!queue.Contains(childNode))
+                    queue.Enqueue(childNode);
+            }
         }
 
 

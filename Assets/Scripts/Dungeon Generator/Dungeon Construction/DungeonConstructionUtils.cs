@@ -8,6 +8,7 @@ using UnityEngine.Tilemaps;
 using ProceduralDungeon.DungeonGeneration.DungeonConstruction;
 using ProceduralDungeon.DungeonGeneration.DungeonConstruction.PlaceholderUtilities;
 using ProceduralDungeon.DungeonGeneration.DungeonGraphGeneration;
+using ProceduralDungeon.DungeonGeneration.MissionStructureGeneration;
 using ProceduralDungeon.InGame;
 using ProceduralDungeon.TileMaps;
 
@@ -17,6 +18,10 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 {
     public static class DungeonConstructionUtils
     {
+        private static bool _RecordMinAndMax;
+        private static float _MinX, _MinY;
+        private static float _MaxX, _MaxY;
+
         private static Quaternion[] _Rotations = { Quaternion.Euler(0, 0, 0f),
                                                    Quaternion.Euler(0, 0, 90f),
                                                    Quaternion.Euler(0, 0, 180f),
@@ -30,67 +35,33 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             int west = (int)Directions.West;
 
             if (result < 0)
-                result = west + result;
+                result += west + 1;
 
             if (result > west)
                 result -= west;
+
 
             //Debug.Log($"CurDir {currentDoorDirection}    TarDir {targetDoorDirection}    Result {(Directions)result}");
             return (Directions)result;
         }
 
-        public static void PlaceRoomTiles(DungeonTilemapManager manager, DungeonGraphNode node)
-        {
-            //Debug.Log("DRAW FLOOR:");
-            CopyTilesIntoDungeonMap(node.RoomBlueprint.FloorTiles,
-                                    manager.DungeonMap.FloorsMap,
-                                    node.RoomPosition,
-                                    node.RoomDirection);
-
-            //Debug.Log("DRAW WALLS:");
-            CopyTilesIntoDungeonMap(node.RoomBlueprint.WallTiles,
-                                    manager.DungeonMap.WallsMap,
-                                    node.RoomPosition,
-                                    node.RoomDirection);
-
-
-            if (!Application.isPlaying) // Only include the placeholders if the dungeon generator is running in Unity's edit mode.
-            {
-                //Debug.Log("DRAW PLACEHOLDERS!");
-                CopyTilesIntoDungeonMap(node.RoomBlueprint.Placeholders_General_Tiles,
-                                        manager.DungeonMap.Placeholders_General_Map,
-                                        node.RoomPosition,
-                                        node.RoomDirection);
-
-                CopyTilesIntoDungeonMap(node.RoomBlueprint.Placeholders_Item_Tiles,
-                                        manager.DungeonMap.Placeholders_Items_Map,
-                                        node.RoomPosition,
-                                        node.RoomDirection);
-
-                CopyTilesIntoDungeonMap(node.RoomBlueprint.Placeholders_Enemy_Tiles,
-                                        manager.DungeonMap.Placeholders_Enemies_Map,
-                                        node.RoomPosition,
-                                        node.RoomDirection);
-            }
-
-        }
-
         /// <summary>
         /// Creates a new room using the specified RoomData (blueprint) and connects it to the specified door on a previous room.
         /// </summary>
-        /// <param name="previousRoom">The room to connect the new room to.</param>
-        /// <param name="previousRoomDoor">The door on this room to connect the new room to.</param>
-        /// <param name="roomToConnect">A RoomData object containing the blueprint of the new room.</param>
+        /// <param name="parentRoom">The room to connect the new room to.</param>
+        /// <param name="parentRoomDoor">The door on this room to connect the new room to.</param>
+        /// <param name="room2Data">A RoomData object containing the blueprint of the new room.</param>
         /// <param name="room2Door">The door on the new room to connect to the specified door on the previous room.</param>
+        /// <param name="room2MissionStructureNode">The MissionStructureNode that room 2 is being generated from.
         /// <returns>A DungeonGraphNode object for the newly generated room.</returns>
-        public static DungeonGraphNode GenerateNewRoomAndConnectToPrevious(DungeonGraphNode previousRoom, DoorData previousRoomDoor, RoomData roomToConnect, DoorData room2Door)
+        public static DungeonGraphNode CreateNewRoomConnectedToPrevious(DungeonGraphNode parentRoom, DoorData parentRoomDoor, RoomData room2Data, DoorData room2Door, MissionStructureGraphNode room2MissionStructureNode = null)
         {
             // Get the direction of the door on room 1 and adjust it to take into account that room's rotation direction.
-            Directions room1Door_AdjustedDirection = MiscellaneousUtils.AddRotationDirectionsTogether(previousRoomDoor.DoorDirection, previousRoom.RoomDirection);
+            Directions room1Door_AdjustedDirection = MiscellaneousUtils.AddRotationDirectionsTogether(parentRoomDoor.DoorDirection, parentRoom.RoomDirection);
 
             // Get the coordinates of both tiles of the previous room's door and adjust them to take into account the room's rotation direction.
-            Vector3Int room1Door_Tile1AdjustedLocalPos = DungeonConstructionUtils.AdjustTileCoordsForRoomPositionAndRotation(previousRoomDoor.Tile1Position, previousRoom.RoomPosition, previousRoom.RoomDirection);
-            Vector3Int room1Door_Tile2AdjustedLocalPos = DungeonConstructionUtils.AdjustTileCoordsForRoomPositionAndRotation(previousRoomDoor.Tile2Position, previousRoom.RoomPosition, previousRoom.RoomDirection);
+            Vector3Int room1Door_Tile1AdjustedLocalPos = DungeonConstructionUtils.AdjustTileCoordsForRoomPositionAndRotation(parentRoomDoor.Tile1Position, parentRoom.RoomPosition, parentRoom.RoomDirection);
+            Vector3Int room1Door_Tile2AdjustedLocalPos = DungeonConstructionUtils.AdjustTileCoordsForRoomPositionAndRotation(parentRoomDoor.Tile2Position, parentRoom.RoomPosition, parentRoom.RoomDirection);
 
             // Get the upper-left-most of the two adjusted tile positions.
             Vector3Int room1Door_AdjustedLocalPos = MiscellaneousUtils.GetUpperLeftMostTile(room1Door_Tile1AdjustedLocalPos, room1Door_Tile2AdjustedLocalPos);
@@ -98,10 +69,10 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
 
             // Get the direction the new room's door needs to face to be able to connect to the specified door on the first room.
-            Directions room2DoorTargetDirection = MiscellaneousUtils.FlipDirection(room1Door_AdjustedDirection);
+            Directions room2Door_TargetDirection = MiscellaneousUtils.FlipDirection(room1Door_AdjustedDirection);
 
             // Figure out the rotation of the new room based on the direction the door being connected needs to face to connect properly.
-            Directions room2Direction = DungeonConstructionUtils.CalculateRoomRotationFromDoorRotation(room2Door.DoorDirection, room2DoorTargetDirection);
+            Directions room2Direction = DungeonConstructionUtils.CalculateRoomRotationFromDoorRotation(room2Door.DoorDirection, room2Door_TargetDirection);
 
 
 
@@ -115,35 +86,162 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
 
             // Calculate the position of the new room's door based on the position of the door it is connecting to.
-            Vector3Int room2Door_WorldPos = PlaceholderUtils_Doors.CalculateDoorPositionFromConnectedDoor(room1Door_AdjustedLocalPos + previousRoom.RoomPosition, room1Door_AdjustedDirection);
+            Vector3Int room2Door_WorldPos = PlaceholderUtils_Doors.CalculateDoorPositionFromConnectedDoor(room1Door_AdjustedLocalPos, room1Door_AdjustedDirection);
 
             // Calculate the position of the new room based on the 1st room's door.
             Vector3Int room2Pos = room2Door_WorldPos + -room2Door_AdjustedLocalPos;
 
-
+            Debug.Log($"Room1: \"{parentRoom.RoomBlueprint.RoomName}\"    Room1 Pos: {parentRoom.RoomPosition}     Room1 Dir: {parentRoom.RoomDirection}    Room1 Door Pos: {room1Door_AdjustedLocalPos}    Room1 Door Dir: {parentRoomDoor.DoorDirection} to {room1Door_AdjustedDirection}");
+            Debug.Log($"Room2: \"{room2Data.RoomName}\"    Room2 Pos: {room2Pos}    Room2 Direction: {room2Direction}    Room2 Door Pos: {room2Door_WorldPos}  Room2 Door Dir: {room2Door.DoorDirection} to {room2Door_TargetDirection}");
 
             // Create a DungeonGraphNode for the new room and add it to the dungeon graph.
-            //DungeonGraphNode newNode = new DungeonGraphNode(roomToConnect, room2Pos, room2Direction, previousRoom.DistanceFromStart + 1);
-            //AddNode(newNode, previousRoom);
+            DungeonGraphNode newNode = new DungeonGraphNode(parentRoom,
+                                                            room2Data,
+                                                            room2Pos,
+                                                            room2Direction,
+                                                            room2MissionStructureNode);
 
 
             // Return the new node to the calling code.
-            return null;
+            return newNode;
 
         }
 
-        private static void CopyTilesIntoDungeonMap(Dictionary<Vector3Int, SavedTile> src, Tilemap dst, Vector3Int roomPos, Directions roomDirection)
+        /// <summary>
+        /// Checks if the current room will collide with an already constructed room in the dungeon map.
+        /// </summary>
+        /// <param name="manager">The dungeon tile map manager.</param>
+        /// <param name="roomNode">The DungeonGraphNode of the room in question.</param>
+        /// <param name="roomFromTileDict">The dungeon generator's tracking dictionary that associates tiles with the rooms they belong to.</param>
+        /// <returns>True if a collision was found or false otherwise.</returns>
+        public static bool CheckForRoomCollision(DungeonTilemapManager manager, DungeonGraphNode roomNode, Dictionary<Vector3Int, DungeonGraphNode> roomFromTileDict)
+        {
+            bool result1;
+            bool result2;
+
+            //Debug.Log("DRAW FLOOR:");
+            result1 = CheckForTileCollisions(roomNode.RoomBlueprint.FloorTiles,
+                                             manager.DungeonMap.FloorsMap,
+                                             roomNode,
+                                             roomFromTileDict);
+
+            //Debug.Log("DRAW WALLS:");
+            result2 = CheckForTileCollisions(roomNode.RoomBlueprint.WallTiles,
+                                             manager.DungeonMap.WallsMap,
+                                             roomNode,
+                                             roomFromTileDict);
+
+
+            // If any collisions were found, return true.
+            return (result1 || result2);
+
+        }
+
+        /// <summary>
+        /// Copies tiles into the dungeon map.
+        /// </summary>
+        /// <param name="src">The source data to copy tiles from.</param>
+        /// <param name="dst">The Tilemap to copy the tiles into.</param>
+        /// <param name="roomNode">The room node for the room we are constructing.</param>
+        /// <param name="roomFromTileDict">The dungeon generator's dictionary for tracking which tiles belong to which rooms.</param>
+        /// <returns>True if a collision is detected or false otherwise.</returns>
+        private static bool CheckForTileCollisions(Dictionary<Vector3Int, SavedTile> src, Tilemap dst, DungeonGraphNode roomNode, Dictionary<Vector3Int, DungeonGraphNode> roomFromTileDict)
         {
             Vector3Int pos = Vector3Int.zero;
-            Quaternion rot = new Quaternion();
 
+
+            Directions roomDirection = roomNode.RoomDirection;
+            Vector3Int roomPosition = roomNode.RoomPosition;
 
             foreach (KeyValuePair<Vector3Int, SavedTile> pair in src)
             {
                 SavedTile sTile = pair.Value;
 
 
-                pos = AdjustTileCoordsForRoomPositionAndRotation(sTile.Position, roomPos, roomDirection);
+                pos = AdjustTileCoordsForRoomPositionAndRotation(sTile.Position, roomPosition, roomDirection);
+
+
+                //pos = sTile.Position;
+                if (dst.GetTile(pos) != null)
+                    return true;
+
+            } // end foreach
+
+
+            return false;
+        }
+
+        /// <summary>
+        /// Places all tiles of the current room into the dungeon map to construct the room.
+        /// </summary>
+        /// <param name="manager">The dungeon tile map manager.</param>
+        /// <param name="roomNode">The DungeonGraphNode of the room in question.</param>
+        /// <param name="roomFromTileDict">The dungeon generator's tracking dictionary that associates tiles with the rooms they belong to.</param>
+        public static void PlaceRoomTiles(DungeonTilemapManager manager, DungeonGraphNode roomNode, Dictionary<Vector3Int, DungeonGraphNode> roomFromTileDict)
+        {
+            _MinX = _MinY = float.MaxValue;
+            _MaxX = _MaxY = float.MinValue;
+
+            _RecordMinAndMax = true;
+
+            //Debug.Log("DRAW FLOOR:");
+            CopyTilesIntoDungeonMap(roomNode.RoomBlueprint.FloorTiles,
+                                    manager.DungeonMap.FloorsMap,
+                                    roomNode,
+                                    roomFromTileDict);
+
+            //Debug.Log("DRAW WALLS:");
+            CopyTilesIntoDungeonMap(roomNode.RoomBlueprint.WallTiles,
+                                    manager.DungeonMap.WallsMap,
+                                    roomNode,
+                                    roomFromTileDict);
+
+            _RecordMinAndMax = false;
+
+
+            if (!Application.isPlaying) // Only include the placeholders if the dungeon generator is running in Unity's edit mode.
+            {
+                //Debug.Log("DRAW PLACEHOLDERS!");
+                CopyTilesIntoDungeonMap(roomNode.RoomBlueprint.Placeholders_General_Tiles,
+                                        manager.DungeonMap.Placeholders_General_Map,
+                                        roomNode,
+                                        roomFromTileDict);
+
+                CopyTilesIntoDungeonMap(roomNode.RoomBlueprint.Placeholders_Item_Tiles,
+                                        manager.DungeonMap.Placeholders_Items_Map,
+                                        roomNode,
+                                        roomFromTileDict);
+
+                CopyTilesIntoDungeonMap(roomNode.RoomBlueprint.Placeholders_Enemy_Tiles,
+                                        manager.DungeonMap.Placeholders_Enemies_Map,
+                                        roomNode,
+                                        roomFromTileDict);
+            }
+
+        }
+
+        /// <summary>
+        /// Copies tiles into the dungeon map.
+        /// </summary>
+        /// <param name="src">The source data to copy tiles from.</param>
+        /// <param name="dst">The Tilemap to copy the tiles into.</param>
+        /// <param name="roomNode">The room node for the room we are constructing.</param>
+        /// <param name="roomFromTileDict">The dungeon generator's dictionary for tracking which tiles belong to which rooms.</param>
+        private static void CopyTilesIntoDungeonMap(Dictionary<Vector3Int, SavedTile> src, Tilemap dst, DungeonGraphNode roomNode, Dictionary<Vector3Int, DungeonGraphNode> roomFromTileDict)
+        {
+            Vector3Int pos = Vector3Int.zero;
+            Quaternion rot = new Quaternion();
+
+
+            Directions roomDirection = roomNode.RoomDirection;
+            Vector3Int roomPosition = roomNode.RoomPosition;
+
+            foreach (KeyValuePair<Vector3Int, SavedTile> pair in src)
+            {
+                SavedTile sTile = pair.Value;
+
+
+                pos = AdjustTileCoordsForRoomPositionAndRotation(sTile.Position, roomPosition, roomDirection);
 
 
                 if ((!sTile.Tile.RotateWithRoom) || roomDirection == Directions.North)
@@ -177,8 +275,31 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
                 dst.SetTransformMatrix(pos, matrix);
 
 
+                // Register this tile in the dungeon generator's dictionary to associate it with the room it now belongs to.
+                if (!roomFromTileDict.ContainsKey(pos))
+                    roomFromTileDict.Add(pos, roomNode);
+
+
+                if (_RecordMinAndMax)
+                {
+                    if (pos.x < _MinX)
+                        _MinX = pos.x;
+                    else if (pos.x > _MaxX)
+                        _MaxX = pos.x;
+
+                    if (pos.y < _MinY)
+                        _MinY = pos.y;
+                    else if (pos.y > _MaxY)
+                        _MaxY = pos.y;
+                }
+
             } // end foreach
 
+
+            roomNode.RoomCenterPoint = new Vector3((_MaxX + _MinX) / 2 + 0.5f, // We add 0.5f just to offset the coordinate since tile coordinates are always the lower left corner of the tile.
+                                                   (_MaxY + _MinY) / 2 + 0.5f);
+
+            //Debug.Log($"Room: \"{roomNode.RoomBlueprint.RoomName}\"    Center: {roomNode.RoomCenterPoint}");
         }
 
         /// <summary>
@@ -209,6 +330,32 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
         }
 
+        public static void PositionPlayer(DungeonTilemapManager tilemapManager, DungeonGraphNode startRoom, DungeonDoor entranceDoor)
+        {
+            int index = (int)entranceDoor.ThisRoom_DoorIndex;
+
+            // Get the position of both tiles of the entrance door.
+            Vector3Int doorTile1Pos = entranceDoor.ThisRoom_Node.RoomBlueprint.DoorsList[index].Tile1Position;
+            Vector3Int doorTile2Pos = entranceDoor.ThisRoom_Node.RoomBlueprint.DoorsList[index].Tile2Position;
+
+            // Adjust the tile positions to take into account the position and rotation direction of the room.
+            doorTile1Pos = DungeonConstructionUtils.AdjustTileCoordsForRoomPositionAndRotation(doorTile1Pos, startRoom.RoomPosition, startRoom.RoomDirection);
+            doorTile2Pos = DungeonConstructionUtils.AdjustTileCoordsForRoomPositionAndRotation(doorTile2Pos, startRoom.RoomPosition, startRoom.RoomDirection);
+
+            // Get the position of the upper-left-most of the two tiles.
+            Vector3Int playerPos = MiscellaneousUtils.GetUpperLeftMostTile(doorTile1Pos, doorTile2Pos);
+
+
+            // Get the direction of the entrance door.
+            Directions doorDirection = entranceDoor.ThisRoom_Node.RoomBlueprint.DoorsList[index].DoorDirection;
+
+            // Adjust the door direction to take into account the room's rotation direction.
+            doorDirection = MiscellaneousUtils.AddRotationDirectionsTogether(doorDirection, startRoom.RoomDirection);
+
+
+            // Move the player character next to the entrance door.
+            tilemapManager.PositionPlayerByStartDoor(playerPos, doorDirection);
+        }
 
     }
 

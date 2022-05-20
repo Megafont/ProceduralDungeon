@@ -8,7 +8,7 @@ using UnityEngine.Assertions;
 
 using ToolboxLib_Shared.Math;
 
-using ProceduralDungeon.DungeonGeneration.MissionStructureGeneration;
+using ProceduralDungeon.DungeonGeneration;
 
 
 using GrammarSymbols = ProceduralDungeon.DungeonGeneration.MissionStructureGeneration.GenerativeGrammar.Symbols;
@@ -65,7 +65,7 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
 
 
                     // Add the current node's children to the queue.
-                    AddChildNodesToQueue(nodeQueue, curNode);
+                    MiscellaneousUtils.AddChildNodesToQueue(nodeQueue, curNode);
 
 
                     // Check if this is a terminal node.
@@ -99,17 +99,6 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
 
 
             return _MissionStructureGraph;
-        }
-
-        private static void AddChildNodesToQueue(Queue<MissionStructureGraphNode> queue, MissionStructureGraphNode node)
-        {
-            foreach (MissionStructureGraphNode childNode in node.ChildNodes)
-            {
-                // Check that the node is not already in the queue. If the same node gets in the queue
-                // multiple times it can cause us to get stuck in an infinite loop and lock up the Unity Editor.
-                if (!queue.Contains(childNode))
-                    queue.Enqueue(childNode);
-            }
         }
 
         private static bool DoRuleCheck(MissionStructureGraphNode nodeToCheckAt)
@@ -308,8 +297,8 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
 
 
                 // Add child nodes to the queues.
-                AddChildNodesToQueue(ruleNodeQueue, curRuleNode);
-                AddChildNodesToQueue(nodeQueue, curNode);
+                MiscellaneousUtils.AddChildNodesToQueue(ruleNodeQueue, curRuleNode);
+                MiscellaneousUtils.AddChildNodesToQueue(nodeQueue, curNode);
 
 
             } // end while nodeQueue has at least one node
@@ -455,7 +444,7 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
 
                 }
 
-                AddChildNodesToQueue(nodeQueue, curNode);
+                MiscellaneousUtils.AddChildNodesToQueue(nodeQueue, curNode);
 
             } // end while nodeQueue is not empty
 
@@ -478,16 +467,16 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
 
             MissionStructureGraphNode curNode = null;
             MissionStructureGraphNode prevNode = null;
-            Stack<MissionStructureGraphNode> nodeQueue = new Stack<MissionStructureGraphNode>();
-            nodeQueue.Push(_MissionStructureGraph.StartNode);
+            Stack<MissionStructureGraphNode> nodeStack = new Stack<MissionStructureGraphNode>();
+            nodeStack.Push(_MissionStructureGraph.StartNode);
 
             // Traverse the node map in a breadth first manner.
-            while (nodeQueue.Count > 0)
+            while (nodeStack.Count > 0)
             {
                 prevNode = curNode;
 
                 // Get the next node from the queue.
-                curNode = nodeQueue.Pop();
+                curNode = nodeStack.Pop();
 
                 // Calculate y-position of first child node. The will be stacked upward from this position.
                 float startY = 0f;
@@ -533,12 +522,10 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
                 }
 
                 foreach (MissionStructureGraphNode childNode in curNode.ChildNodes)
-                    nodeQueue.Push(childNode);
+                    nodeStack.Push(childNode);
 
             } // end while nodeQueue is not empty
 
-
-            Debug.Log(new string('-', 256));
         }
 
         private static void CheckForNodeOverlap(MissionStructureGraphNode nodeToCheck)
@@ -652,7 +639,7 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
                     nodeList.Add(childNode);
                 }
 
-                AddChildNodesToQueue(nodeQueue, curNode);
+                MiscellaneousUtils.AddChildNodesToQueue(nodeQueue, curNode);
 
             } // end while
 
