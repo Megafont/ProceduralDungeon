@@ -12,18 +12,20 @@ using ProceduralDungeon.TileMaps;
 
 namespace ProceduralDungeon.DungeonGeneration
 {
-    public enum Directions
-    {
-        North = 0,
-        East,
-        South,
-        West,
-    }
-
-
 
     public static class MiscellaneousUtils
     {
+        public static void AddChildNodesToQueue(Queue<MissionStructureGraphNode> queue, MissionStructureGraphNode node)
+        {
+            foreach (MissionStructureGraphNode childNode in node.ChildNodes)
+            {
+                // Check that the node is not already in the queue. If the same node gets in the queue
+                // multiple times it can cause us to get stuck in an infinite loop and lock up the Unity Editor.
+                if (!queue.Contains(childNode))
+                    queue.Enqueue(childNode);
+            }
+        }
+
         /// <summary>
         /// This function is used to adjust a rotation direction by adding another one to it.
         /// For example, it is used to adjust the direction of a door to take into account the rotation direction of the parent room.
@@ -50,38 +52,12 @@ namespace ProceduralDungeon.DungeonGeneration
 
         }
 
-        public static Directions FlipDirection(Directions direction)
-        {
-            if (direction == Directions.North)
-                return Directions.South;
-            else if (direction == Directions.East)
-                return Directions.West;
-            else if (direction == Directions.South)
-                return Directions.North;
-            else if (direction == Directions.West)
-                return Directions.East;
-
-
-            throw new System.Exception("MiscellaneousUtils.FlipDirection() - Somehow the passed in direction is invalid!");
-        }
-
         public static Vector3Int GetUpperLeftMostTile(Vector3Int tile1Position, Vector3Int tile2Position)
         {
             if (tile1Position.x < tile2Position.x || tile1Position.y > tile2Position.y)
                 return tile1Position;
             else
                 return tile2Position;
-        }
-
-        public static void AddChildNodesToQueue(Queue<MissionStructureGraphNode> queue, MissionStructureGraphNode node)
-        {
-            foreach (MissionStructureGraphNode childNode in node.ChildNodes)
-            {
-                // Check that the node is not already in the queue. If the same node gets in the queue
-                // multiple times it can cause us to get stuck in an infinite loop and lock up the Unity Editor.
-                if (!queue.Contains(childNode))
-                    queue.Enqueue(childNode);
-            }
         }
 
 

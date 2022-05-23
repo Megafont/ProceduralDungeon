@@ -6,6 +6,8 @@ using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Tilemaps;
 
+using ProceduralDungeon.TileMaps.TileTypes;
+
 
 namespace ProceduralDungeon.TileMaps
 {
@@ -157,41 +159,41 @@ namespace ProceduralDungeon.TileMaps
                 switch (tileMapType)
                 {
                     case TileMapTypes.Floors:
-                        if ((tileType < (int)RoomTileCategoryRanges.FLOORS_START || tileType > (int)RoomTileCategoryRanges.FLOORS_END))
+                        if ((tileType < (int)DungeonTileCategoryRanges.FLOORS_START || tileType > (int)DungeonTileCategoryRanges.FLOORS_END))
                         {
-                            Debug.LogError(String.Format("DungeonMap.CopyTileDataIntoTileMap() - Encountered invalid floor tile type \"{0}\" at position {1} while copying loaded tile data into the tilemap! This tile was ignored.", Enum.GetName(typeof(RoomTileTypes), sTile.Tile.TileType), sTile.Position));
+                            Debug.LogError(String.Format("DungeonMap.CopyTileDataIntoTileMap() - Encountered invalid floor tile type \"{0}\" at position {1} while copying loaded tile data into the tilemap! This tile was ignored.", Enum.GetName(typeof(DungeonTileTypes), sTile.Tile.TileType), sTile.Position));
                             tileError = true;
                         }
                         break;
 
                     case TileMapTypes.Walls:
-                        if ((tileType < (int)RoomTileCategoryRanges.WALLS_START || tileType > (int)RoomTileCategoryRanges.WALLS_END))
+                        if ((tileType < (int)DungeonTileCategoryRanges.WALLS_START || tileType > (int)DungeonTileCategoryRanges.WALLS_END))
                         {
-                            Debug.LogError(String.Format("DungeonMap.CopyTileDataIntoTileMap() - Encountered invalid wall tile type \"{0}\" at position {1} while copying loaded tile data into the tilemap! This tile was ignored.", Enum.GetName(typeof(RoomTileTypes), sTile.Tile.TileType), sTile.Position));
+                            Debug.LogError(String.Format("DungeonMap.CopyTileDataIntoTileMap() - Encountered invalid wall tile type \"{0}\" at position {1} while copying loaded tile data into the tilemap! This tile was ignored.", Enum.GetName(typeof(DungeonTileTypes), sTile.Tile.TileType), sTile.Position));
                             tileError = true;
                         }
                         break;
 
                     case TileMapTypes.Placeholders_General:
-                        if ((tileType < (int)RoomTileCategoryRanges.PLACEHOLDERS_GENERAL_START || tileType > (int)RoomTileCategoryRanges.PLACEHOLDERS_GENERAL_END))
+                        if ((tileType < (int)DungeonTileCategoryRanges.PLACEHOLDERS_GENERAL_START || tileType > (int)DungeonTileCategoryRanges.PLACEHOLDERS_GENERAL_END))
                         {
-                            Debug.LogError(String.Format("DungeonMap.CopyTileDataIntoTileMap() - Encountered invalid placeholder tile type \"{0}\" at position {1} while copying loaded tile data into the tilemap! This tile was ignored.", Enum.GetName(typeof(RoomTileTypes), sTile.Tile.TileType), sTile.Position));
+                            Debug.LogError(String.Format("DungeonMap.CopyTileDataIntoTileMap() - Encountered invalid placeholder tile type \"{0}\" at position {1} while copying loaded tile data into the tilemap! This tile was ignored.", Enum.GetName(typeof(DungeonTileTypes), sTile.Tile.TileType), sTile.Position));
                             tileError = true;
                         }
                         break;
 
                     case TileMapTypes.Placeholders_Items:
-                        if ((tileType < (int)RoomTileCategoryRanges.PLACEHOLDERS_ITEMS_START || tileType > (int)RoomTileCategoryRanges.PLACEHOLDERS_ITEMS_END))
+                        if ((tileType < (int)DungeonTileCategoryRanges.PLACEHOLDERS_ITEMS_START || tileType > (int)DungeonTileCategoryRanges.PLACEHOLDERS_ITEMS_END))
                         {
-                            Debug.LogError(String.Format("DungeonMap.CopyTileDataIntoTileMap() - Encountered invalid item placeholder tile type \"{0}\" at position {1} while copying loaded tile data into the tilemap! This tile was ignored.", Enum.GetName(typeof(RoomTileTypes), sTile.Tile.TileType), sTile.Position));
+                            Debug.LogError(String.Format("DungeonMap.CopyTileDataIntoTileMap() - Encountered invalid item placeholder tile type \"{0}\" at position {1} while copying loaded tile data into the tilemap! This tile was ignored.", Enum.GetName(typeof(DungeonTileTypes), sTile.Tile.TileType), sTile.Position));
                             tileError = true;
                         }
                         break;
 
                     case TileMapTypes.Placeholders_Enemies:
-                        if (tileType < (int)RoomTileCategoryRanges.PLACEHOLDERS_ENEMIES_START || tileType > (int)RoomTileCategoryRanges.PLACEHOLDERS_ENEMIES_END)
+                        if (tileType < (int)DungeonTileCategoryRanges.PLACEHOLDERS_ENEMIES_START || tileType > (int)DungeonTileCategoryRanges.PLACEHOLDERS_ENEMIES_END)
                         {
-                            Debug.LogError(String.Format("DungeonMap.CopyTileDataIntoTileMap() - Encountered invalid enemy placeholder tile type \"{0}\" at position {1} while copying loaded tile data into the tilemap! This tile was ignored.", Enum.GetName(typeof(RoomTileTypes), sTile.Tile.TileType), sTile.Position));
+                            Debug.LogError(String.Format("DungeonMap.CopyTileDataIntoTileMap() - Encountered invalid enemy placeholder tile type \"{0}\" at position {1} while copying loaded tile data into the tilemap! This tile was ignored.", Enum.GetName(typeof(DungeonTileTypes), sTile.Tile.TileType), sTile.Position));
                             tileError = true;
                         }
                         break;
@@ -234,38 +236,38 @@ namespace ProceduralDungeon.TileMaps
 
                 if (map.HasTile(pos))
                 {
-                    RoomTile tile = map.GetTile<RoomTile>(pos);
+                    BasicDungeonTile tile = map.GetTile<BasicDungeonTile>(pos);
                     int type = (int)tile.TileType;
 
 
                     if (map == _FloorsMap &&
-                        (type < (int)RoomTileCategoryRanges.FLOORS_START || type > (int)RoomTileCategoryRanges.FLOORS_END))
+                        (type < (int)DungeonTileCategoryRanges.FLOORS_START || type > (int)DungeonTileCategoryRanges.FLOORS_END))
                     {
-                        Debug.LogError(String.Format("DungeonMap.GetTileDataFromMap() - Encountered invalid floor tile type \"{0}\" at position {1} while getting data from tile map! This tile was ignored.", Enum.GetName(typeof(RoomTileTypes), tile.TileType), pos));
+                        Debug.LogError(String.Format("DungeonMap.GetTileDataFromMap() - Encountered invalid floor tile type \"{0}\" at position {1} while getting data from tile map! This tile was ignored.", Enum.GetName(typeof(DungeonTileTypes), tile.TileType), pos));
                         tileError = true;
                     }
                     else if (map == _WallsMap &&
-                        (type < (int)RoomTileCategoryRanges.WALLS_START || type > (int)RoomTileCategoryRanges.WALLS_END))
+                        (type < (int)DungeonTileCategoryRanges.WALLS_START || type > (int)DungeonTileCategoryRanges.WALLS_END))
                     {
-                        Debug.LogError(String.Format("DungeonMap.GetTileDataFromMap() - Encountered invalid wall tile type \"{0}\" at position {1} getting data from tile map! This tile was ignored.", Enum.GetName(typeof(RoomTileTypes), tile.TileType), pos));
+                        Debug.LogError(String.Format("DungeonMap.GetTileDataFromMap() - Encountered invalid wall tile type \"{0}\" at position {1} getting data from tile map! This tile was ignored.", Enum.GetName(typeof(DungeonTileTypes), tile.TileType), pos));
                         tileError = true;
                     }
                     else if (map == _Placeholders_General_Map &&
-                        (type < (int)RoomTileCategoryRanges.PLACEHOLDERS_GENERAL_START || type > (int)RoomTileCategoryRanges.PLACEHOLDERS_GENERAL_END))
+                        (type < (int)DungeonTileCategoryRanges.PLACEHOLDERS_GENERAL_START || type > (int)DungeonTileCategoryRanges.PLACEHOLDERS_GENERAL_END))
                     {
-                        Debug.LogError(String.Format("DungeonMap.GetTileDataFromMap() - Encountered invalid placeholder tile type \"{0}\" at position {1} while getting data from tile map! This tile was ignored.", Enum.GetName(typeof(RoomTileTypes), tile.TileType), pos));
+                        Debug.LogError(String.Format("DungeonMap.GetTileDataFromMap() - Encountered invalid placeholder tile type \"{0}\" at position {1} while getting data from tile map! This tile was ignored.", Enum.GetName(typeof(DungeonTileTypes), tile.TileType), pos));
                         tileError = true;
                     }
                     else if (map == _Placeholders_Items_Map &&
-                        (type < (int)RoomTileCategoryRanges.PLACEHOLDERS_ITEMS_START || type > (int)RoomTileCategoryRanges.PLACEHOLDERS_ITEMS_END))
+                        (type < (int)DungeonTileCategoryRanges.PLACEHOLDERS_ITEMS_START || type > (int)DungeonTileCategoryRanges.PLACEHOLDERS_ITEMS_END))
                     {
-                        Debug.LogError(String.Format("DungeonMap.GetTileDataFromMap() - Encountered invalid item tile type \"{0}\" a position {1} while getting data from tile map! This tile was ignored.", Enum.GetName(typeof(RoomTileTypes), tile.TileType), pos));
+                        Debug.LogError(String.Format("DungeonMap.GetTileDataFromMap() - Encountered invalid item tile type \"{0}\" a position {1} while getting data from tile map! This tile was ignored.", Enum.GetName(typeof(DungeonTileTypes), tile.TileType), pos));
                         tileError = true;
                     }
                     else if (map == _Placeholders_Enemies_Map &&
-                        (type < (int)RoomTileCategoryRanges.PLACEHOLDERS_ENEMIES_START || type > (int)RoomTileCategoryRanges.PLACEHOLDERS_ENEMIES_END))
+                        (type < (int)DungeonTileCategoryRanges.PLACEHOLDERS_ENEMIES_START || type > (int)DungeonTileCategoryRanges.PLACEHOLDERS_ENEMIES_END))
                     {
-                        Debug.LogError(String.Format("DungeonMap.GetTileDataFromMap() - Encountered invalid enemy tile type \"{0}\" at position {1} while getting data from tile map! This tile was ignored.", Enum.GetName(typeof(RoomTileTypes), tile.TileType), pos));
+                        Debug.LogError(String.Format("DungeonMap.GetTileDataFromMap() - Encountered invalid enemy tile type \"{0}\" at position {1} while getting data from tile map! This tile was ignored.", Enum.GetName(typeof(DungeonTileTypes), tile.TileType), pos));
                         tileError = true;
                     }
 

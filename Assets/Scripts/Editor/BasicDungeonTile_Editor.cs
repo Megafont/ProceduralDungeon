@@ -1,23 +1,18 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
 
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
 using ProceduralDungeon.TileMaps;
-
-using Object = UnityEngine.Object;
+using ProceduralDungeon.TileMaps.TileTypes;
 
 
 namespace ProceduralDungeon.EditorScripts
 {
-    [CustomEditor(typeof(RoomTile))]
+    [CustomEditor(typeof(BasicDungeonTile))]
     //[CanEditMultipleObjects]
-    public class RoomTileEditor : Editor
+    public class BasicDungeonTile_Editor : Editor
     {
         SerializedProperty _RotateWithRoom;
         SerializedProperty _TileType;
@@ -25,15 +20,16 @@ namespace ProceduralDungeon.EditorScripts
 
 
         /// <summary>
-        /// The RuleTile being edited
+        /// The tile being edited
         /// </summary>
-        public Tile _Tile;
+        public BasicDungeonTile _DungeonTile;
 
 
 
         void OnEnable()
         {
-            _Tile = (Tile)target;
+            Debug.Log($"Typeof({target.GetType()})");
+            _DungeonTile = (BasicDungeonTile)target;
 
             _RotateWithRoom = serializedObject.FindProperty("RotateWithRoom");
             _TileType = serializedObject.FindProperty("TileType");
@@ -45,19 +41,18 @@ namespace ProceduralDungeon.EditorScripts
         {
             serializedObject.Update();
 
-            //base.OnInspectorGUI();
-
-
-            //Texture2D texture = tile.sprite.texture; 
+            ShowSpritePreview(_DungeonTile.sprite, "Preview");
+            /*
+            //Texture2D texture = _Tile.sprite.texture; 
             //Texture2D texture = RenderStaticPreview(AssetDatabase.GetAssetPath(tile), null, 64, 64);
-            Texture2D texture = AssetPreview.GetAssetPreview(_Tile.sprite);
+            Texture2D texture = AssetPreview.GetAssetPreview(_DungeonTile.sprite);
             if (texture != null)
             {
                 Texture2D preview = ScaleTexture(texture, 64, 64);
 
                 EditorGUILayout.BeginHorizontal();
                 EditorGUILayout.PrefixLabel("Preview");
-                GUI.color = _Tile.color;
+                GUI.color = _DungeonTile.color;
                 EditorGUILayout.LabelField(new GUIContent(preview), new GUILayoutOption[] { GUILayout.Width(32), GUILayout.Height(32) });
                 GUI.color = Color.white;
                 EditorGUILayout.EndHorizontal();
@@ -69,13 +64,13 @@ namespace ProceduralDungeon.EditorScripts
                 EditorGUILayout.LabelField("");
                 EditorGUILayout.EndHorizontal();
             }
-
+            */
 
             EditorGUILayout.BeginHorizontal();
 
             EditorGUILayout.PrefixLabel("Sprite");
             EditorGUILayout.BeginVertical();
-            _Tile.sprite = (Sprite)EditorGUILayout.ObjectField(_Tile.sprite, typeof(Sprite), true);
+            _DungeonTile.sprite = (Sprite)EditorGUILayout.ObjectField(_DungeonTile.sprite, typeof(Sprite), true);
 
 
             EditorGUILayout.BeginHorizontal();
@@ -86,7 +81,7 @@ namespace ProceduralDungeon.EditorScripts
                 Type type = System.Type.GetType("UnityEditor.U2D.Sprites.SpriteEditorWindow,Unity.2D.Sprite.Editor");
 
                 // Select the sprite this tile is using, so the Sprite Editor window will open it.
-                Selection.activeObject = _Tile.sprite; //AssetDatabase.LoadAssetAtPath<Sprite>(AssetDatabase.GetAssetPath(tile.sprite));
+                Selection.activeObject = _DungeonTile.sprite; //AssetDatabase.LoadAssetAtPath<Sprite>(AssetDatabase.GetAssetPath(tile.sprite));
 
                 // Open the Sprite Editor window.
                 EditorApplication.ExecuteMenuItem("Window/2D/Sprite Editor");
@@ -100,14 +95,19 @@ namespace ProceduralDungeon.EditorScripts
             EditorGUILayout.EndHorizontal();
 
 
-            _Tile.color = EditorGUILayout.ColorField("Color", _Tile.color);
-            _Tile.colliderType = (Tile.ColliderType)EditorGUILayout.EnumPopup("Collider Type", _Tile.colliderType);
+            _DungeonTile.color = EditorGUILayout.ColorField("Color", _DungeonTile.color);
+            _DungeonTile.colliderType = (Tile.ColliderType)EditorGUILayout.EnumPopup("Collider Type", _DungeonTile.colliderType);
 
 
-            EditorGUILayout.LabelField("RoomTile Settings", GUI.skin.GetStyle("BoldLabel"));
+            EditorGUILayout.LabelField("BasicDungeonTile Settings", GUI.skin.GetStyle("BoldLabel"));
 
-            EditorGUILayout.PropertyField(_RotateWithRoom);
-            EditorGUILayout.PropertyField(_TileType);
+
+            _DungeonTile.RotateWithRoom = EditorGUILayout.ToggleLeft("Rotate With Room", _DungeonTile.RotateWithRoom);
+            _DungeonTile.TileType = (DungeonTileTypes)EditorGUILayout.EnumPopup("Tile Type", _DungeonTile.TileType);
+
+            // These two lines got changed to the pair of lines above, because they caused null reference exceptions when a subclass called this editor's OnInspectorGUI() method.
+            //EditorGUILayout.PropertyField(_RotateWithRoom);
+            //EditorGUILayout.PropertyField(_TileType);
 
 
 
@@ -115,6 +115,31 @@ namespace ProceduralDungeon.EditorScripts
         }
 
 
+        protected void ShowSpritePreview(Sprite sprite, string labelText = "Preview")
+        {
+            //Texture2D texture = _Tile.sprite.texture; 
+            //Texture2D texture = RenderStaticPreview(AssetDatabase.GetAssetPath(tile), null, 64, 64);
+            Texture2D texture = AssetPreview.GetAssetPreview(sprite);
+
+            if (texture != null)
+            {
+                Texture2D preview = ScaleTexture(texture, 64, 64);
+
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.PrefixLabel(labelText);
+                GUI.color = _DungeonTile.color;
+                EditorGUILayout.LabelField(new GUIContent(preview), new GUILayoutOption[] { GUILayout.Width(32), GUILayout.Height(32) });
+                GUI.color = Color.white;
+                EditorGUILayout.EndHorizontal();
+            }
+            else
+            {
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.PrefixLabel(labelText);
+                EditorGUILayout.LabelField("");
+                EditorGUILayout.EndHorizontal();
+            }
+        }
 
         /// <summary>
         /// Scales a Texture2D.
@@ -126,7 +151,7 @@ namespace ProceduralDungeon.EditorScripts
         /// <param name="targetWidth">The width to scale it to.</param>
         /// <param name="targetHeight">The height to scale it to.</param>
         /// <returns>The scaled texture.</returns>
-        private Texture2D ScaleTexture(Texture2D source, int targetWidth, int targetHeight)
+        protected Texture2D ScaleTexture(Texture2D source, int targetWidth, int targetHeight)
         {
             Texture2D result = new Texture2D(targetWidth, targetHeight, source.format, true);
             Color[] rpixels = result.GetPixels(0);

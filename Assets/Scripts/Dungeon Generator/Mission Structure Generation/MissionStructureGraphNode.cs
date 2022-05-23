@@ -15,8 +15,9 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
         public readonly List<MissionStructureGraphNode> ChildNodes; // The list of this node's childe nodes.
         public DungeonGraphNode DungeonRoomNode; // A reference to the dungeon room node generated from this mission structure node.
         public GenerativeGrammar.Symbols GrammarSymbol; // The dungeon grammar symbol assigned to this room. It defines the type of room within the procedurally generated dungeon design, like a boss room).
-        public Vector3 Position; // This position is used by the MissionStructureGraphGizmos class.
         public bool IsTightlyCoupled = false; // Indicates whether this node is tightly coupled to its parent. If so, it means it the player won't be able to access it until the clear the previous component of the dungeon.
+        public uint LockCount; // The number of locks up to this point in the dungeon. This property is essentially a built-in Dijkstra map. It allows us to ensure we don't connect parts of the dungeon that would bypass locked doors.
+        public Vector3 Position; // This position is used by the MissionStructureGraphGizmos class.
 
 
         // This property stores an ID number for this node. This is used for executing grammar replacement rules in the GrammarRuleProcessor.
@@ -32,6 +33,7 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
 
             IsTightlyCoupled = isTightlyCoupled;
 
+            LockCount = 0;
         }
 
         public MissionStructureGraphNode(GenerativeGrammar.Symbols symbol)
@@ -46,7 +48,34 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
             ID = id;
         }
 
+        /// <summary>
+        /// Returns the child nodes list arranged with tightly coupled nodes all moved ahead of ones that aren't.
+        /// </summary>
+        /// <returns>The child nodes list arranged with all tightly coupled nodes coming before all nodes that are not.</returns>
+        public List<MissionStructureGraphNode> GetPrioritizedChildNodeList()
+        {
+            List<MissionStructureGraphNode> childList = new List<MissionStructureGraphNode>();
 
+
+            int lastTightlyCoupledIndex = 0;
+            foreach (MissionStructureGraphNode childNode in ChildNodes)
+            {
+                if (childNode.IsTightlyCoupled)
+                {
+                    childList.Insert(lastTightlyCoupledIndex, childNode);
+                    lastTightlyCoupledIndex++;
+                }
+                else
+                {
+                    childList.Add(childNode);
+                }
+
+            } // end foreach
+
+
+            return childList;
+
+        }
 
         public int GetTightlyCoupledChildNodeCount()
         {

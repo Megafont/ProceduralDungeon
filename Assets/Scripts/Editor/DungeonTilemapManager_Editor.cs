@@ -14,7 +14,7 @@ using ProceduralDungeon.TileMaps;
 namespace ProceduralDungeon.EditorScripts
 {
     [CustomEditor(typeof(DungeonTilemapManager))]
-    public class DungeonTilemapManagerEditor : Editor
+    public class DungeonTilemapManager_Editor : Editor
     {
         DungeonTilemapManager _DungeonTilemapManager = null;
 

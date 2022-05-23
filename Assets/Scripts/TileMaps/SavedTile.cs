@@ -4,6 +4,8 @@ using System.Collections.Generic;
 
 using UnityEngine;
 
+using ProceduralDungeon.TileMaps.TileTypes;
+
 
 namespace ProceduralDungeon.TileMaps
 {
@@ -13,7 +15,7 @@ namespace ProceduralDungeon.TileMaps
     [Serializable]
     public struct SavedTile
     {
-        public SavedTile(RoomTile tile, Vector3Int position, Quaternion rotation)
+        public SavedTile(BasicDungeonTile tile, Vector3Int position, Quaternion rotation)
         {
             Position = position;
             Rotation = rotation;
@@ -23,7 +25,7 @@ namespace ProceduralDungeon.TileMaps
 
         public Vector3Int Position;
         public Quaternion Rotation;
-        public RoomTile Tile;
+        public BasicDungeonTile Tile;
     }
 
 }

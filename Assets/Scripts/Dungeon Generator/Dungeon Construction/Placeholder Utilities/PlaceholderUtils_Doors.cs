@@ -6,14 +6,29 @@ using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Tilemaps;
 
-using ProceduralDungeon.DungeonGeneration.DungeonConstruction;
+using ProceduralDungeon.DungeonGeneration.DungeonGraphGeneration;
+using ProceduralDungeon.InGame;
 using ProceduralDungeon.TileMaps;
+using ProceduralDungeon.TileMaps.TileTypes;
 
 using SavedTileDictionary = System.Collections.Generic.Dictionary<UnityEngine.Vector3Int, ProceduralDungeon.TileMaps.SavedTile>;
 
 
 namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction.PlaceholderUtilities
 {
+    /// <summary>
+    /// Enumerates the possible results of the DoLinearScanFromDoor() function.
+    /// </summary>
+    public enum LinearScanFromDoorResults
+    {
+        Nothing = 0,
+        ChanceConnection_MatchingFloor,
+        ChanceConnection_FloorMismatch,
+        Collision
+    }
+
+
+
     public static class PlaceholderUtils_Doors
     {
         private static RoomData _CurrentRoomData;
@@ -22,26 +37,26 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction.PlaceholderUti
 
 
 
-        static List<RoomTileTypes> _DoorTypes = new List<RoomTileTypes>()
+        static List<DungeonTileTypes> _DoorTypes = new List<DungeonTileTypes>()
         {
-            RoomTileTypes.Placeholders_Doors_Basement,
-            RoomTileTypes.Placeholders_Doors_1stFloor,
-            RoomTileTypes.Placeholders_Doors_2ndFloor,
+            DungeonTileTypes.Placeholders_Doors_Basement,
+            DungeonTileTypes.Placeholders_Doors_1stFloor,
+            DungeonTileTypes.Placeholders_Doors_2ndFloor,
         };
 
-        static List<RoomTileTypes> _FloorTypes_Basement = new List<RoomTileTypes>()
+        static List<DungeonTileTypes> _FloorTypes_Basement = new List<DungeonTileTypes>()
         {
-            RoomTileTypes.Floors_Basement,
+            DungeonTileTypes.Floors_Basement,
         };
 
-        static List<RoomTileTypes> _FloorTypes_1stFloor = new List<RoomTileTypes>()
+        static List<DungeonTileTypes> _FloorTypes_1stFloor = new List<DungeonTileTypes>()
         {
-            RoomTileTypes.Floors_1stFloor,
+            DungeonTileTypes.Floors_1stFloor,
         };
 
-        static List<RoomTileTypes> _FloorTypes_2ndFloor = new List<RoomTileTypes>()
+        static List<DungeonTileTypes> _FloorTypes_2ndFloor = new List<DungeonTileTypes>()
         {
-            RoomTileTypes.Floors_2ndFloor,
+            DungeonTileTypes.Floors_2ndFloor,
         };
 
 
@@ -75,6 +90,80 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction.PlaceholderUti
 
         }
 
+        /// <summary>
+        /// This function scans some number of blocks from the front of a door to see if it hits a wall or another door.
+        /// </summary>
+        /// <param name="roomNode">The parent room of the door wer're doing a blockage scan for.</param>
+        /// <param name="doorIndex">The index of the door within its parent room.</param>
+        /// <param name="scanLength">How many tiles to scan outward from the front of the door. This defaults to 10, so it will scan each tile until it is 10 tiles out from the front of the door.
+        /// <returns>The result of the scan.</returns>
+        public static LinearScanFromDoorResults DoLinearScanFromDoor(DungeonTilemapManager tileMapManager, DungeonGraphNode roomNode, int doorIndex, int scanLength = 10)
+        {
+            DoorData door = roomNode.RoomBlueprint.DoorsList[doorIndex];
+
+            // Get the direction of the door on room 1 and adjust it to take into account that room's rotation direction.
+            Directions door_AdjustedDirection = MiscellaneousUtils.AddRotationDirectionsTogether(door.DoorDirection, roomNode.RoomDirection);
+            Vector3Int scanVector = door_AdjustedDirection.DirectionToNormalizedVector();
+
+            // Get the coordinates of both tiles of the previous room's door and adjust them to take into account the room's rotation direction.
+            Vector3Int door_Tile1AdjustedLocalPos = DungeonConstructionUtils.AdjustTileCoordsForRoomPositionAndRotation(door.Tile1Position, roomNode.RoomPosition, roomNode.RoomDirection);
+            Vector3Int door_Tile2AdjustedLocalPos = DungeonConstructionUtils.AdjustTileCoordsForRoomPositionAndRotation(door.Tile2Position, roomNode.RoomPosition, roomNode.RoomDirection);
+
+
+            Vector3Int tile1ScanPos, tile2ScanPos;
+            for (int i = 1; i < scanLength; i++)
+            {
+                // Get the position for the next tile to scan in front of each of the door's tiles.
+                tile1ScanPos = door_Tile1AdjustedLocalPos + (scanVector * i);
+                tile2ScanPos = door_Tile2AdjustedLocalPos + (scanVector * i);
+
+
+                // Are we are scanning the first tile in front of both door tiles?
+                if (i == 1)
+                {
+                    // Get placeholder_general map tile that is i tiles in front of each of the door's tiles.
+                    BasicDungeonTile doorScanTile1 = (BasicDungeonTile)tileMapManager.DungeonMap.Placeholders_General_Map.GetTile(tile1ScanPos);
+                    BasicDungeonTile doorScanTile2 = (BasicDungeonTile)tileMapManager.DungeonMap.Placeholders_General_Map.GetTile(tile2ScanPos);
+
+                    if (doorScanTile1 != null &&
+                        (doorScanTile1.TileType == DungeonTileTypes.Placeholders_Doors_Basement ||
+                         doorScanTile1.TileType == DungeonTileTypes.Placeholders_Doors_1stFloor ||
+                         doorScanTile1.TileType == DungeonTileTypes.Placeholders_Doors_2ndFloor))
+                    {
+                        if (doorScanTile2 != null &&
+                            (doorScanTile2.TileType == DungeonTileTypes.Placeholders_Doors_Basement ||
+                             doorScanTile2.TileType == DungeonTileTypes.Placeholders_Doors_1stFloor ||
+                             doorScanTile2.TileType == DungeonTileTypes.Placeholders_Doors_2ndFloor))
+                        {
+                            if (doorScanTile1.TileType == doorScanTile2.TileType)
+                                return LinearScanFromDoorResults.ChanceConnection_MatchingFloor;
+                            else
+                                return LinearScanFromDoorResults.ChanceConnection_FloorMismatch;
+                        }
+                    }
+
+                } // end if i == 1
+
+
+                // Get wall map tile that is i tiles in front of each of the door's tiles.
+                BasicDungeonTile wallScanTile1 = (BasicDungeonTile)tileMapManager.DungeonMap.WallsMap.GetTile(tile1ScanPos);
+                BasicDungeonTile wallScanTile2 = (BasicDungeonTile)tileMapManager.DungeonMap.WallsMap.GetTile(tile2ScanPos);
+
+                // Get floor map tile that is i tiles in front of each of the door's tiles.
+                BasicDungeonTile floorScanTile1 = (BasicDungeonTile)tileMapManager.DungeonMap.FloorsMap.GetTile(tile1ScanPos);
+                BasicDungeonTile floorScanTile2 = (BasicDungeonTile)tileMapManager.DungeonMap.FloorsMap.GetTile(tile2ScanPos);
+
+                // Check for collision.
+                if (wallScanTile1 != null || wallScanTile2 != null || floorScanTile1 != null || floorScanTile2 != null)
+                    return LinearScanFromDoorResults.Collision;
+
+
+            } // end for i
+
+
+            return LinearScanFromDoorResults.Nothing;
+
+        }
 
         /// <summary>
         /// This public overload is used by the room editor to validate the positions of door placeholders.
@@ -128,7 +217,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction.PlaceholderUti
 
             foreach (SavedTile sTile in doorPlaceholderTiles)
             {
-                RoomTileTypes type = sTile.Tile.TileType;
+                DungeonTileTypes type = sTile.Tile.TileType;
 
                 // Check that we didn't already visit this tile.
                 if (visitedDoorTiles.Contains(sTile.Position))
@@ -190,11 +279,11 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction.PlaceholderUti
             door.DoorDirection = GetDoorDirectionFromFloorLayer(door, floorTiles);
 
 
-            if (sTile.Tile.TileType == RoomTileTypes.Placeholders_Doors_Basement)
+            if (sTile.Tile.TileType == DungeonTileTypes.Placeholders_Doors_Basement)
                 door.DoorLevel = RoomLevels.Level_Basement;
-            else if (sTile.Tile.TileType == RoomTileTypes.Placeholders_Doors_1stFloor)
+            else if (sTile.Tile.TileType == DungeonTileTypes.Placeholders_Doors_1stFloor)
                 door.DoorLevel = RoomLevels.Level_1stFloor;
-            else if (sTile.Tile.TileType == RoomTileTypes.Placeholders_Doors_2ndFloor)
+            else if (sTile.Tile.TileType == DungeonTileTypes.Placeholders_Doors_2ndFloor)
                 door.DoorLevel = RoomLevels.Level_2ndFloor;
 
 
@@ -218,8 +307,8 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction.PlaceholderUti
             }
 
 
-            RoomTileTypes floorTile1Type = floorTile1.Tile.TileType;
-            RoomTileTypes floorTile2Type = floorTile2.Tile.TileType;
+            DungeonTileTypes floorTile1Type = floorTile1.Tile.TileType;
+            DungeonTileTypes floorTile2Type = floorTile2.Tile.TileType;
 
 
             if (!(_FloorTypes_Basement.Contains(floorTile1Type) ||

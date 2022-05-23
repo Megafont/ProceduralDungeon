@@ -11,6 +11,7 @@ using ProceduralDungeon.DungeonGeneration.DungeonGraphGeneration;
 using ProceduralDungeon.DungeonGeneration.MissionStructureGeneration;
 using ProceduralDungeon.InGame;
 using ProceduralDungeon.TileMaps;
+using ProceduralDungeon.TileMaps.TileTypes;
 
 
 
@@ -21,11 +22,6 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
         private static bool _RecordMinAndMax;
         private static float _MinX, _MinY;
         private static float _MaxX, _MaxY;
-
-        private static Quaternion[] _Rotations = { Quaternion.Euler(0, 0, 0f),
-                                                   Quaternion.Euler(0, 0, 90f),
-                                                   Quaternion.Euler(0, 0, 180f),
-                                                   Quaternion.Euler(0, 0, 270f) };
 
 
 
@@ -60,16 +56,16 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             Directions room1Door_AdjustedDirection = MiscellaneousUtils.AddRotationDirectionsTogether(parentRoomDoor.DoorDirection, parentRoom.RoomDirection);
 
             // Get the coordinates of both tiles of the previous room's door and adjust them to take into account the room's rotation direction.
-            Vector3Int room1Door_Tile1AdjustedLocalPos = DungeonConstructionUtils.AdjustTileCoordsForRoomPositionAndRotation(parentRoomDoor.Tile1Position, parentRoom.RoomPosition, parentRoom.RoomDirection);
-            Vector3Int room1Door_Tile2AdjustedLocalPos = DungeonConstructionUtils.AdjustTileCoordsForRoomPositionAndRotation(parentRoomDoor.Tile2Position, parentRoom.RoomPosition, parentRoom.RoomDirection);
+            Vector3Int room1Door_Tile1AdjustedPos = DungeonConstructionUtils.AdjustTileCoordsForRoomPositionAndRotation(parentRoomDoor.Tile1Position, parentRoom.RoomPosition, parentRoom.RoomDirection);
+            Vector3Int room1Door_Tile2AdjustedPos = DungeonConstructionUtils.AdjustTileCoordsForRoomPositionAndRotation(parentRoomDoor.Tile2Position, parentRoom.RoomPosition, parentRoom.RoomDirection);
 
             // Get the upper-left-most of the two adjusted tile positions.
-            Vector3Int room1Door_AdjustedLocalPos = MiscellaneousUtils.GetUpperLeftMostTile(room1Door_Tile1AdjustedLocalPos, room1Door_Tile2AdjustedLocalPos);
+            Vector3Int room1Door_AdjustedLocalPos = MiscellaneousUtils.GetUpperLeftMostTile(room1Door_Tile1AdjustedPos, room1Door_Tile2AdjustedPos);
 
 
 
             // Get the direction the new room's door needs to face to be able to connect to the specified door on the first room.
-            Directions room2Door_TargetDirection = MiscellaneousUtils.FlipDirection(room1Door_AdjustedDirection);
+            Directions room2Door_TargetDirection = room1Door_AdjustedDirection.FlipDirection();
 
             // Figure out the rotation of the new room based on the direction the door being connected needs to face to connect properly.
             Directions room2Direction = DungeonConstructionUtils.CalculateRoomRotationFromDoorRotation(room2Door.DoorDirection, room2Door_TargetDirection);
@@ -91,8 +87,8 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             // Calculate the position of the new room based on the 1st room's door.
             Vector3Int room2Pos = room2Door_WorldPos + -room2Door_AdjustedLocalPos;
 
-            Debug.Log($"Room1: \"{parentRoom.RoomBlueprint.RoomName}\"    Room1 Pos: {parentRoom.RoomPosition}     Room1 Dir: {parentRoom.RoomDirection}    Room1 Door Pos: {room1Door_AdjustedLocalPos}    Room1 Door Dir: {parentRoomDoor.DoorDirection} to {room1Door_AdjustedDirection}");
-            Debug.Log($"Room2: \"{room2Data.RoomName}\"    Room2 Pos: {room2Pos}    Room2 Direction: {room2Direction}    Room2 Door Pos: {room2Door_WorldPos}  Room2 Door Dir: {room2Door.DoorDirection} to {room2Door_TargetDirection}");
+            //Debug.Log($"Room1: \"{parentRoom.RoomBlueprint.RoomName}\"    Room1 Pos: {parentRoom.RoomPosition}     Room1 Dir: {parentRoom.RoomDirection}    Room1 Door Pos: {room1Door_AdjustedLocalPos}    Room1 Door Dir: {parentRoomDoor.DoorDirection} to {room1Door_AdjustedDirection}");
+            //Debug.Log($"Room2: \"{room2Data.RoomName}\"    Room2 Pos: {room2Pos}    Room2 Direction: {room2Direction}    Room2 Door Pos: {room2Door_WorldPos}  Room2 Door Dir: {room2Door.DoorDirection} to {room2Door_TargetDirection}");
 
             // Create a DungeonGraphNode for the new room and add it to the dungeon graph.
             DungeonGraphNode newNode = new DungeonGraphNode(parentRoom,
@@ -110,29 +106,28 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
         /// <summary>
         /// Checks if the current room will collide with an already constructed room in the dungeon map.
         /// </summary>
-        /// <param name="manager">The dungeon tile map manager.</param>
+        /// <param name="tilemapManager">The dungeon tile map manager.</param>
         /// <param name="roomNode">The DungeonGraphNode of the room in question.</param>
         /// <param name="roomFromTileDict">The dungeon generator's tracking dictionary that associates tiles with the rooms they belong to.</param>
         /// <returns>True if a collision was found or false otherwise.</returns>
-        public static bool CheckForRoomCollision(DungeonTilemapManager manager, DungeonGraphNode roomNode, Dictionary<Vector3Int, DungeonGraphNode> roomFromTileDict)
+        public static bool RoomCollidesWithExistingRoom(DungeonTilemapManager tilemapManager, DungeonGraphNode roomNode, Dictionary<Vector3Int, DungeonGraphNode> roomFromTileDict)
         {
             bool result1;
             bool result2;
 
-            //Debug.Log("DRAW FLOOR:");
+
             result1 = CheckForTileCollisions(roomNode.RoomBlueprint.FloorTiles,
-                                             manager.DungeonMap.FloorsMap,
+                                             tilemapManager.DungeonMap.FloorsMap,
                                              roomNode,
                                              roomFromTileDict);
 
-            //Debug.Log("DRAW WALLS:");
             result2 = CheckForTileCollisions(roomNode.RoomBlueprint.WallTiles,
-                                             manager.DungeonMap.WallsMap,
+                                             tilemapManager.DungeonMap.WallsMap,
                                              roomNode,
                                              roomFromTileDict);
 
 
-            // If any collisions were found, return true.
+            // If any tile collisions were found, return true.
             return (result1 || result2);
 
         }
@@ -174,10 +169,10 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
         /// <summary>
         /// Places all tiles of the current room into the dungeon map to construct the room.
         /// </summary>
-        /// <param name="manager">The dungeon tile map manager.</param>
+        /// <param name="tilemapManager">The dungeon tile map manager.</param>
         /// <param name="roomNode">The DungeonGraphNode of the room in question.</param>
         /// <param name="roomFromTileDict">The dungeon generator's tracking dictionary that associates tiles with the rooms they belong to.</param>
-        public static void PlaceRoomTiles(DungeonTilemapManager manager, DungeonGraphNode roomNode, Dictionary<Vector3Int, DungeonGraphNode> roomFromTileDict)
+        public static void PlaceRoomTiles(DungeonTilemapManager tilemapManager, DungeonGraphNode roomNode, Dictionary<Vector3Int, DungeonGraphNode> roomFromTileDict)
         {
             _MinX = _MinY = float.MaxValue;
             _MaxX = _MaxY = float.MinValue;
@@ -186,13 +181,13 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
             //Debug.Log("DRAW FLOOR:");
             CopyTilesIntoDungeonMap(roomNode.RoomBlueprint.FloorTiles,
-                                    manager.DungeonMap.FloorsMap,
+                                    tilemapManager.DungeonMap.FloorsMap,
                                     roomNode,
                                     roomFromTileDict);
 
             //Debug.Log("DRAW WALLS:");
             CopyTilesIntoDungeonMap(roomNode.RoomBlueprint.WallTiles,
-                                    manager.DungeonMap.WallsMap,
+                                    tilemapManager.DungeonMap.WallsMap,
                                     roomNode,
                                     roomFromTileDict);
 
@@ -203,17 +198,17 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             {
                 //Debug.Log("DRAW PLACEHOLDERS!");
                 CopyTilesIntoDungeonMap(roomNode.RoomBlueprint.Placeholders_General_Tiles,
-                                        manager.DungeonMap.Placeholders_General_Map,
+                                        tilemapManager.DungeonMap.Placeholders_General_Map,
                                         roomNode,
                                         roomFromTileDict);
 
                 CopyTilesIntoDungeonMap(roomNode.RoomBlueprint.Placeholders_Item_Tiles,
-                                        manager.DungeonMap.Placeholders_Items_Map,
+                                        tilemapManager.DungeonMap.Placeholders_Items_Map,
                                         roomNode,
                                         roomFromTileDict);
 
                 CopyTilesIntoDungeonMap(roomNode.RoomBlueprint.Placeholders_Enemy_Tiles,
-                                        manager.DungeonMap.Placeholders_Enemies_Map,
+                                        tilemapManager.DungeonMap.Placeholders_Enemies_Map,
                                         roomNode,
                                         roomFromTileDict);
             }
@@ -250,16 +245,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
                 }
                 else // Rotation direction is East, South, or West
                 {
-                    float z = 0;
-                    if (sTile.Rotation.eulerAngles.y == 180f) // Check if the tile has been rotated 180 degrees on the Y-axis (which mirrors the tile from its normal appearance since you're looking at the opposite side).
-                        z = Mathf.Round(sTile.Rotation.eulerAngles.z + _Rotations[(int)roomDirection].eulerAngles.z);
-                    else
-                        z = Mathf.Round(sTile.Rotation.eulerAngles.z - _Rotations[(int)roomDirection].eulerAngles.z);
-
-
-                    rot = Quaternion.Euler(sTile.Rotation.eulerAngles.x,
-                                           sTile.Rotation.eulerAngles.y,
-                                           z);
+                    rot = GetNewTileRotation(sTile.Rotation, roomDirection.DirectionToRotation());
 
                     //Debug.Log($"Tile Pos: {sTile.Position}        New Pos: {pos}        Tile Rotation: {sTile.Rotation.eulerAngles}        Room Rotation: {_Rotations[(int)roomDirection].eulerAngles}        Sum: {rot.eulerAngles})");
                 }
@@ -330,6 +316,20 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
         }
 
+        public static Quaternion GetNewTileRotation(Quaternion tileRotation, Quaternion rotationAmount)
+        {
+            float z = 0;
+            if (tileRotation.eulerAngles.y == 180f) // Check if the tile has been rotated 180 degrees on the Y-axis (which mirrors the tile from its normal appearance since you're looking at the opposite side).
+                z = Mathf.Round(tileRotation.eulerAngles.z + rotationAmount.eulerAngles.z);
+            else
+                z = Mathf.Round(tileRotation.eulerAngles.z - rotationAmount.eulerAngles.z);
+
+
+            return Quaternion.Euler(tileRotation.eulerAngles.x,
+                                    tileRotation.eulerAngles.y,
+                                    z);
+        }
+
         public static void PositionPlayer(DungeonTilemapManager tilemapManager, DungeonGraphNode startRoom, DungeonDoor entranceDoor)
         {
             int index = (int)entranceDoor.ThisRoom_DoorIndex;
@@ -356,6 +356,71 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             // Move the player character next to the entrance door.
             tilemapManager.PositionPlayerByStartDoor(playerPos, doorDirection);
         }
+
+        public static void SealOffBlockedDoors(DungeonTilemapManager tilemapManager, List<DungeonDoor> blockedDoors)
+        {
+            foreach (DungeonDoor door in blockedDoors)
+            {
+                DungeonGraphNode parentRoom = door.ThisRoom_Node;
+                DoorData parentRoomDoor = parentRoom.RoomBlueprint.DoorsList[(int)door.ThisRoom_DoorIndex];
+
+                // Get the direction of the door on room 1 and adjust it to take into account that room's rotation direction.
+                Directions door_AdjustedDirection = MiscellaneousUtils.AddRotationDirectionsTogether(parentRoomDoor.DoorDirection, parentRoom.RoomDirection);
+
+                // Get the coordinates of both tiles of the previous room's door and adjust them to take into account the room's rotation direction.
+                Vector3Int door_Tile1AdjustedPos = DungeonConstructionUtils.AdjustTileCoordsForRoomPositionAndRotation(parentRoomDoor.Tile1Position, parentRoom.RoomPosition, parentRoom.RoomDirection);
+                Vector3Int door_Tile2AdjustedPos = DungeonConstructionUtils.AdjustTileCoordsForRoomPositionAndRotation(parentRoomDoor.Tile2Position, parentRoom.RoomPosition, parentRoom.RoomDirection);
+
+
+
+                Tilemap wallsMap = tilemapManager.DungeonMap.WallsMap;
+
+                // Place a wall tile at the first tile position.
+                BasicDungeonTile tile1 = (BasicDungeonTile)wallsMap.GetTile(door_Tile1AdjustedPos);
+
+                if (tile1.TileType != DungeonTileTypes.Walls_DoorFrame_Left &&
+                    tile1.TileType != DungeonTileTypes.Walls_DoorFrame_Right)
+                {
+                    Debug.LogError($"DungeonConstructionUtils.SealOffBlockedDoors() - Cannot seal off door[{door.ThisRoom_DoorIndex}] tile 1 in room \"{parentRoom.RoomBlueprint.RoomName}\", because the wall tile at {door_Tile1AdjustedPos} is not a door frame tile!");
+                }
+                else
+                {
+                    wallsMap.SetTile(door_Tile1AdjustedPos, (tile1 as DoorwayTile).ReplacementWallTile);
+
+                    // Create a transform matrix for setting the tile rotation.
+                    Matrix4x4 transformMatrix1 = Matrix4x4.TRS(Vector3.zero, // We set the position parameter to Vector3.zero, as we don't want to add any offset to the tile's position.
+                                                              GetNewTileRotation(Quaternion.identity, door_AdjustedDirection.DirectionToRotation()),
+                                                              Vector3.one);
+
+                    wallsMap.SetTransformMatrix(door_Tile1AdjustedPos, transformMatrix1);
+                }
+
+                // Place a wall tile at the second tile position.
+                BasicDungeonTile tile2 = (BasicDungeonTile)wallsMap.GetTile(door_Tile2AdjustedPos);
+
+                if (tile2.TileType != DungeonTileTypes.Walls_DoorFrame_Left &&
+                    tile2.TileType != DungeonTileTypes.Walls_DoorFrame_Right)
+                {
+                    Debug.LogError($"DungeonConstructionUtils.SealOffBlockedDoors() - Cannot seal off door[{door.ThisRoom_DoorIndex}] tile 2 in room \"{parentRoom.RoomBlueprint.RoomName}\", because the wall tile at {door_Tile2AdjustedPos} is not a door frame tile!");
+                }
+                else
+                {
+                    wallsMap.SetTile(door_Tile2AdjustedPos, (tile2 as DoorwayTile).ReplacementWallTile);
+
+                    // Create a transform matrix for setting the tile rotation.
+                    Matrix4x4 transformMatrix2 = Matrix4x4.TRS(Vector3.zero, // We set the position parameter to Vector3.zero, as we don't want to add any offset to the tile's position.
+                                                              GetNewTileRotation(Quaternion.identity, door_AdjustedDirection.DirectionToRotation()),
+                                                              Vector3.one);
+
+
+                    wallsMap.SetTransformMatrix(door_Tile2AdjustedPos, transformMatrix2);
+                }
+
+            } // end foreach door
+
+
+        }
+
 
     }
 

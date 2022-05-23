@@ -64,7 +64,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
 
 
-        public static List<SavedTile> GetTilesOfType(Dictionary<Vector3Int, SavedTile> srcTilesDict, List<RoomTileTypes> typesToGet)
+        public static List<SavedTile> GetTilesOfType(Dictionary<Vector3Int, SavedTile> srcTilesDict, List<DungeonTileTypes> typesToGet)
         {
             List<SavedTile> sTiles = new List<SavedTile>();
 

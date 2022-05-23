@@ -16,7 +16,7 @@ using SaveRoomReturnCodes = ProceduralDungeon.RoomCreator.RoomTilemapManager.Sav
 namespace ProceduralDungeon.EditorScripts
 {
     [CustomEditor(typeof(RoomTilemapManager))]
-    public class RoomTilemapManagerEditor : Editor
+    public class RoomTilemapManager_Editor : Editor
     {
         RoomTilemapManager _RoomTilemapManager = null;
 

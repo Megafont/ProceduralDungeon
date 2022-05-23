@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d69302b7f9f12ce4d9c1bcce6fb45b7f, type: 3}
+  m_Script: {fileID: 11500000, guid: 5717fe11abd12e44196e7d5da19d288f, type: 3}
   m_Name: Placeholders_Doors_1stFloor
   m_EditorClassIdentifier: 
   m_Sprite: {fileID: 1105143702, guid: 2f63e6d4f20a7874ca4a1a06027cfec4, type: 3}
@@ -35,4 +35,4 @@ MonoBehaviour:
   m_Flags: 1
   m_ColliderType: 1
   RotateWithRoom: 0
-  TileType: 101001
+  TileType: 100001

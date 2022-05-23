@@ -272,6 +272,15 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
                         {
                             newNode = new MissionStructureGraphNode(childNode.GrammarSymbol, childNode.IsTightlyCoupled);
 
+                            newNode.LockCount = curNode.LockCount; // Set this node's lock count equal to that of its parent.
+                            // If this node is a lock room, then add one to its lock count.
+                            if (newNode.GrammarSymbol == GrammarSymbols.T_Lock ||
+                                newNode.GrammarSymbol == GrammarSymbols.T_Lock_Multi ||
+                                newNode.GrammarSymbol == GrammarSymbols.T_Lock_Goal)
+                            {
+                                newNode.LockCount++;
+                            }
+
                             // Add the new node and its ID from the left side of the rule into this dictionary. That way if the same node is linked elsewhere in the rule, we can correctly link to it instead of accidentally recreating the same node.
                             leftSideNodesCreated.Add(childNode.ID, newNode);
                         }

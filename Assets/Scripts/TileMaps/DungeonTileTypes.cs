@@ -9,13 +9,13 @@ namespace ProceduralDungeon.TileMaps
     /// <summary>
     /// Stores the start and ending tile IDs for each category of room tiles.
     /// </summary>
-    public enum RoomTileCategoryRanges
+    public enum DungeonTileCategoryRanges
     {
 
         FLOORS_START = 0,
-        FLOORS_END = 49999,
+        FLOORS_END = 9999,
 
-        WALLS_START = 50000,
+        WALLS_START = 10000,
         WALLS_END = 99999,
 
         PLACEHOLDERS_GENERAL_START = 100000,
@@ -40,7 +40,7 @@ namespace ProceduralDungeon.TileMaps
     ///       value a number. If you remove or add values in the list, the indices will get
     ///       shifted, causing the problem if you save tiles using just the number.
     /// </remarks>
-    public enum RoomTileTypes
+    public enum DungeonTileTypes
     {
 
         None = -1,
@@ -51,7 +51,9 @@ namespace ProceduralDungeon.TileMaps
         // ************************************************************************************************************************
 
 
-        // Floor Tiles
+        // FLOORTILES
+        // ====================================================================================================
+
         Floors_Basement = 0,
         Floors_1stFloor = 1,
         Floors_2ndFloor = 2,
@@ -60,24 +62,26 @@ namespace ProceduralDungeon.TileMaps
         Floors_ExitFloor = 5,
 
 
-        // Wall Tiles
-        Walls_DoorFrame_Left = 50000,
-        Walls_DoorFrame_Right = 50001,
-        Walls_Corner = 50100,
-        Walls_North = 50200,
+
+        // WALL TILES
+        // ====================================================================================================
+
+        // Straight Wall Tiles
+        // --------------------
+        Walls_Corner = 10000,
+        Walls_DoorFrame_Left = 10001,
+        Walls_DoorFrame_Right = 10002,
+        Walls_Straight = 10003,
 
 
 
         // PLACEHOLDER TILES
         // ====================================================================================================
 
-        Placeholders_Entity_Player = 100000,
-
-
         // Placeholder Tiles - Doors
-        Placeholders_Doors_Basement = 101000,
-        Placeholders_Doors_1stFloor = 101001,
-        Placeholders_Doors_2ndFloor = 101002,
+        Placeholders_Doors_Basement = 100000,
+        Placeholders_Doors_1stFloor = 100001,
+        Placeholders_Doors_2ndFloor = 100002,
 
 
         // Placeholder Tiles - Items
