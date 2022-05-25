@@ -36,7 +36,8 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
 
         public MissionStructureGraphNode AddNode(MissionStructureGraphNode newNode)
         {
-            _Nodes.Add(newNode);
+            if (!_Nodes.Contains(newNode))
+                _Nodes.Add(newNode);
 
 
             // Is the new node the first one to be added to the graph?
@@ -64,6 +65,23 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
 
 
             return graph;
+        }
+
+        public bool IsTightlyCoupledToAnyNode(MissionStructureGraphNode structureNode)
+        {
+            foreach (MissionStructureGraphNode node in _Nodes)
+            {
+                foreach (MissionStructureChildNodeData childNodeData in node.ChildNodesData)
+                {
+                    if (childNodeData.ChildNode == structureNode && childNodeData.IsTightlyCoupled)
+                        return true;
+
+                } // end foreach childNodeData
+
+            } // end foreach node
+
+
+            return false;
         }
 
 

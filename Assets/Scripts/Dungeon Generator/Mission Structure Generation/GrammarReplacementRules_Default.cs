@@ -7,6 +7,7 @@ using UnityEngine;
 
 
 using GrammarSymbols = ProceduralDungeon.DungeonGeneration.MissionStructureGeneration.GenerativeGrammar.Symbols;
+using MSCNData = ProceduralDungeon.DungeonGeneration.MissionStructureGeneration.MissionStructureChildNodeData;
 
 
 namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
@@ -27,11 +28,12 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
             _RuleSet = new List<GrammarReplacementRule>();
 
             GenerateGrammarRule_Start();
+            GenerateGrammarRule_ChainFinal();
+
             GenerateGrammarRules_ChainToGate();
             GenerateGrammarRules_ChainLinear();
             GenerateGrammarRules_ChainLinearToChainLinear();
             GenerateGrammarRules_ChainParallelToGate();
-            GenerateGrammarRules_ChainFinal();
             GenerateGrammarRules_ForkToKey();
             GenerateGrammarRules_ForkToKeyMulti();
             GenerateGrammarRules_ForkToHooks();
@@ -64,37 +66,37 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
 
             // Add a chain node.
             newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.NT_Chain, 2));
-            prevNode.ChildNodes.Add(newNode);
+            prevNode.ChildNodesData.Add(new MSCNData(newNode));
             prevNode = newNode;
 
             // Add a gate node.
             newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.NT_Gate, 3));
-            prevNode.ChildNodes.Add(newNode);
+            prevNode.ChildNodesData.Add(new MSCNData(newNode));
             prevNode = newNode;
 
             // Add a mini boss node.
-            newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Boss_Mini, 4, true));
-            prevNode.ChildNodes.Add(newNode);
+            newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Boss_Mini, 4));
+            prevNode.ChildNodesData.Add(new MSCNData(newNode, true));
             prevNode = newNode;
 
             // Add a quest item node.
-            newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Treasure_MainDungeonItem, 5, true));
-            prevNode.ChildNodes.Add(newNode);
+            newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Treasure_MainDungeonItem, 5));
+            prevNode.ChildNodesData.Add(new MSCNData(newNode, true));
             prevNode = newNode;
 
             // Add an item test node.
-            newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Test_MainDungeonItem, 6, true));
-            prevNode.ChildNodes.Add(newNode);
+            newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Test_MainDungeonItem, 6));
+            prevNode.ChildNodesData.Add(new MSCNData(newNode, true));
             prevNode = newNode;
 
             // Add a final chain node.
-            newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.NT_Chain_DungeonConclusion, 7, true));
-            prevNode.ChildNodes.Add(newNode);
+            newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.NT_Chain_DungeonConclusion, 7));
+            prevNode.ChildNodesData.Add(new MSCNData(newNode, true));
             prevNode = newNode;
 
             // Add the goal node.
             newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Goal, 8));
-            prevNode.ChildNodes.Add(newNode);
+            prevNode.ChildNodesData.Add(new MSCNData(newNode));
             prevNode = newNode;
 
 
@@ -126,7 +128,7 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
             prevNode = leftSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.NT_Chain, 1));
 
             newNode = leftSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.NT_Gate, 2));
-            prevNode.ChildNodes.Add(newNode);
+            prevNode.ChildNodesData.Add(new MSCNData(newNode));
 
 
             for (int length = MinChainLength; length <= MaxChainLength; length++)
@@ -141,19 +143,19 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
                 // Define the right side of the grammar replacement rule.
                 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-                prevNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.NT_Chain_Linear, 1, true));
+                prevNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.NT_Chain_Linear, 1));
 
                 for (int i = 3; i <= length; i++)
                 {
-                    newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.NT_Chain_Linear, (uint)i, true));
-                    prevNode.ChildNodes.Add(newNode);
+                    newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.NT_Chain_Linear, (uint)i));
+                    prevNode.ChildNodesData.Add(new MSCNData(newNode, true));
                     prevNode = newNode;
 
                 } // end for i
 
 
-                newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.NT_Chain_Linear, 2, true));
-                prevNode.ChildNodes.Add(newNode);
+                newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.NT_Chain_Linear, 2));
+                prevNode.ChildNodesData.Add(new MSCNData(newNode, true));
                 prevNode = newNode;
 
 
@@ -173,7 +175,7 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
             prevNode = rule.LeftSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.NT_Chain, 1));
 
             newNode = rule.LeftSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.NT_Gate, 2));
-            prevNode.ChildNodes.Add(newNode);
+            prevNode.ChildNodesData.Add(new MSCNData(newNode));
 
 
             // Define the right side of the grammar replacement rule.
@@ -182,7 +184,7 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
             prevNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.NT_Chain_Parallel, 1));
 
             newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.NT_Gate, 2));
-            prevNode.ChildNodes.Add(newNode);
+            prevNode.ChildNodesData.Add(new MSCNData(newNode));
 
 
             // Add the rule to the rule set.
@@ -254,12 +256,12 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
 
             prevNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Test_PreviousItem, 1));
 
-            newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Test_PreviousItem, 2, true));
-            prevNode.ChildNodes.Add(newNode);
+            newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Test_PreviousItem, 2));
+            prevNode.ChildNodesData.Add(new MSCNData(newNode, true));
             prevNode = newNode;
 
-            newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Treasure_Bonus, 3, true));
-            prevNode.ChildNodes.Add(newNode);
+            newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Treasure_Bonus, 3));
+            prevNode.ChildNodesData.Add(new MSCNData(newNode, true));
             prevNode = newNode;
 
 
@@ -285,8 +287,8 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
             MissionStructureGraph leftSide = new MissionStructureGraph();
             prevNode = leftSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.NT_Chain_Linear, 1));
 
-            newNode = leftSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.NT_Chain_Linear, 2, true));
-            prevNode.ChildNodes.Add(newNode);
+            newNode = leftSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.NT_Chain_Linear, 2));
+            prevNode.ChildNodesData.Add(new MSCNData(newNode, true));
 
 
 
@@ -303,8 +305,8 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
 
             prevNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Treasure_Key, 1));
 
-            newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Lock, 2, true));
-            prevNode.ChildNodes.Add(newNode);
+            newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Lock, 2));
+            prevNode.ChildNodesData.Add(new MSCNData(newNode, true));
             prevNode = newNode;
 
 
@@ -325,12 +327,12 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
 
             prevNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Treasure_Key, 1));
 
-            newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Lock, 3, true));
-            prevNode.ChildNodes.Add(newNode);
+            newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Lock, 3));
+            prevNode.ChildNodesData.Add(new MSCNData(newNode, true));
             prevNode = newNode;
 
-            newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.NT_Chain_Linear, 2, true));
-            prevNode.ChildNodes.Add(newNode);
+            newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.NT_Chain_Linear, 2));
+            prevNode.ChildNodesData.Add(new MSCNData(newNode, true));
             prevNode = newNode;
 
 
@@ -357,7 +359,7 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
             prevNode = leftSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.NT_Chain_Parallel, 1));
 
             newNode = leftSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.NT_Gate, 2));
-            prevNode.ChildNodes.Add(newNode);
+            prevNode.ChildNodesData.Add(new MSCNData(newNode));
 
 
             // RULE: ChainParallelToGate_Fork_MultiKey
@@ -374,18 +376,18 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
             prevNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.NT_Fork, 1));
 
             newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Treasure_Key_Multipart, 3));
-            prevNode.ChildNodes.Add(newNode);
+            prevNode.ChildNodesData.Add(new MSCNData(newNode));
 
             newNode2 = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Treasure_Key_Multipart, 4));
-            prevNode.ChildNodes.Add(newNode2);
+            prevNode.ChildNodesData.Add(new MSCNData(newNode2));
 
             newNode3 = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Treasure_Key_Multipart, 5));
-            prevNode.ChildNodes.Add(newNode3);
+            prevNode.ChildNodesData.Add(new MSCNData(newNode3));
 
             newNode4 = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Lock_Multi, 2));
-            newNode.ChildNodes.Add(newNode4);
-            newNode2.ChildNodes.Add(newNode4);
-            newNode3.ChildNodes.Add(newNode4);
+            newNode.ChildNodesData.Add(new MSCNData(newNode4));
+            newNode2.ChildNodesData.Add(new MSCNData(newNode4));
+            newNode3.ChildNodesData.Add(new MSCNData(newNode4));
 
 
             // Add the rule to the rule set.
@@ -408,7 +410,7 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
             prevNode = leftSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.NT_Fork, 1));
 
             newNode = leftSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Treasure_Key, 2));
-            prevNode.ChildNodes.Add(newNode);
+            prevNode.ChildNodesData.Add(new MSCNData(newNode));
 
 
             // RULE: ForkToKey_Test_Key
@@ -425,11 +427,11 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
             prevNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.NT_Fork, 1));
 
             newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Test_PreviousItem, 3));
-            prevNode.ChildNodes.Add(newNode);
+            prevNode.ChildNodesData.Add(new MSCNData(newNode));
             prevNode = newNode;
 
-            newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Treasure_Key, 2, true));
-            prevNode.ChildNodes.Add(newNode);
+            newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Treasure_Key, 2));
+            prevNode.ChildNodesData.Add(new MSCNData(newNode, true));
             prevNode = newNode;
 
 
@@ -451,11 +453,11 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
             prevNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.NT_Fork, 1));
 
             newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Test_Secret, 3));
-            prevNode.ChildNodes.Add(newNode);
+            prevNode.ChildNodesData.Add(new MSCNData(newNode));
             prevNode = newNode;
 
-            newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Treasure_Key, 2, true));
-            prevNode.ChildNodes.Add(newNode);
+            newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Treasure_Key, 2));
+            prevNode.ChildNodesData.Add(new MSCNData(newNode, true));
             prevNode = newNode;
 
 
@@ -479,7 +481,7 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
             prevNode = leftSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.NT_Fork, 1));
 
             newNode = leftSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Treasure_Key_Multipart, 2));
-            prevNode.ChildNodes.Add(newNode);
+            prevNode.ChildNodesData.Add(new MSCNData(newNode));
 
 
             // RULE: ForkToKey_Test_KeyMulti
@@ -496,11 +498,11 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
             prevNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.NT_Fork, 1));
 
             newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Test_PreviousItem, 3));
-            prevNode.ChildNodes.Add(newNode);
+            prevNode.ChildNodesData.Add(new MSCNData(newNode));
             prevNode = newNode;
 
-            newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Treasure_Key_Multipart, 2, true));
-            prevNode.ChildNodes.Add(newNode);
+            newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Treasure_Key_Multipart, 2));
+            prevNode.ChildNodesData.Add(new MSCNData(newNode, true));
             prevNode = newNode;
 
 
@@ -522,11 +524,11 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
             prevNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.NT_Fork, 1));
 
             newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Test_Secret, 3));
-            prevNode.ChildNodes.Add(newNode);
+            prevNode.ChildNodesData.Add(new MSCNData(newNode));
             prevNode = newNode;
 
-            newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Treasure_Key_Multipart, 2, true));
-            prevNode.ChildNodes.Add(newNode);
+            newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Treasure_Key_Multipart, 2));
+            prevNode.ChildNodesData.Add(new MSCNData(newNode, true));
             prevNode = newNode;
 
 
@@ -548,18 +550,18 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
             prevNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.NT_Fork, 1));
 
             newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Treasure_Key, 3));
-            prevNode.ChildNodes.Add(newNode);
+            prevNode.ChildNodesData.Add(new MSCNData(newNode));
             prevNode = newNode;
 
             newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Lock, 4));
-            prevNode.ChildNodes.Add(newNode);
+            prevNode.ChildNodesData.Add(new MSCNData(newNode));
             prevNode = newNode;
 
-            newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Treasure_Key_Multipart, 2, true));
-            prevNode.ChildNodes.Add(newNode);
+            newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Treasure_Key_Multipart, 2));
+            prevNode.ChildNodesData.Add(new MSCNData(newNode, true));
 
-            newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.NT_Hook, 5, true));
-            prevNode.ChildNodes.Add(newNode);
+            newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.NT_Hook, 5));
+            prevNode.ChildNodesData.Add(new MSCNData(newNode, true));
 
 
             // Add the rule to the rule set.
@@ -605,8 +607,8 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
 
                 for (int i = 3; i <= 3 + hookCount - 1; i++)
                 {
-                    newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.NT_Hook, (uint)i, true));
-                    prevNode.ChildNodes.Add(newNode);
+                    newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.NT_Hook, (uint)i));
+                    prevNode.ChildNodesData.Add(new MSCNData(newNode, true));
 
                 } // end for i
 
@@ -664,8 +666,8 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
 
             prevNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Test_PreviousItem, 1));
 
-            newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Treasure_Bonus, 2, true));
-            prevNode.ChildNodes.Add(newNode);
+            newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Treasure_Bonus, 2));
+            prevNode.ChildNodesData.Add(new MSCNData(newNode, true));
             prevNode = newNode;
 
 
@@ -686,8 +688,8 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
 
             prevNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Test_Secret, 1));
 
-            newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Treasure_Bonus, 2, true));
-            prevNode.ChildNodes.Add(newNode);
+            newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Treasure_Bonus, 2));
+            prevNode.ChildNodesData.Add(new MSCNData(newNode, true));
             prevNode = newNode;
 
 
@@ -698,7 +700,7 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
         }
 
 
-        private static void GenerateGrammarRules_ChainFinal()
+        private static void GenerateGrammarRule_ChainFinal()
         {
             GrammarReplacementRule rule;
             MissionStructureGraphNode prevNode;
@@ -715,7 +717,7 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
             prevNode = leftSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.NT_Chain_DungeonConclusion, 1));
 
             newNode = leftSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Goal, 2));
-            prevNode.ChildNodes.Add(newNode);
+            prevNode.ChildNodesData.Add(new MSCNData(newNode));
 
 
             // RULE: Chain_Final
@@ -732,40 +734,40 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
             prevNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.NT_Chain, 1));
 
             newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.NT_Hook, 8));
-            prevNode.ChildNodes.Add(newNode);
+            prevNode.ChildNodesData.Add(new MSCNData(newNode));
 
             node3 = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.NT_Gate, 3));
-            prevNode.ChildNodes.Add(node3);
+            prevNode.ChildNodesData.Add(new MSCNData(node3));
 
             node6 = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Test_PreviousItem, 6));
-            prevNode.ChildNodes.Add(node6);
+            prevNode.ChildNodesData.Add(new MSCNData(node6));
 
 
 
             // Node 3 subtree
             // -----------------
 
-            node4 = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Lock_Goal, 4, true));
-            node3.ChildNodes.Add(node4);
+            node4 = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Lock_Goal, 4));
+            node3.ChildNodesData.Add(new MSCNData(node4, true));
             prevNode = node4;
 
-            newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Boss_Main, 5, true));
-            prevNode.ChildNodes.Add(newNode);
+            newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Boss_Main, 5));
+            prevNode.ChildNodesData.Add(new MSCNData(newNode, true));
             prevNode = newNode;
 
-            newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Goal, 2, true));
-            prevNode.ChildNodes.Add(newNode);
+            newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Goal, 2));
+            prevNode.ChildNodesData.Add(new MSCNData(newNode, true));
             prevNode = newNode;
 
 
             // Node 6 subtree
             // -----------------
-            newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Treasure_Key_Goal, 7, true));
-            node6.ChildNodes.Add(newNode);
-            newNode.ChildNodes.Add(node4);
+            newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.T_Treasure_Key_Goal, 7));
+            node6.ChildNodesData.Add(new MSCNData(newNode, true));
+            newNode.ChildNodesData.Add(new MSCNData(node4));
 
             newNode = rule.RightSide.AddNode(new MissionStructureGraphNode(GrammarSymbols.NT_Hook, 9));
-            node6.ChildNodes.Add(newNode);
+            node6.ChildNodesData.Add(new MSCNData(newNode));
 
 
             // Add the rule to the rule set.

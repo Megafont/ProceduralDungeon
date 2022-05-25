@@ -45,7 +45,10 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonGraphGeneration
         {
             Assert.IsNotNull(newNode, "DungeonGraph.AddNode() - The new node passed in is null!");
 
-            _Nodes.Add(newNode);
+
+            if (!_Nodes.Contains(newNode))
+                _Nodes.Add(newNode);
+
 
             return newNode;
         }

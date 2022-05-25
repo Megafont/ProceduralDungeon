@@ -10,6 +10,9 @@ using ProceduralDungeon.InGame;
 using ProceduralDungeon.TileMaps;
 
 
+using MSCNData = ProceduralDungeon.DungeonGeneration.MissionStructureGeneration.MissionStructureChildNodeData;
+
+
 namespace ProceduralDungeon.DungeonGeneration
 {
 
@@ -17,12 +20,12 @@ namespace ProceduralDungeon.DungeonGeneration
     {
         public static void AddChildNodesToQueue(Queue<MissionStructureGraphNode> queue, MissionStructureGraphNode node)
         {
-            foreach (MissionStructureGraphNode childNode in node.ChildNodes)
+            foreach (MSCNData childNodeData in node.ChildNodesData)
             {
                 // Check that the node is not already in the queue. If the same node gets in the queue
                 // multiple times it can cause us to get stuck in an infinite loop and lock up the Unity Editor.
-                if (!queue.Contains(childNode))
-                    queue.Enqueue(childNode);
+                if (!queue.Contains(childNodeData.ChildNode))
+                    queue.Enqueue(childNodeData.ChildNode);
             }
         }
 
@@ -59,7 +62,6 @@ namespace ProceduralDungeon.DungeonGeneration
             else
                 return tile2Position;
         }
-
 
     }
 

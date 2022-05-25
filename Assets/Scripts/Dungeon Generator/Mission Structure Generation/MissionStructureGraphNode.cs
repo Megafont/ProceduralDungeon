@@ -6,16 +6,17 @@ using System.Threading.Tasks;
 using UnityEngine;
 
 using ProceduralDungeon.DungeonGeneration.DungeonGraphGeneration;
+using MSCNData = ProceduralDungeon.DungeonGeneration.MissionStructureGeneration.MissionStructureChildNodeData;
 
 
 namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
 {
+
     public class MissionStructureGraphNode
     {
-        public readonly List<MissionStructureGraphNode> ChildNodes; // The list of this node's childe nodes.
+        public readonly List<MissionStructureChildNodeData> ChildNodesData; // The list of this node's childe nodes.
         public DungeonGraphNode DungeonRoomNode; // A reference to the dungeon room node generated from this mission structure node.
         public GenerativeGrammar.Symbols GrammarSymbol; // The dungeon grammar symbol assigned to this room. It defines the type of room within the procedurally generated dungeon design, like a boss room).
-        public bool IsTightlyCoupled = false; // Indicates whether this node is tightly coupled to its parent. If so, it means it the player won't be able to access it until the clear the previous component of the dungeon.
         public uint LockCount; // The number of locks up to this point in the dungeon. This property is essentially a built-in Dijkstra map. It allows us to ensure we don't connect parts of the dungeon that would bypass locked doors.
         public Vector3 Position; // This position is used by the MissionStructureGraphGizmos class.
 
@@ -25,29 +26,44 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
         public uint ID { get; private set; }
 
 
-        public MissionStructureGraphNode(GenerativeGrammar.Symbols symbol, bool isTightlyCoupled = false)
+        public MissionStructureGraphNode(GenerativeGrammar.Symbols symbol)
         {
-            ChildNodes = new List<MissionStructureGraphNode>();
+            ChildNodesData = new List<MissionStructureChildNodeData>();
 
             GrammarSymbol = symbol;
-
-            IsTightlyCoupled = isTightlyCoupled;
 
             LockCount = 0;
         }
 
-        public MissionStructureGraphNode(GenerativeGrammar.Symbols symbol)
-            : this(symbol, false)
-        {
-
-        }
-
-        public MissionStructureGraphNode(GenerativeGrammar.Symbols symbol, uint id = 0, bool isTightlyCoupled = false)
-            : this(symbol, isTightlyCoupled)
+        public MissionStructureGraphNode(GenerativeGrammar.Symbols symbol, uint id = 0)
+            : this(symbol)
         {
             ID = id;
         }
 
+
+        public bool ContainsChild(MissionStructureGraphNode childNode)
+        {
+            foreach (MSCNData childNodeData in ChildNodesData)
+            {
+                if (childNodeData.ChildNode == childNode)
+                    return true;
+            }
+
+            return false;
+
+        }
+
+        public MSCNData GetChildNodeData(MissionStructureGraphNode childNode)
+        {
+            foreach (MSCNData childNodeData in ChildNodesData)
+            {
+                if (childNodeData.ChildNode == childNode)
+                    return childNodeData;
+            }
+
+            return null;
+        }
         /// <summary>
         /// Returns the child nodes list arranged with tightly coupled nodes all moved ahead of ones that aren't.
         /// </summary>
@@ -58,16 +74,20 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
 
 
             int lastTightlyCoupledIndex = 0;
-            foreach (MissionStructureGraphNode childNode in ChildNodes)
+            foreach (MissionStructureChildNodeData childNodeData in ChildNodesData)
             {
-                if (childNode.IsTightlyCoupled)
+                if (childNodeData.IsTightlyCoupled)
                 {
-                    childList.Insert(lastTightlyCoupledIndex, childNode);
+                    childList.Insert(lastTightlyCoupledIndex, childNodeData.ChildNode);
                     lastTightlyCoupledIndex++;
+                }
+                else if (childNodeData.ChildNode.GetTightlyCoupledChildNodeCount() > 0)
+                {
+                    childList.Insert(lastTightlyCoupledIndex, childNodeData.ChildNode);
                 }
                 else
                 {
-                    childList.Add(childNode);
+                    childList.Add(childNodeData.ChildNode);
                 }
 
             } // end foreach
@@ -81,9 +101,9 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
         {
             int count = 0;
 
-            foreach (MissionStructureGraphNode childNode in ChildNodes)
+            foreach (MSCNData childNodeData in ChildNodesData)
             {
-                if (childNode.IsTightlyCoupled)
+                if (childNodeData.IsTightlyCoupled)
                     count++;
             }
 

@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 using UnityEngine;
 
 
+using MSCNData = ProceduralDungeon.DungeonGeneration.MissionStructureGeneration.MissionStructureChildNodeData;
+
+
 namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
 {
     public static class MissionStructureGraphGizmos
@@ -91,13 +94,18 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
 
 
 
-                foreach (MissionStructureGraphNode childNode in node.ChildNodes)
+                foreach (MSCNData childNodeData in node.ChildNodesData)
                 {
                     Vector3 childNodePos = Vector3.zero;
-                    if (childNode.DungeonRoomNode != null && ENABLE_SNAPPING_GIZMOS_TO_GENERATED_ROOMS)
-                        childNodePos = childNode.DungeonRoomNode.RoomCenterPoint;
+                    if (childNodeData.ChildNode.DungeonRoomNode != null && ENABLE_SNAPPING_GIZMOS_TO_GENERATED_ROOMS)
+                    {
+                        childNodePos = childNodeData.ChildNode.DungeonRoomNode.RoomCenterPoint;
+                    }
                     else
-                        childNodePos = new Vector3(childNode.Position.x * _NodeGap.x, childNode.Position.y * _NodeGap.y) + _NodeOffset;
+                    {
+                        childNodePos = new Vector3(childNodeData.ChildNode.Position.x * _NodeGap.x,
+                                                   childNodeData.ChildNode.Position.y * _NodeGap.y) + _NodeOffset;
+                    }
 
 
                     Vector3 startPos = nodePos;
@@ -110,8 +118,7 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
                     endPos -= direction;
 
 
-
-                    if (!childNode.IsTightlyCoupled)
+                    if (!childNodeData.IsTightlyCoupled)
                     {
                         // The child node is not tightly coupled to its parent, so draw a single line connecting them.
                         DrawArrowLine(startPos,

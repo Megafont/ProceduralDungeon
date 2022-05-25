@@ -12,6 +12,7 @@ using ProceduralDungeon.DungeonGeneration;
 
 
 using GrammarSymbols = ProceduralDungeon.DungeonGeneration.MissionStructureGeneration.GenerativeGrammar.Symbols;
+using MSCNData = ProceduralDungeon.DungeonGeneration.MissionStructureGeneration.MissionStructureChildNodeData;
 
 
 namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
@@ -95,7 +96,7 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
 
 
             // Set preliminary position values for all nodes so the MissionStructureGraphGizmos class will draw them correctly if enabled.
-            SetPositions2();
+            SetPositions();
 
 
             return _MissionStructureGraph;
@@ -111,7 +112,7 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
             List<String> matching_2Node_RuleCategories = new List<string>();
 
             // Holds the child node of nodeToCheckAt that matched the corresponding rule in matching_2Node_RuleCategories.
-            List<MissionStructureGraphNode> matchingChildNodes = new List<MissionStructureGraphNode>();
+            List<MSCNData> matchingChildNodes = new List<MSCNData>();
 
 
             //Debug.Log($"RULE CHECK ON {nodeToCheckAt.GrammarSymbol}");
@@ -141,16 +142,16 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
                 {
                     // We only check the first child since having more than two nodes total is not supported for the left side of rules.
                     // If the structure on the left side of the rule is bigger than two nodes, it becomes much harder to process the grammar rules.
-                    MissionStructureGraphNode ruleStartNodeChild = ruleList[0].LeftSide.StartNode.ChildNodes[0];
+                    MSCNData ruleStartNodeChildData = ruleList[0].LeftSide.StartNode.ChildNodesData[0];
 
-                    foreach (MissionStructureGraphNode childNode in nodeToCheckAt.ChildNodes)
+                    foreach (MSCNData childNodeData in nodeToCheckAt.ChildNodesData)
                     {
-                        if (childNode.GrammarSymbol == ruleStartNodeChild.GrammarSymbol &&
-                            childNode.IsTightlyCoupled == ruleStartNodeChild.IsTightlyCoupled)
+                        if (childNodeData.ChildNode.GrammarSymbol == ruleStartNodeChildData.ChildNode.GrammarSymbol &&
+                            childNodeData.IsTightlyCoupled == ruleStartNodeChildData.IsTightlyCoupled)
                         {
                             // This rule matches, so cache it.
                             matching_2Node_RuleCategories.Add(ruleCategory);
-                            matchingChildNodes.Add(childNode);
+                            matchingChildNodes.Add(childNodeData);
                         }
 
                     } // end foreach childNode
@@ -169,7 +170,7 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
             // We want these rules to have precedence so that all edge rules get applied to edges between nodes
             // before we execute rules that replace the parent node, as single node rules generally always do.
             List<string> listToUse;
-            List<MissionStructureGraphNode> childNodeListToUse;
+            List<MSCNData> childNodeListToUse;
             bool isTwoNodeRule = matching_2Node_RuleCategories.Count > 0;
             if (isTwoNodeRule)
             {
@@ -198,30 +199,30 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
         /// This function executes the specified grammar replacement rule on the specified pair of linked nodes.
         /// </summary>
         /// <param name="node1">The first node.</param>
-        /// <param name="node2">The second node.</param>
+        /// <param name="childNodeData">The second node.</param>
         /// <param name="rule">The grammar replacement rule to apply.</param>
-        private static void ExecuteGrammarRule(MissionStructureGraphNode node1, MissionStructureGraphNode node2, GrammarReplacementRule rule)
+        private static void ExecuteGrammarRule(MissionStructureGraphNode node1, MSCNData childNodeData, GrammarReplacementRule rule)
         {
             Assert.IsNotNull(node1, "GrammarRuleProcessor.ExecuteGrammarRule() - The first passed in node is null!");
             // The node2 parameter will be null if the rule has only one node on the left side, so we don't assert on it here.
             Assert.IsNotNull(rule, "GrammarRuleProcessor.ExecuteGrammarRule() - The passed in grammar replacement rule is null!");
 
-            if (node2 != null)
-                Assert.IsTrue(node1.ChildNodes.Contains(node2), "node2 is not a child of node1!");
+            if (childNodeData != null)
+                Assert.IsTrue(node1.ChildNodesData.Contains(childNodeData), "node2 is not a child of node1!");
 
 
-            // Keeps track of nodes from the left side of the rule that have already been created.
-            Dictionary<uint, MissionStructureGraphNode> leftSideNodesCreated = new Dictionary<uint, MissionStructureGraphNode>();
+            // Keeps track of nodes from the right side of the rule that have already been created.
+            Dictionary<uint, MissionStructureGraphNode> rightSideNodesCreated = new Dictionary<uint, MissionStructureGraphNode>();
 
             // Keeps track of nodes that were added by the grammar replacement rule we are executing.
             List<MissionStructureGraphNode> newNodes = new List<MissionStructureGraphNode>();
 
 
-            Debug.Log($"EXECUTE: \"{rule.Name}\"    Node1: {node1.GrammarSymbol}    Node2: {(node2 == null ? "null" : node2.GrammarSymbol)}");
+            Debug.Log($"EXECUTE: \"{rule.Name}\"    Node1: {node1.GrammarSymbol}    Node2: {(childNodeData == null ? "null" : childNodeData.ChildNode.GrammarSymbol)}");
 
 
             // Remove the connection between the two nodes.
-            node1.ChildNodes.Remove(node2);
+            node1.ChildNodesData.Remove(childNodeData);
 
             // "Replace" the first node by changing its type.
             node1.GrammarSymbol = rule.RightSide.StartNode.GrammarSymbol;
@@ -249,28 +250,30 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
 
                 int childNodeIndex = 0;
                 // Duplicate each child node and add it to the corresponding node in our mission structure graph.
-                foreach (MissionStructureGraphNode childNode in curRuleNode.ChildNodes)
+                foreach (MSCNData ruleChildNodeData in curRuleNode.ChildNodesData)
                 {
                     // Is this the node that corresponds to node2?
-                    if (node2 != null && childNode.ID == 2)
+                    if (childNodeData != null && ruleChildNodeData.ChildNode.ID == 2)
                     {
                         // This node in the rule has ID 2, meaning it is the one that corresponds to node2. node2 may not exist if the rule is only replacing one node instead of two, in which case the else clause will run instead.
-                        node2.GrammarSymbol = childNode.GrammarSymbol;
-                        node2.IsTightlyCoupled = childNode.IsTightlyCoupled;
-                        curNode.ChildNodes.Add(node2);
+                        childNodeData.ChildNode.GrammarSymbol = ruleChildNodeData.ChildNode.GrammarSymbol;
+                        childNodeData.IsTightlyCoupled = ruleChildNodeData.IsTightlyCoupled;
+
+                        if (!curNode.ContainsChild(childNodeData.ChildNode))
+                            curNode.ChildNodesData.Add(childNodeData);
 
                         // Add it to the new nodes list so we can tell the difference between ones the rule created, and ones that already existed.
-                        newNodes.Add(node2);
+                        newNodes.Add(childNodeData.ChildNode);
 
                         // Flag that node2 has been inserted.
                     }
                     else
                     {
-                        uint id = childNode.ID;
+                        uint id = ruleChildNodeData.ChildNode.ID;
                         MissionStructureGraphNode newNode;
-                        if (!leftSideNodesCreated.ContainsKey(id))
+                        if (!rightSideNodesCreated.ContainsKey(id))
                         {
-                            newNode = new MissionStructureGraphNode(childNode.GrammarSymbol, childNode.IsTightlyCoupled);
+                            newNode = new MissionStructureGraphNode(ruleChildNodeData.ChildNode.GrammarSymbol);
 
                             newNode.LockCount = curNode.LockCount; // Set this node's lock count equal to that of its parent.
                             // If this node is a lock room, then add one to its lock count.
@@ -281,21 +284,25 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
                                 newNode.LockCount++;
                             }
 
-                            // Add the new node and its ID from the left side of the rule into this dictionary. That way if the same node is linked elsewhere in the rule, we can correctly link to it instead of accidentally recreating the same node.
-                            leftSideNodesCreated.Add(childNode.ID, newNode);
+                            // Add the new node and its ID from the right side of the rule into this dictionary. That way if the same node is linked elsewhere in the rule, we can correctly link to it instead of accidentally recreating the same node.
+                            rightSideNodesCreated.Add(ruleChildNodeData.ChildNode.ID, newNode);
                         }
                         else
                         {
-                            newNode = leftSideNodesCreated[id];
+                            newNode = rightSideNodesCreated[id];
                         }
 
-                        curNode.ChildNodes.Add(newNode);
 
-                        // Add it to the new nodes list so we can tell the difference between nodes the rule created and those that already existed.
-                        newNodes.Add(newNode);
+                        if (!curNode.ContainsChild(newNode))
+                        {
+                            curNode.ChildNodesData.Add(new MSCNData(newNode, ruleChildNodeData.IsTightlyCoupled));
+
+                            // Add it to the new nodes list so we can tell the difference between nodes the rule created and those that already existed.
+                            newNodes.Add(newNode);
+                        }
 
                         // Add the node to our mission structure graph as well.
-                        _MissionStructureGraph.Nodes.Add(newNode);
+                        _MissionStructureGraph.AddNode(newNode);
 
                     } // end if
 
@@ -340,7 +347,7 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
             {
                 if (rule.LeftSide.Nodes.Count < 1)
                     throw new Exception($"GrammarRuleProcessor.OrganizeGrammarReplacementRuleSet() - The grammar replacement rule \"{rule.Name}\" has no nodes in the left side!");
-                if (rule.LeftSide.StartNode.ChildNodes.Count > 1)
+                if (rule.LeftSide.StartNode.ChildNodesData.Count > 1)
                     throw new Exception($"GrammarRuleProcessor.OrganizeGrammarReplacementRuleSet() - The grammar replacement rule \"{rule.Name}\" has more than two nodes! This is not supported, because executing rules becomes much more complex and not so practical with larger structures in the left side of the rule.");
 
                 if (rule.RightSide.Nodes.Count < 1)
@@ -395,7 +402,7 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
             // This dictionary tracks the positions assigned to a node. If a node has multiple parents, it will have multiple
             // positions stored in its list in this dictionary. It's final position will be Vector2(maxX, averageY) of all
             // the positions in that list.
-            Dictionary<MissionStructureGraphNode, List<Vector2>> childNodePosDict = new Dictionary<MissionStructureGraphNode, List<Vector2>>();
+            Dictionary<MSCNData, List<Vector2>> childNodePosDict = new Dictionary<MSCNData, List<Vector2>>();
 
             MissionStructureGraphNode curNode = null;
             MissionStructureGraphNode prevNode = null;
@@ -413,15 +420,15 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
                 // Calculate y-position of first child node. The will be stacked upward from this position.
                 float startY = 0f;
                 if (prevNode == null)
-                    startY = curNode.Position.y - (curNode.ChildNodes.Count / 2);
+                    startY = curNode.Position.y - (curNode.ChildNodesData.Count / 2);
                 else
                 {
                     if (curNode.Position.y == prevNode.Position.y)
-                        startY = curNode.Position.y - (curNode.ChildNodes.Count / 2);
+                        startY = curNode.Position.y - (curNode.ChildNodesData.Count / 2);
                     else if (curNode.Position.y > prevNode.Position.y)
                         startY = curNode.Position.y;
                     else // curNode.Position.y < prevNode.Position.y
-                        startY = curNode.Position.y - (curNode.ChildNodes.Count - 1);
+                        startY = curNode.Position.y - (curNode.ChildNodesData.Count - 1);
                 }
 
 
@@ -429,112 +436,50 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
 
                 //Debug.Log($"NODE: {curNode.GrammarSymbol}    POS: {curNode.Position}");
 
+
                 int childIndex = 0;
-                foreach (MissionStructureGraphNode childNode in curNode.ChildNodes)
+                foreach (MSCNData childNodeData in curNode.ChildNodesData)
                 {
+                    // If this child node is not tightly coupled to this node, then we need to check if it is tightly
+                    // coupled to any other node. If so, we need to skip it here so it is added just after the parent
+                    // node it is tightly coupled to. This is necessary if there are two branches in the mission structure
+                    // that merge back together. This check prevents us from processing nodes after the merge twice.
+                    if ((!childNodeData.IsTightlyCoupled) &&  // Check that the child is not tightly coupled to this node
+                         _MissionStructureGraph.IsTightlyCoupledToAnyNode(childNodeData.ChildNode))  // Check if it is tightly coupled to any other node
+                    {
+                        continue;
+                    }
+
+
                     float posX = curNode.Position.x + 1f;
                     float posY = startY + childIndex;
 
-                    if (childNode.Position.x > posX)
-                        posX = childNode.Position.x;
+                    if (childNodeData.ChildNode.Position.x > posX)
+                        posX = childNodeData.ChildNode.Position.x;
 
-                    if (!childNodePosDict.ContainsKey(childNode))
-                        childNodePosDict.Add(childNode, new List<Vector2>());
+                    if (!childNodePosDict.ContainsKey(childNodeData))
+                        childNodePosDict.Add(childNodeData, new List<Vector2>());
 
                     // Add the position calculated from the current node to the list of positions assigned to the childNode so far.
-                    childNodePosDict[childNode].Add(new Vector2(posX, posY));
+                    childNodePosDict[childNodeData].Add(new Vector2(posX, posY));
 
 
                     // Assign a position to the childNode based on all positions in its list.
-                    childNode.Position = GetNodePosFromPositionsList(childNodePosDict[childNode]);//new Vector3(posX, posY);
+                    childNodeData.ChildNode.Position = GetNodePosFromPositionsList(childNodePosDict[childNodeData]);
                     childIndex++;
 
                     //Debug.Log($"        CHILD NODE: {childNode.GrammarSymbol}    POS: {childNode.Position}");
 
-                }
+                    if (!nodeQueue.Contains(childNodeData.ChildNode))
+                        nodeQueue.Enqueue(childNodeData.ChildNode);
 
-                MiscellaneousUtils.AddChildNodesToQueue(nodeQueue, curNode);
+                } // end foreach childNodeData
+
 
             } // end while nodeQueue is not empty
 
 
             Debug.Log(new string('-', 256));
-        }
-
-        /// <summary>
-        /// This is an alternate version of SetPositions() that uses a depth first scan rather than a breadth first one.
-        /// It seems to work a little bit better, whereas the original has an issue where sometimes you'll get some nodes
-        /// placed on top of each other when the graph is drawn by the MissionStructureGraphGizmos class without the
-        /// graph nodes snapped to generated rooms.
-        /// </summary>
-        private static void SetPositions2()
-        {
-            // This dictionary tracks the positions assigned to a node. If a node has multiple parents, it will have multiple
-            // positions stored in its list in this dictionary. It's final position will be Vector2(maxX, averageY) of all
-            // the positions in that list.
-            Dictionary<MissionStructureGraphNode, List<Vector2>> childNodePosDict = new Dictionary<MissionStructureGraphNode, List<Vector2>>();
-
-            MissionStructureGraphNode curNode = null;
-            MissionStructureGraphNode prevNode = null;
-            Stack<MissionStructureGraphNode> nodeStack = new Stack<MissionStructureGraphNode>();
-            nodeStack.Push(_MissionStructureGraph.StartNode);
-
-            // Traverse the node map in a breadth first manner.
-            while (nodeStack.Count > 0)
-            {
-                prevNode = curNode;
-
-                // Get the next node from the queue.
-                curNode = nodeStack.Pop();
-
-                // Calculate y-position of first child node. The will be stacked upward from this position.
-                float startY = 0f;
-                if (prevNode == null)
-                    startY = curNode.Position.y - (int)(curNode.ChildNodes.Count / 2);
-                else
-                {
-                    if (curNode.Position.y == prevNode.Position.y)
-                        startY = curNode.Position.y - (int)(curNode.ChildNodes.Count / 2);
-                    else if (curNode.Position.y > prevNode.Position.y)
-                        startY = curNode.Position.y;
-                    else // curNode.Position.y < prevNode.Position.y
-                        startY = curNode.Position.y - (int)(curNode.ChildNodes.Count - 1);
-                }
-
-
-                CheckForNodeOverlap(curNode);
-
-                //Debug.Log($"NODE: {curNode.GrammarSymbol}    POS: {curNode.Position}");
-
-                int childIndex = 0;
-                foreach (MissionStructureGraphNode childNode in curNode.ChildNodes)
-                {
-                    float posX = curNode.Position.x + 1f;
-                    float posY = startY + childIndex;
-
-                    if (childNode.Position.x > posX)
-                        posX = childNode.Position.x;
-
-                    if (!childNodePosDict.ContainsKey(childNode))
-                        childNodePosDict.Add(childNode, new List<Vector2>());
-
-                    // Add the position calculated from the current node to the list of positions assigned to the childNode so far.
-                    childNodePosDict[childNode].Add(new Vector2(posX, posY));
-
-
-                    // Assign a position to the childNode based on all positions in its list.
-                    childNode.Position = GetNodePosFromPositionsList(childNodePosDict[childNode]);//new Vector3(posX, posY);
-                    childIndex++;
-
-                    //Debug.Log($"        CHILD NODE: {childNode.GrammarSymbol}    POS: {childNode.Position}");
-
-                }
-
-                foreach (MissionStructureGraphNode childNode in curNode.ChildNodes)
-                    nodeStack.Push(childNode);
-
-            } // end while nodeQueue is not empty
-
         }
 
         private static void CheckForNodeOverlap(MissionStructureGraphNode nodeToCheck)
@@ -546,7 +491,7 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
                 if (node == nodeToCheck)
                     continue;
 
-                if (node.ChildNodes.Count >= 3)
+                if (node.ChildNodesData.Count >= 3)
                     lastLargeBranchNode = node;
 
                 // Does the node to check overlap this node?
@@ -572,12 +517,9 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
 
                     nodeToCheck.Position = new Vector2(node.Position.x, node.Position.y + yOffset);
 
-                    //nodeToCheck.Position = new Vector2(node.Position.x + 1, node.Position.y);
-
-                    //foreach (MissionStructureGraphNode childNode in node.ChildNodes)
-                    //    childNode.Position = new Vector2(childNode.Position.x + 1, childNode.Position.y);
                 }
-            }
+
+            } // end foreach node
 
         }
 
@@ -615,56 +557,6 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
             return new Vector2(posXMax, (int)posYSum / yCount);
         }
 
-        /// <summary>
-        /// This function is needed because our mission structure graphs can have multiple branches merge back together because of multipart keys.
-        /// When this happens, if one branch is shorter than the others, it short circuits the processing and causes later nodes to get processed
-        /// before some of the branches before them are done. This function gets us a proper queue with the nodes in the correct order.
-        /// </summary>
-        /// <param name="graph">The mission structure graph to make a queue for.</param>
-        /// <returns>A queue with all nodes in the proper order from start node to end node.</returns>
-        private static Queue<MissionStructureGraphNode> GetTrueBreadthFirstNodeQueue(MissionStructureGraph graph)
-        {
-            List<MissionStructureGraphNode> nodeList = new List<MissionStructureGraphNode>();
-            MissionStructureGraphNode curNode;
-            Queue<MissionStructureGraphNode> nodeQueue = new Queue<MissionStructureGraphNode>();
-
-            nodeQueue.Enqueue(_MissionStructureGraph.StartNode);
-            nodeList.Add(graph.StartNode);
-
-            // Traverse the node map in a breadth first manner.
-            while (nodeQueue.Count > 0)
-            {
-                // Get the next node from the queue.
-                curNode = nodeQueue.Dequeue();
-
-                foreach (MissionStructureGraphNode childNode in curNode.ChildNodes)
-                {
-                    // If the node list already contains this child node, then remove it and add it again so it is at the end of the list.
-                    // This is how we ensure that the nodes are in the right order to solve the short circuiting issue mentioned in the
-                    // documentation of this function.
-                    if (nodeList.Contains(childNode))
-                        nodeList.Remove(childNode);
-
-                    nodeList.Add(childNode);
-                }
-
-                MiscellaneousUtils.AddChildNodesToQueue(nodeQueue, curNode);
-
-            } // end while
-
-
-            nodeQueue = new Queue<MissionStructureGraphNode>();
-            Debug.Log(new string('*', 256));
-            foreach (MissionStructureGraphNode node in nodeList)
-            {
-                Debug.Log(node.GrammarSymbol);
-                nodeQueue.Enqueue(node);
-            }
-            Debug.Log(new string('*', 256));
-
-            return nodeQueue;
-        }
-
         private static void DEBUG_OutputRulesList()
         {
             Debug.Log("");
@@ -683,9 +575,9 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
                 }
                 else if (ruleList[0].LeftSide.Nodes.Count == 2)
                 {
-                    bool tightlyCoupled = ruleList[0].LeftSide.StartNode.ChildNodes[0].IsTightlyCoupled;
+                    bool tightlyCoupled = ruleList[0].LeftSide.StartNode.ChildNodesData[0].IsTightlyCoupled;
                     string sep = tightlyCoupled ? "=====>" : "----->";
-                    Debug.Log($"CATEGORY:    \"{ruleCategory}\"    Node1={ruleList[0].LeftSide.StartNode.GrammarSymbol}   {sep}   Node2={ruleList[0].LeftSide.StartNode.ChildNodes[0].GrammarSymbol}");
+                    Debug.Log($"CATEGORY:    \"{ruleCategory}\"    Node1={ruleList[0].LeftSide.StartNode.GrammarSymbol}   {sep}   Node2={ruleList[0].LeftSide.StartNode.ChildNodesData[0].ChildNode.GrammarSymbol}");
                 }
 
 

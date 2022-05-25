@@ -19,12 +19,14 @@ using ProceduralDungeon.TileMaps;
 
 
 using GrammarSymbols = ProceduralDungeon.DungeonGeneration.MissionStructureGeneration.GenerativeGrammar.Symbols;
+using MSCNData = ProceduralDungeon.DungeonGeneration.MissionStructureGeneration.MissionStructureChildNodeData;
 
 
 namespace ProceduralDungeon.DungeonGeneration
 {
     public static class DungeonGenerator
     {
+        private const float EXTRA_DOORS_ROOM_SPAWN_CHANCE = 0.333f; // The probability that each unused doorway will have a new room spawned next to it after the main dungeon generation is done.
         private const int LINEAR_DOOR_SCAN_LENGTH = 10; // How many tiles to scan in front of a door for room collisions and neighboring doors.
         private const int MAX_ROOM_BLUEPRINT_SELECTION_ATTEMPTS = 16; // Max. number of times to try choosing and placing a room blueprint before aborting.
         private const int MAX_ROOM_CONNECTION_ATTEMPTS = 16; // Max. number of times to try connecting a new room into one of the unconnected doors on the dungeon.
@@ -37,8 +39,16 @@ namespace ProceduralDungeon.DungeonGeneration
         private static MissionStructureGraph _MissionStructureGraph; // Holds the mission structure information of the dungeon, such as locations of things like keys, locks, or bosses.
 
 
+        private static Dictionary<MissionStructureGraphNode, DungeonGraphNode> _ParentDictionary;
+
+
+        private static DungeonDoor _EntranceDoor;
+        private static DungeonDoor _GoalDoor;
+
+
         private static bool _IsInitialized = false;
         private static bool _IsGeneratingDungeon = false;
+        private static bool _IsFinalizingDoors = false;
 
 
         // References to room prefabs.
@@ -77,24 +87,32 @@ namespace ProceduralDungeon.DungeonGeneration
             }
 
 
-            if (_IsInitialized)
-                ClearPreviousData();
+            if (!_IsInitialized)
+            {
+                _IsInitialized = false;
 
+                // Move these lists into a theme object later that holds all rooms from a certain set?
+                // This would be necessary if I make this generator able to incorporate multiple themes into one dungeon (like cave and brick rooms or something);
+                _AllRooms = new List<RoomData>();
+                _FilteredRoomListsCache = new Dictionary<uint, List<RoomData>>();
+
+                _DoorFromTileDict = new Dictionary<Vector3Int, DungeonDoor>();
+                _RoomFromTileDict = new Dictionary<Vector3Int, DungeonGraphNode>();
+
+                _ParentDictionary = new Dictionary<MissionStructureGraphNode, DungeonGraphNode>();
+
+                _BlockedDoorways = new List<DungeonDoor>();
+                _ChanceConnectionDoorways = new List<DungeonDoor>();
+                _UnconnectedDoorways = new List<DungeonDoor>();
+            }
+
+
+            _IsFinalizingDoors = false;
+            _IsGeneratingDungeon = false;
+
+            ClearPreviousData();
 
             _DungeonTilemapManager = manager;
-
-
-            // Move these lists into a theme object later that holds all rooms from a certain set?
-            // This would be necessary if I make this generator able to incorporate multiple themes into one dungeon (like cave and brick rooms or something);
-            _AllRooms = new List<RoomData>();
-            _FilteredRoomListsCache = new Dictionary<uint, List<RoomData>>();
-
-            _DoorFromTileDict = new Dictionary<Vector3Int, DungeonDoor>();
-            _RoomFromTileDict = new Dictionary<Vector3Int, DungeonGraphNode>();
-
-            _BlockedDoorways = new List<DungeonDoor>();
-            _ChanceConnectionDoorways = new List<DungeonDoor>();
-            _UnconnectedDoorways = new List<DungeonDoor>();
 
 
             LoadRoomsData();
@@ -113,6 +131,9 @@ namespace ProceduralDungeon.DungeonGeneration
             _BlockedDoorways.Clear();
             _ChanceConnectionDoorways.Clear();
             _UnconnectedDoorways.Clear();
+
+            _EntranceDoor = null;
+            _GoalDoor = null;
         }
 
         private static uint InitRNG()
@@ -186,15 +207,17 @@ namespace ProceduralDungeon.DungeonGeneration
             _IsGeneratingDungeon = true;
 
 
+
             _DungeonTilemapManager.DungeonMap.ClearAllTileMaps();
 
 
             // 3659200998 : Door into wall seeds
             // 3659201262
             // 3659201572 : Doors mismatched seed (two doors end up touching, but are not on the same floor as each other)
+            // 3659388979
 
             // Init the random number generators.
-            InitRNG();
+            InitRNG(3659392483);
             Debug.Log($"SEED: {_RNG_Seed.GetSeed()}");
 
 
@@ -203,9 +226,8 @@ namespace ProceduralDungeon.DungeonGeneration
 
 
             BuildDungeonRooms();
-
+            FinalizeUnusedDoorways();
             DungeonConstructionUtils.SealOffBlockedDoors(_DungeonTilemapManager, _BlockedDoorways);
-            _BlockedDoorways.Clear();
 
 
             _DungeonTilemapManager.DungeonMap.CompressBoundsOfAllTileMaps();
@@ -219,11 +241,6 @@ namespace ProceduralDungeon.DungeonGeneration
         {
             MissionStructureGraphNode curStructureNode = null;
             Queue<MissionStructureGraphNode> nodeQueue = new Queue<MissionStructureGraphNode>();
-            Dictionary<MissionStructureGraphNode, DungeonGraphNode> parentDictionary = new Dictionary<MissionStructureGraphNode, DungeonGraphNode>();
-
-
-            if (_MissionStructureGraph.StartNode.IsTightlyCoupled)
-                throw new Exception("DungeonGenerator.BuildDungeonRooms() - The start node in the mission start graph cannot be set as tightly coupled!");
 
 
             // Add the start node to the queue.
@@ -248,7 +265,7 @@ namespace ProceduralDungeon.DungeonGeneration
                 }
 
 
-                DungeonGraphNode roomNode = SnapNewRoomIntoDungeon(curStructureNode, parentDictionary);
+                DungeonGraphNode roomNode = SnapNewRoomIntoDungeon(curStructureNode);
 
 
                 // Place the room in the tilemaps.
@@ -261,151 +278,201 @@ namespace ProceduralDungeon.DungeonGeneration
                 foreach (MissionStructureGraphNode childNode in curStructureNode.GetPrioritizedChildNodeList())
                 {
                     // If the child node is already in the dictionary, skip it.
-                    if (parentDictionary.ContainsKey(childNode))
+                    if (_ParentDictionary.ContainsKey(childNode))
                         continue;
 
                     // Add the child node and its parent into the parent association table.
-                    parentDictionary.Add(childNode, roomNode);
+                    _ParentDictionary.Add(childNode, roomNode);
+
+
+                    // If this child node is not tightly coupled to this node, then we need to check if it is tightly
+                    // coupled to any other node. If so, we need to skip it here so it is generated just after the parent
+                    // node it is tightly coupled to. This is necessary if there are two branches in the mission structure,
+                    // and the child node is tightly coupled to a node in the longer branch that is deeper in the tree
+                    // than the current node is. This way we ensure it is always after that parent in the dungeon layout
+                    // as it should be.
+                    if ((!curStructureNode.GetChildNodeData(childNode).IsTightlyCoupled) && // Check that the child is not tightly coupled to this node
+                         _MissionStructureGraph.IsTightlyCoupledToAnyNode(childNode))       // Check if it is tightly coupled to any other node
+                    {
+                        continue;
+                    }
+
 
                     // Enqueue the child node so we can build a room from it in a future iteration of this loop.
                     nodeQueue.Enqueue(childNode);
-                }
+
+                } // end foreach childNode
 
 
                 Debug.Log($"Generated room \"{curStructureNode.GrammarSymbol}\"");
 
 
+                // This debug code limits the generator to only generating n rooms before it stops and calls FinalizeUnusedDoorways().
+                //if (roomCount == 10)
+                //    break;
 
-                if (roomCount == 10)
-                    break;
 
             } // while nodeQueue is not empty
 
         }
 
-        private static DungeonGraphNode SnapNewRoomIntoDungeon(MissionStructureGraphNode missionStructureNode, Dictionary<MissionStructureGraphNode, DungeonGraphNode> parentDictionary)
+        private static DungeonGraphNode SnapNewRoomIntoDungeon(MissionStructureGraphNode missionStructureNode, DungeonDoor doorToConnectTo = null)
         {
             int attempts = 0;
             List<DungeonDoor> blockedDoors = new List<DungeonDoor>();
             List<DungeonDoor> chanceConnections = new List<DungeonDoor>();
             DungeonGraphNode roomNode = null;
 
+
             // Attempt to add a new room to the dungeon.
             while (true)
             {
+                if (attempts >= MAX_ROOM_CONNECTION_ATTEMPTS)
+                    throw new Exception("DungeonGenerator.SnapNewRoomIntoDungeon() - Failed to connect another room onto the dungeon! No more retry attempts left.");
+
+
                 attempts++;
 
                 blockedDoors.Clear();
 
 
                 // Try to find an existing door to connect a new room to.
-                DungeonDoor doorToConnectTo = FindDoorToConnectNewRoomTo(missionStructureNode, parentDictionary);
+                if (!_IsFinalizingDoors)
+                    doorToConnectTo = FindDoorToConnectNewRoomTo(missionStructureNode);
 
 
                 if (doorToConnectTo.OtherRoom_Node != null)
                 {
-                    Debug.Log($"Room1: \"{doorToConnectTo.OtherRoom_Node.MissionStructureNode.GrammarSymbol}    R1DIndex: {doorToConnectTo.OtherRoom_DoorIndex}");
+                    Debug.Log($"Room1: \"{doorToConnectTo.OtherRoom_Node.MissionStructureNode.GrammarSymbol}\"    R1DIndex: {doorToConnectTo.OtherRoom_DoorIndex}");
                 }
 
                 // Generate the DungeonGraphNode for the new room.
                 roomNode = CreateRoom(missionStructureNode, doorToConnectTo);
-                if (roomNode != null)
-                {
-                    // Check if there is anything in front of the unconnected doors on the new room.
-                    int index = -1;
-                    int collisions = 0;
-                    bool doorCheckFailed = false;
-                    foreach (DoorData door in roomNode.RoomBlueprint.DoorsList)
-                    {
-                        index++;
-
-                        // If this door is the one being snapped to a pre-existing room, then skip it.
-                        // This case would otherwise always cause a false positive since obviously there is a room there.
-                        if (index == doorToConnectTo.ThisRoom_DoorIndex)
-                            continue;
-
-
-                        LinearScanFromDoorResults result = PlaceholderUtils_Doors.DoLinearScanFromDoor(_DungeonTilemapManager, roomNode, index, LINEAR_DOOR_SCAN_LENGTH);
-                        if (result == LinearScanFromDoorResults.Collision)
-                        {
-                            if (!blockedDoors.Contains(roomNode.Doorways[index]))
-                                blockedDoors.Add(roomNode.Doorways[index]);
-
-                            collisions++;
-                        }
-                        else if (result == LinearScanFromDoorResults.ChanceConnection_MatchingFloor)
-                        {
-                            // Check that this chance connection doesn't bypass a locked door.
-                            DungeonDoor doorway = roomNode.Doorways[index];
-                            if (doorway.ThisRoom_Node.MissionStructureNode.LockCount != doorToConnectTo.OtherRoom_Node.MissionStructureNode.LockCount)
-                            {
-                                Debug.LogWarning($"DungeonGenerator.SnapNewRoomIntoDungeon() - Door[{index}] on room \"{roomNode.RoomBlueprint.RoomName}\" connected with a neighboring room by chance, but this connection would bypass a locked door!");
-                                doorCheckFailed = true;
-                                break;
-                            }
-
-                            // Add this chance connection to the global list to be fixed up later since it doesn't bypass any locked doors.
-                            chanceConnections.Add(roomNode.Doorways[index]);
-                        }
-                        else if (result == LinearScanFromDoorResults.ChanceConnection_FloorMismatch)
-                        {
-                            Debug.LogWarning($"DungeonGenerator.SnapNewRoomIntoDungeon() - Door[{index}] on room \"{roomNode.RoomBlueprint.RoomName}\" connected with a neighboring room by chance, but the two doors are not on the same floor!");
-                            doorCheckFailed = true;
-                            break;
-                        }
-
-                        if (result != LinearScanFromDoorResults.Nothing)
-                            Debug.LogError($"DungeonGenerator.SnapNewRoomIntoDungeon() - Door[{index}] on room \"{roomNode.RoomBlueprint.RoomName}\" got linear door scan result \"{result}\".");
-
-                    }
-
-                    if (doorCheckFailed)
-                        continue;
-
-                    // If we detected collisions (a room in the way of a door), then see if there are still enough doors available on the room.
-                    int doorsLeft = roomNode.RoomBlueprint.DoorsList.Count - collisions;
-                    if (doorsLeft >= missionStructureNode.GetTightlyCoupledChildNodeCount())
-                    {
-                        // If this isn't the start room node, then add the new room node into the graph.
-                        // Otherwise, create a new DungeonGraph with the start room node in it.
-                        if (missionStructureNode != _MissionStructureGraph.StartNode)
-                            _DungeonGraph.AddNode(roomNode);
-                        else
-                            _DungeonGraph = new DungeonGraph(roomNode);
-
-
-                        // Copy any blocked doors into the global blocked doors list since we know this room is now finalized for placement in the dungeon.
-                        // Also remove them from the global unconnected doors list.
-                        foreach (DungeonDoor door in blockedDoors)
-                        {
-                            _BlockedDoorways.Add(door);
-                            _UnconnectedDoorways.Remove(door);
-                        }
-
-                        // Copy any doorways connected by chance into the global list to be checked later.
-                        foreach (DungeonDoor door in chanceConnections)
-                        {
-                            _ChanceConnectionDoorways.Add(door);
-                        }
-
-
-                        // Since we successsfully added a new room to the dungeon, exit this while loop to continue the dungeon construction process.
-                        break;
-                    }
-                    else
-                    {
-                        Debug.LogWarning($"DungeonGenerator.SnapNewRoomIntoDungeon() - Not enough doors left for tightly coupled child rooms after collisions detected.");
-                    }
-
-                }
-                else
+                if (roomNode == null)
                 {
                     //Debug.LogWarning($"DungeonGenerator.SnapNewRoomIntoDungeon() - Attempt #{attempts}: Failed to connect new room onto the dungeon!");
+
+                    if (!_IsFinalizingDoors)
+                        continue; // We didn't fit a room successfully, so jump to the top of this while loop to try again.
+                    else
+                        return null; // We were called by the FinalizeUnusedDoorways() function, then bail out since we're only trying to snap a room to a specific spot in this case.
+
                 }
 
 
-                if (attempts >= MAX_ROOM_CONNECTION_ATTEMPTS)
-                    throw new Exception("DungeonGenerator.SnapNewRoomIntoDungeon() - Failed to connect another room onto the dungeon! No more retry attempts left.");
+                // Check if there is anything in front of the unconnected doors on the new room.
+                int index = -1;
+                int doorsLost = 0;
+                bool doorCheckFailed = false;
+                foreach (DoorData door in roomNode.RoomBlueprint.DoorsList)
+                {
+                    blockedDoors.Clear();
+
+                    index++;
+
+                    // If this door is the one being snapped to a pre-existing room, then skip it.
+                    // This case would otherwise always cause a false positive since obviously there is a room there.
+                    if (index == doorToConnectTo.ThisRoom_DoorIndex)
+                        continue;
+
+
+                    LinearScanFromDoorResults result = PlaceholderUtils_Doors.DoLinearScanFromDoor(_DungeonTilemapManager, roomNode, index, LINEAR_DOOR_SCAN_LENGTH);
+                    if (result == LinearScanFromDoorResults.Collision)
+                    {
+                        if (!DungeonDoor.ListContainsDoor(blockedDoors, roomNode.Doorways[index]))
+                            blockedDoors.Add(roomNode.Doorways[index]);
+
+                        doorsLost++;
+                    }
+                    else if (result == LinearScanFromDoorResults.ChanceConnection_MatchingFloor)
+                    {
+                        // Check that this chance connection doesn't bypass a locked door.
+                        DungeonDoor doorway = roomNode.Doorways[index];
+                        if (doorway.ThisRoom_Node.MissionStructureNode.LockCount != doorToConnectTo.OtherRoom_Node.MissionStructureNode.LockCount)
+                        {
+                            Debug.LogWarning($"DungeonGenerator.SnapNewRoomIntoDungeon() - Door[{index}] on room \"{roomNode.RoomBlueprint.RoomName}\" connected with a neighboring room by chance, but this connection would bypass a locked door!");
+                            doorsLost++;
+                            //doorCheckFailed = true;
+                            //break;
+                        }
+
+                        // Add this chance connection to the global list to be fixed up later since it doesn't bypass any locked doors.
+                        chanceConnections.Add(roomNode.Doorways[index]);
+                        doorsLost++;
+                    }
+                    else if (result == LinearScanFromDoorResults.ChanceConnection_FloorMismatch)
+                    {
+                        Debug.LogWarning($"DungeonGenerator.SnapNewRoomIntoDungeon() - Door[{index}] on room \"{roomNode.RoomBlueprint.RoomName}\" connected with a neighboring room by chance, but the two doors are not on the same floor!");
+                        doorsLost++;
+                        //doorCheckFailed = true;
+                        //break;
+                    }
+
+                    if (result != LinearScanFromDoorResults.Nothing)
+                        Debug.LogWarning($"DungeonGenerator.SnapNewRoomIntoDungeon() - Door[{index}] on room \"{roomNode.RoomBlueprint.RoomName}\" got linear door scan result \"{result}\".");
+
+                } // end foreach door
+
+
+                if (doorCheckFailed)
+                {
+                    if (!_IsFinalizingDoors)
+                        continue;
+                    else
+                        return null; // We were called by the FinalizeUnusedDoorways() function, then bail out since we're only trying to snap a room to a specific spot in this case.
+
+                }
+
+
+                // See if there are still enough doors available on the room after collisions were detected.
+                int doorsLeft = roomNode.RoomBlueprint.DoorsList.Count - 1 - doorsLost; // We subtract one since the room already has one door unavailable since it is already used to connect it to the parent room.
+
+                //Debug.Log($"DOOR COUNT: {roomNode.RoomBlueprint.DoorsList.Count}    DOORS LOST: {doorsLost}    DOORS LEFT: {doorsLeft}");
+
+                if (doorsLeft >= missionStructureNode.GetTightlyCoupledChildNodeCount())
+                {
+                    // If this isn't the start room node, then add the new room node into the graph.
+                    // Otherwise, create a new DungeonGraph with the start room node in it.
+                    if (missionStructureNode != _MissionStructureGraph.StartNode)
+                        _DungeonGraph.AddNode(roomNode);
+                    else
+                        _DungeonGraph = new DungeonGraph(roomNode);
+
+
+                    // Copy any blocked doors into the global blocked doors list since we know this room is now finalized for placement in the dungeon.
+                    // Also remove them from the global unconnected doors list.
+                    foreach (DungeonDoor door in blockedDoors)
+                    {
+                        if (!DungeonDoor.ListContainsDoor(_BlockedDoorways, door))
+                            _BlockedDoorways.Add(door);
+
+                        _UnconnectedDoorways.Remove(door);
+                    }
+
+                    // Copy any doorways connected by chance into the global list to be checked later.
+                    foreach (DungeonDoor door in chanceConnections)
+                    {
+                        _ChanceConnectionDoorways.Add(door);
+                    }
+
+
+                    // Since we successsfully added a new room to the dungeon, exit this while loop to continue the dungeon construction process.
+                    break;
+                }
+                else // We failed to create this room, so clear its data.
+                {
+                    // Remove the new room's mission structure node from the graph since it we failed to generate it.
+                    _MissionStructureGraph.Nodes.Remove(roomNode.MissionStructureNode);
+
+                    // Remove any of the new room's doors from the lists they may have been added to.
+                    foreach (DungeonDoor door in roomNode.Doorways)
+                    {
+                        _BlockedDoorways.Remove(door);
+                        _UnconnectedDoorways.Remove(door);
+                    }
+
+                    Debug.LogWarning($"DungeonGenerator.SnapNewRoomIntoDungeon() - Not enough doors left for tightly coupled child rooms after collisions detected.");
+                }
 
             } // end while
 
@@ -429,8 +496,21 @@ namespace ProceduralDungeon.DungeonGeneration
 
 
             // Get minumum number of doors needed for the room.
-            int minDoorsNeeded = missionStructureNode.GetTightlyCoupledChildNodeCount() + 1;
-            minDoorsNeeded = Mathf.Max(minDoorsNeeded, 2);
+            int minDoorsNeeded = 0;
+            bool greaterThanOrEqual = false;
+            if (!_IsFinalizingDoors)
+            {
+                minDoorsNeeded = missionStructureNode.GetTightlyCoupledChildNodeCount() + 1;
+                minDoorsNeeded = Mathf.Max(minDoorsNeeded, 2);
+
+                greaterThanOrEqual = true;
+            }
+            else
+            {
+                minDoorsNeeded = 1;
+                greaterThanOrEqual = false;
+            }
+
 
             //Debug.Log($"MIN DOORS NEEDED: {minDoorsNeeded}    TightlyCoupledChildren: {missionStructureNode.GetTightlyCoupledChildNodeCount()}");
 
@@ -452,7 +532,7 @@ namespace ProceduralDungeon.DungeonGeneration
                 attempts++;
 
                 // Select a random room on the same level as that door.
-                newRoomData = SelectRandomRoomWithFilters((uint)minDoorsNeeded, true, parentDoorLevel);
+                newRoomData = SelectRandomRoomWithFilters((uint)minDoorsNeeded, greaterThanOrEqual, parentDoorLevel);
 
                 // Select a random door on the new room to connect to the existing door we already chose.
                 newRoomDoorIndex = SelectRandomDoorOnRoom(newRoomData, parentDoorLevel);
@@ -466,7 +546,7 @@ namespace ProceduralDungeon.DungeonGeneration
                                                                                         missionStructureNode);
 
                 // Check for collisions.
-                if (!DungeonConstructionUtils.RoomCollidesWithExistingRoom(_DungeonTilemapManager, newRoomNode, _RoomFromTileDict))
+                if (!DungeonConstructionUtils.RoomCollidesWithExistingRoom(newRoomNode, _RoomFromTileDict))
                 {
                     // Update the doorToConnectTo object so the calling function will have access to this new information.
                     doorToConnectTo.ThisRoom_Node = newRoomNode;
@@ -483,11 +563,12 @@ namespace ProceduralDungeon.DungeonGeneration
                 // If we've reached the max. number of attempts, give up and return null to ensure we don't get stuck in an infinite loop here.
                 if (attempts >= MAX_ROOM_BLUEPRINT_SELECTION_ATTEMPTS)
                 {
-                    // Get the parent room's door we tries to snap a room to.
+                    // Get the parent room's door we tried to snap a room to.
                     DungeonDoor parentDoor = doorToConnectTo.OtherRoom_Node.Doorways[(int)doorToConnectTo.OtherRoom_DoorIndex];
 
                     // Add that doorway to the global blocked doorways list, and remove it from the global unconnected doorways list.
-                    if (!_BlockedDoorways.Contains(parentDoor))
+                    // This way we won't try to connect a room here again.
+                    if (!DungeonDoor.ListContainsDoor(_BlockedDoorways, parentDoor))
                         _BlockedDoorways.Add(parentDoor);
 
                     _UnconnectedDoorways.Remove(parentDoor);
@@ -498,25 +579,18 @@ namespace ProceduralDungeon.DungeonGeneration
             } // end while
 
 
-            ConfigureRoomDoorways(doorToConnectTo.OtherRoom_Node,
-                                  (int)doorToConnectTo.OtherRoom_DoorIndex,
-                                  newRoomNode,
-                                  newRoomDoorIndex);
+            // Initialize the doorways list on the new room's node.
+            InitRoomDoors(newRoomNode);
+
+            ConfigureConnectingDoorway(doorToConnectTo.OtherRoom_Node,
+                                       (int)doorToConnectTo.OtherRoom_DoorIndex,
+                                       newRoomNode,
+                                       newRoomDoorIndex);
 
 
             // Give the mission structure node a link to the room generated from it.
             missionStructureNode.DungeonRoomNode = newRoomNode;
 
-
-            /*
-            switch (node.GrammarSymbol)
-            {
-
-
-                default:
-                    throw new Exception($"DungeonGenerator.CreateRoom() - Received the invalid node type \"{node.GrammarSymbol}\"!");
-            }
-            */
 
             return newRoomNode;
 
@@ -551,23 +625,103 @@ namespace ProceduralDungeon.DungeonGeneration
 
             ConfigureEntranceOrExitRoomDoor(startRoomNode, true);
 
+            DungeonConstructionUtils.RegisterFakeTilesOutsideDoor(startRoomNode, _EntranceDoor, _RoomFromTileDict);
 
             return startRoomNode;
         }
 
-        private static DungeonDoor FindDoorToConnectNewRoomTo(MissionStructureGraphNode missionStructureNode, Dictionary<MissionStructureGraphNode, DungeonGraphNode> parentDictionary)
+        /// <summary>
+        /// Iterates through all unused doorways and for each one randomly adds a room or seals the doorway with wall tiles.
+        /// </summary>
+        private static void FinalizeUnusedDoorways()
+        {
+            _IsFinalizingDoors = true;
+
+            List<DungeonDoor> unusedDoorways = new List<DungeonDoor>(_UnconnectedDoorways);
+
+            foreach (DungeonDoor doorway in unusedDoorways)
+            {
+                float random = _RNG_DungeonGen.RollRandomFloat_ZeroToOne();
+
+                // Should we spawn a new door?
+                if (random <= EXTRA_DOORS_ROOM_SPAWN_CHANCE)
+                {
+                    // Create a mission structure node for the new room.
+                    MissionStructureGraphNode structureNode = new MissionStructureGraphNode(GrammarSymbols.T_Test_Combat);
+
+                    // Create a door object from the perspective of the new room by setting its parent room fields.
+                    DungeonDoor newRoomDoor = new DungeonDoor();
+                    newRoomDoor.OtherRoom_Node = doorway.ThisRoom_Node;
+                    newRoomDoor.OtherRoom_DoorIndex = doorway.ThisRoom_DoorIndex;
+
+                    // Generate a new room attached to this doorway.f
+                    DungeonGraphNode roomNode = SnapNewRoomIntoDungeon(structureNode, newRoomDoor);
+                    if (roomNode == null)
+                    {
+                        if (!DungeonDoor.ListContainsDoor(_BlockedDoorways, doorway))
+                            _BlockedDoorways.Add(doorway);
+
+                        _UnconnectedDoorways.Remove(doorway);
+
+                        continue;
+                    }
+
+                    // Add this node to its parent's child nodes list.
+                    MissionStructureGraphNode parentStructureNode = doorway.ThisRoom_Node.MissionStructureNode;
+                    parentStructureNode.ChildNodesData.Add(new MSCNData(structureNode));
+
+                    structureNode.LockCount = parentStructureNode.LockCount;
+
+                    // Set the mission structure node's room node reference.
+                    structureNode.DungeonRoomNode = roomNode;
+
+                    // Add the new mission structure node into the structure graph.
+                    _MissionStructureGraph.AddNode(structureNode);
+
+                    // Place the room in the tilemaps.
+                    DungeonConstructionUtils.PlaceRoomTiles(_DungeonTilemapManager, roomNode, _RoomFromTileDict);
+
+                }
+                else
+                {
+                    // Debug.LogError($"Sealed off unused door[{doorway.ThisRoom_DoorIndex}] in room \"{doorway.ThisRoom_Node.RoomBlueprint.RoomName}\" - Room Center Point: {doorway.ThisRoom_Node.RoomCenterPoint}");
+
+                    // Since we're not adding a room on this doorway, add it to the blocked doors list so it will be sealed up with
+                    // wall tiles.
+                    if (!DungeonDoor.ListContainsDoor(_BlockedDoorways, doorway))
+                    {
+                        _BlockedDoorways.Add(doorway);
+
+                        _UnconnectedDoorways.Remove(doorway);
+                    }
+                    else
+                    {
+                        Debug.LogError("DungeonGenerator.FinalizeUnusedDoorways() - Duplicate door detected in blocked doors list!");
+                    }
+                }
+
+            } // end foreach doorway
+
+
+            _UnconnectedDoorways.Clear();
+
+        }
+
+        private static DungeonDoor FindDoorToConnectNewRoomTo(MissionStructureGraphNode missionStructureNode)
         {
             int doorIndex = 0;
             DungeonDoor doorToConnectTo = new DungeonDoor();
             DungeonGraphNode parentRoomNode = null;
 
 
+            // Get the parent room to this room, if there is one. If there isn't, then this is the dungeon's entrance room.
+            _ParentDictionary.TryGetValue(missionStructureNode, out parentRoomNode);
+
             // If this mission structure node is tightly coupled to its parent, then connect it to the parent room.
             // Otherwise, connect it to a random unconnected door.
-            if (missionStructureNode.IsTightlyCoupled)
+            if (parentRoomNode != null &&
+                parentRoomNode.MissionStructureNode.GetChildNodeData(missionStructureNode).IsTightlyCoupled)
             {
-                // Set the parent room to the last generated room.
-                parentRoomNode = parentDictionary[missionStructureNode];
 
                 List<DungeonDoor> unconnectedParentRoomDoors = parentRoomNode.GetUnconnectedDoors();
                 if (unconnectedParentRoomDoors.Count < 1)
@@ -597,12 +751,8 @@ namespace ProceduralDungeon.DungeonGeneration
 
         }
 
-        private static void ConfigureRoomDoorways(DungeonGraphNode parentRoomNode, int parentRoomDoorIndex, DungeonGraphNode newRoomNode, int newRoomDoorIndex)
+        private static void ConfigureConnectingDoorway(DungeonGraphNode parentRoomNode, int parentRoomDoorIndex, DungeonGraphNode newRoomNode, int newRoomDoorIndex)
         {
-            // Initialize the doorways list on the new room's node.
-            InitRoomDoors(newRoomNode);
-
-
             // Setup the fields that link the doors.
             parentRoomNode.Doorways[parentRoomDoorIndex].OtherRoom_Node = newRoomNode;
             parentRoomNode.Doorways[parentRoomDoorIndex].OtherRoom_DoorIndex = (uint)newRoomDoorIndex;
@@ -663,6 +813,8 @@ namespace ProceduralDungeon.DungeonGeneration
 
             // Get a reference to the entrance or exit door.
             DungeonDoor door = room.Doorways[index];
+            door.ThisRoom_Node = room;
+            door.ThisRoom_DoorIndex = (uint)index;
 
             // Set the selected door as the entrance or exit door.
             door.Flags = isEntranceDoor ? DungeonDoorFlags.IsEntranceDoor : DungeonDoorFlags.IsGoalDoor;
@@ -675,6 +827,11 @@ namespace ProceduralDungeon.DungeonGeneration
             {
                 // Position the player next to the entrance door.
                 DungeonConstructionUtils.PositionPlayer(_DungeonTilemapManager, room, door);
+                _EntranceDoor = door;
+            }
+            else
+            {
+                _GoalDoor = door;
             }
 
         }

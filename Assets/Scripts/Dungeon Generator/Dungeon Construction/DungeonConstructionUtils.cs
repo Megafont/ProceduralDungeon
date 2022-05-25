@@ -106,23 +106,20 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
         /// <summary>
         /// Checks if the current room will collide with an already constructed room in the dungeon map.
         /// </summary>
-        /// <param name="tilemapManager">The dungeon tile map manager.</param>
         /// <param name="roomNode">The DungeonGraphNode of the room in question.</param>
         /// <param name="roomFromTileDict">The dungeon generator's tracking dictionary that associates tiles with the rooms they belong to.</param>
         /// <returns>True if a collision was found or false otherwise.</returns>
-        public static bool RoomCollidesWithExistingRoom(DungeonTilemapManager tilemapManager, DungeonGraphNode roomNode, Dictionary<Vector3Int, DungeonGraphNode> roomFromTileDict)
+        public static bool RoomCollidesWithExistingRoom(DungeonGraphNode roomNode, Dictionary<Vector3Int, DungeonGraphNode> roomFromTileDict)
         {
             bool result1;
             bool result2;
 
 
             result1 = CheckForTileCollisions(roomNode.RoomBlueprint.FloorTiles,
-                                             tilemapManager.DungeonMap.FloorsMap,
                                              roomNode,
                                              roomFromTileDict);
 
             result2 = CheckForTileCollisions(roomNode.RoomBlueprint.WallTiles,
-                                             tilemapManager.DungeonMap.WallsMap,
                                              roomNode,
                                              roomFromTileDict);
 
@@ -136,11 +133,10 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
         /// Copies tiles into the dungeon map.
         /// </summary>
         /// <param name="src">The source data to copy tiles from.</param>
-        /// <param name="dst">The Tilemap to copy the tiles into.</param>
         /// <param name="roomNode">The room node for the room we are constructing.</param>
         /// <param name="roomFromTileDict">The dungeon generator's dictionary for tracking which tiles belong to which rooms.</param>
         /// <returns>True if a collision is detected or false otherwise.</returns>
-        private static bool CheckForTileCollisions(Dictionary<Vector3Int, SavedTile> src, Tilemap dst, DungeonGraphNode roomNode, Dictionary<Vector3Int, DungeonGraphNode> roomFromTileDict)
+        private static bool CheckForTileCollisions(Dictionary<Vector3Int, SavedTile> src, DungeonGraphNode roomNode, Dictionary<Vector3Int, DungeonGraphNode> roomFromTileDict)
         {
             Vector3Int pos = Vector3Int.zero;
 
@@ -157,7 +153,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
 
                 //pos = sTile.Position;
-                if (dst.GetTile(pos) != null)
+                if (roomFromTileDict.ContainsKey(pos))
                     return true;
 
             } // end foreach
@@ -330,20 +326,55 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
                                     z);
         }
 
+        /// <summary>
+        /// This function registers a fake, 2-wide strip of tiles outside the specified door. These fake tiles are registered as belonging to the specified room via the room from tile dictionary.
+        /// This is used as a simple way to prevent another room from generating outside the dungeon's entrance or exit doors by tricking it into thinking it had a collision with an existing room.
+        /// </summary>
+        /// <param name="roomNode">The parent room of the door in question.</param>
+        /// <param name="entranceDoor">The door to register tiles outside of.</param>
+        /// <param name="roomFromTileDict">The dungeon generator's room from tile dictionary.</param>
+        /// <param name="distanceToAddTilesFromDoor">The number of tiles long the strip is. This defaults to a strip extending 10 tiles from the outside of the door.</param>
+        public static void RegisterFakeTilesOutsideDoor(DungeonGraphNode roomNode, DungeonDoor entranceDoor, Dictionary<Vector3Int, DungeonGraphNode> roomFromTileDict, int distanceToAddTilesFromDoor = 10)
+        {
+            DoorData door = roomNode.RoomBlueprint.DoorsList[(int)entranceDoor.ThisRoom_DoorIndex];
+
+            // Get the direction of the door on room 1 and adjust it to take into account that room's rotation direction.
+            Directions door_AdjustedDirection = MiscellaneousUtils.AddRotationDirectionsTogether(door.DoorDirection, roomNode.RoomDirection);
+            Vector3Int scanVector = door_AdjustedDirection.DirectionToNormalizedVector();
+
+            // Get the coordinates of both tiles of the previous room's door and adjust them to take into account the room's rotation direction.
+            Vector3Int door_Tile1AdjustedPos = DungeonConstructionUtils.AdjustTileCoordsForRoomPositionAndRotation(door.Tile1Position, roomNode.RoomPosition, roomNode.RoomDirection);
+            Vector3Int door_Tile2AdjustedPos = DungeonConstructionUtils.AdjustTileCoordsForRoomPositionAndRotation(door.Tile2Position, roomNode.RoomPosition, roomNode.RoomDirection);
+
+
+            Vector3Int tile1PlacePos, tile2PlacePos;
+            for (int i = 1; i < distanceToAddTilesFromDoor; i++)
+            {
+                // Get the position for the next tile to scan in front of each of the door's tiles.
+                tile1PlacePos = door_Tile1AdjustedPos + (scanVector * i);
+                tile2PlacePos = door_Tile2AdjustedPos + (scanVector * i);
+
+                roomFromTileDict.Add(tile1PlacePos, roomNode);
+                roomFromTileDict.Add(tile2PlacePos, roomNode);
+
+            } // end for i
+
+        }
+
         public static void PositionPlayer(DungeonTilemapManager tilemapManager, DungeonGraphNode startRoom, DungeonDoor entranceDoor)
         {
             int index = (int)entranceDoor.ThisRoom_DoorIndex;
 
             // Get the position of both tiles of the entrance door.
-            Vector3Int doorTile1Pos = entranceDoor.ThisRoom_Node.RoomBlueprint.DoorsList[index].Tile1Position;
-            Vector3Int doorTile2Pos = entranceDoor.ThisRoom_Node.RoomBlueprint.DoorsList[index].Tile2Position;
+            Vector3Int door_Tile1AdjustedPos = entranceDoor.ThisRoom_Node.RoomBlueprint.DoorsList[index].Tile1Position;
+            Vector3Int door_Tile2AdjustedPos = entranceDoor.ThisRoom_Node.RoomBlueprint.DoorsList[index].Tile2Position;
 
             // Adjust the tile positions to take into account the position and rotation direction of the room.
-            doorTile1Pos = DungeonConstructionUtils.AdjustTileCoordsForRoomPositionAndRotation(doorTile1Pos, startRoom.RoomPosition, startRoom.RoomDirection);
-            doorTile2Pos = DungeonConstructionUtils.AdjustTileCoordsForRoomPositionAndRotation(doorTile2Pos, startRoom.RoomPosition, startRoom.RoomDirection);
+            door_Tile1AdjustedPos = DungeonConstructionUtils.AdjustTileCoordsForRoomPositionAndRotation(door_Tile1AdjustedPos, startRoom.RoomPosition, startRoom.RoomDirection);
+            door_Tile2AdjustedPos = DungeonConstructionUtils.AdjustTileCoordsForRoomPositionAndRotation(door_Tile2AdjustedPos, startRoom.RoomPosition, startRoom.RoomDirection);
 
             // Get the position of the upper-left-most of the two tiles.
-            Vector3Int playerPos = MiscellaneousUtils.GetUpperLeftMostTile(doorTile1Pos, doorTile2Pos);
+            Vector3Int playerPos = MiscellaneousUtils.GetUpperLeftMostTile(door_Tile1AdjustedPos, door_Tile2AdjustedPos);
 
 
             // Get the direction of the entrance door.
@@ -372,16 +403,17 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
                 Vector3Int door_Tile2AdjustedPos = DungeonConstructionUtils.AdjustTileCoordsForRoomPositionAndRotation(parentRoomDoor.Tile2Position, parentRoom.RoomPosition, parentRoom.RoomDirection);
 
 
-
                 Tilemap wallsMap = tilemapManager.DungeonMap.WallsMap;
 
                 // Place a wall tile at the first tile position.
                 BasicDungeonTile tile1 = (BasicDungeonTile)wallsMap.GetTile(door_Tile1AdjustedPos);
+                if (tile1 == null)
+                    Debug.LogError($"Cannot seal off door[{door.ThisRoom_DoorIndex}] in room \"{parentRoom.RoomBlueprint.RoomName}\" (Center Point: {parentRoom.RoomCenterPoint}), because the wall tile at {door_Tile1AdjustedPos} is null!");
 
                 if (tile1.TileType != DungeonTileTypes.Walls_DoorFrame_Left &&
                     tile1.TileType != DungeonTileTypes.Walls_DoorFrame_Right)
                 {
-                    Debug.LogError($"DungeonConstructionUtils.SealOffBlockedDoors() - Cannot seal off door[{door.ThisRoom_DoorIndex}] tile 1 in room \"{parentRoom.RoomBlueprint.RoomName}\", because the wall tile at {door_Tile1AdjustedPos} is not a door frame tile!");
+                    Debug.LogError($"DungeonConstructionUtils.SealOffBlockedDoors() - Cannot seal off door[{door.ThisRoom_DoorIndex}] tile 1 ({tile1.TileType}) in room \"{parentRoom.RoomBlueprint.RoomName}\", because the wall tile at {door_Tile1AdjustedPos} is not a door frame tile!");
                 }
                 else
                 {
@@ -401,7 +433,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
                 if (tile2.TileType != DungeonTileTypes.Walls_DoorFrame_Left &&
                     tile2.TileType != DungeonTileTypes.Walls_DoorFrame_Right)
                 {
-                    Debug.LogError($"DungeonConstructionUtils.SealOffBlockedDoors() - Cannot seal off door[{door.ThisRoom_DoorIndex}] tile 2 in room \"{parentRoom.RoomBlueprint.RoomName}\", because the wall tile at {door_Tile2AdjustedPos} is not a door frame tile!");
+                    Debug.LogError($"DungeonConstructionUtils.SealOffBlockedDoors() - Cannot seal off door[{door.ThisRoom_DoorIndex}] tile 2 ({tile2.TileType}) in room \"{parentRoom.RoomBlueprint.RoomName}\", because the wall tile at {door_Tile2AdjustedPos} is not a door frame tile!");
                 }
                 else
                 {
@@ -418,6 +450,8 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
             } // end foreach door
 
+
+            blockedDoors.Clear();
 
         }
 
