@@ -99,23 +99,18 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction.PlaceholderUti
         /// <returns>The result of the scan.</returns>
         public static LinearScanFromDoorResults DoLinearScanFromDoor(DungeonTilemapManager tileMapManager, DungeonGraphNode roomNode, int doorIndex, int scanLength = 10)
         {
-            DoorData door = roomNode.RoomBlueprint.DoorsList[doorIndex];
+            DungeonDoor door = roomNode.Doorways[doorIndex];
 
             // Get the direction of the door on room 1 and adjust it to take into account that room's rotation direction.
-            Directions door_AdjustedDirection = MiscellaneousUtils.AddRotationDirectionsTogether(door.DoorDirection, roomNode.RoomDirection);
-            Vector3Int scanVector = door_AdjustedDirection.DirectionToNormalizedVector();
-
-            // Get the coordinates of both tiles of the previous room's door and adjust them to take into account the room's rotation direction.
-            Vector3Int door_Tile1AdjustedLocalPos = DungeonConstructionUtils.AdjustTileCoordsForRoomPositionAndRotation(door.Tile1Position, roomNode.RoomPosition, roomNode.RoomDirection);
-            Vector3Int door_Tile2AdjustedLocalPos = DungeonConstructionUtils.AdjustTileCoordsForRoomPositionAndRotation(door.Tile2Position, roomNode.RoomPosition, roomNode.RoomDirection);
+            Vector3Int scanVector = door.ThisRoom_DoorAdjustedDirection.DirectionToNormalizedVector();
 
 
             Vector3Int tile1ScanPos, tile2ScanPos;
             for (int i = 1; i < scanLength; i++)
             {
                 // Get the position for the next tile to scan in front of each of the door's tiles.
-                tile1ScanPos = door_Tile1AdjustedLocalPos + (scanVector * i);
-                tile2ScanPos = door_Tile2AdjustedLocalPos + (scanVector * i);
+                tile1ScanPos = door.ThisRoom_DoorTile1WorldPosition + (scanVector * i);
+                tile2ScanPos = door.ThisRoom_DoorTile2WorldPosition + (scanVector * i);
 
 
                 // Are we are scanning the first tile in front of both door tiles?

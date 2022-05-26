@@ -35,6 +35,7 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
         private static Vector3 _NodeOffset = new Vector3(0, 0, 0); // Defines how much the entire mission structure node graph is offset when drawn.
         private static Vector3 _NodeTextOffset = new Vector3(-_NodeRadius, -_NodeRadius * 1.25f); // Defines how much the node text is offset from the center of the node.
         private static Color32 _NodeTextColor = Color.white;
+
         private static Color32 _NonTerminalNodeColor = new Color32(255, 191, 0, 255); // Light Orange
         private static Color32 _TerminalNodeColor = new Color32(255, 128, 0, 255); // Orange
 
@@ -150,7 +151,7 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
 
         }
 
-        private static void DrawBox(Vector3 pos, Color32 color)
+        private static void DrawBox(Vector3 pos, Color color)
         {
             Gizmos.color = color;
 
@@ -163,7 +164,7 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
             Gizmos.DrawLine(new Vector3(lowerRight.x, upperLeft.y), new Vector3(lowerRight.x, lowerRight.y));  // Right side
         }
 
-        private static void DrawText(Vector3 pos, Color32 color, string text)
+        private static void DrawText(Vector3 pos, Color color, string text)
         {
 
 #if UNITY_EDITOR
@@ -173,7 +174,7 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
 #endif
         }
 
-        private static void DrawCircle(Vector3 pos, Color32 color)
+        private static void DrawCircle(Vector3 pos, Color color)
         {
             Vector3 lineStart = Vector3.zero;
             Vector3 lineEnd = Vector3.zero;
@@ -264,8 +265,6 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
             _Colors.Add(GenerativeGrammar.Symbols.T_Test_MainDungeonItem, new Color32(0, 0, 180, 255));
             _Colors.Add(GenerativeGrammar.Symbols.T_Test_PreviousItem, new Color32(255, 0, 255, 255));
             _Colors.Add(GenerativeGrammar.Symbols.T_Test_Secret, new Color32(180, 0, 180, 255));
-
-
 
         }
 

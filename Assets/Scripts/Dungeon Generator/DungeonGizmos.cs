@@ -52,14 +52,10 @@ namespace ProceduralDungeon.DungeonGeneration
                 SavedTileDictionary placeholders_general_map = node.RoomBlueprint.Placeholders_General_Tiles;
 
 
-                foreach (DoorData doorData in node.RoomBlueprint.DoorsList)
+                foreach (DungeonDoor door in node.Doorways)
                 {
-                    // Get and adjust the positions of the door tiles to take into account the position and rotation of the parent room.
-                    Vector3Int tile1AdjustedPos = DungeonConstructionUtils.AdjustTileCoordsForRoomPositionAndRotation(doorData.Tile1Position, node.RoomPosition, node.RoomDirection);
-                    Vector3Int tile2AdjustedPos = DungeonConstructionUtils.AdjustTileCoordsForRoomPositionAndRotation(doorData.Tile2Position, node.RoomPosition, node.RoomDirection);
-
                     // Get the upper-left-most of the two tiles of the door.
-                    Vector3Int doorPosition = MiscellaneousUtils.GetUpperLeftMostTile(tile1AdjustedPos, tile2AdjustedPos);
+                    Vector3Int doorPosition = MiscellaneousUtils.GetUpperLeftMostTile(door.ThisRoom_DoorTile1WorldPosition, door.ThisRoom_DoorTile2WorldPosition);
 
 
                     // Get the min and max values of X and Y.
@@ -77,26 +73,23 @@ namespace ProceduralDungeon.DungeonGeneration
                     Gizmos.color = Color.yellow;
                     float length = 0.5f;
 
-                    // Adjust the door direction to take into account the parent room's rotation direction.
-                    Directions adjustedDoorDirection = MiscellaneousUtils.AddRotationDirectionsTogether(doorData.DoorDirection, node.RoomDirection);
-
                     //Debug.Log($"DOOR DIR: {doorData.DoorDirection}    ROOM DIR: {node.RoomDirection}    ADJ. DIR: {adjustedDoorDirection}");
-                    if (adjustedDoorDirection == Directions.North)
+                    if (door.ThisRoom_DoorAdjustedDirection == Directions.North)
                     {
                         maxX += 1; // These lines use this same if block to prepare for drawing the door placeholder outline in the next section below.
                         Gizmos.DrawLine(new Vector3(minX + 1, maxY, 0), new Vector3(minX + 1, maxY - length, 0));
                     }
-                    else if (adjustedDoorDirection == Directions.East)
+                    else if (door.ThisRoom_DoorAdjustedDirection == Directions.East)
                     {
                         minY -= 1;
                         Gizmos.DrawLine(new Vector3(maxX, maxY - 1, 0), new Vector3(maxX - length, maxY - 1, 0));
                     }
-                    else if (adjustedDoorDirection == Directions.South)
+                    else if (door.ThisRoom_DoorAdjustedDirection == Directions.South)
                     {
                         maxX += 1;
                         Gizmos.DrawLine(new Vector3(minX + 1, minY, 0), new Vector3(minX + 1, minY + length, 0));
                     }
-                    else if (adjustedDoorDirection == Directions.West)
+                    else if (door.ThisRoom_DoorAdjustedDirection == Directions.West)
                     {
                         minY -= 1;
                         Gizmos.DrawLine(new Vector3(minX, minY + 1, 0), new Vector3(minX + length, minY + 1, 0));
@@ -115,7 +108,7 @@ namespace ProceduralDungeon.DungeonGeneration
                     Gizmos.DrawLine(new Vector3(maxX, minY, 0), new Vector3(maxX, maxY, 0)); // Right
 
 
-                    /*
+                    /* Debug code that draws a red box around the center point of the door.
                     bool on = true;
                     if (on)
                     {

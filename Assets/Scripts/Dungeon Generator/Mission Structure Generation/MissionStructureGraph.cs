@@ -20,7 +20,7 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
     {
         private readonly List<MissionStructureGraphNode> _Nodes;
         public MissionStructureGraphNode StartNode;
-
+        public MissionStructureGraphNode GoalNode;
 
 
         public List<MissionStructureGraphNode> Nodes { get { return _Nodes; } }

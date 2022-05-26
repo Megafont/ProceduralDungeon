@@ -38,7 +38,7 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
 
             // Organize the passed in grammar replacement rule set.
             OrganizeGrammarReplacementRuleSet(ruleSet);
-            DEBUG_OutputRulesList();
+            //DEBUG_OutputRulesList();
 
             _MissionStructureGraph = graph;
             _RNG_MissionStructureGen = rng;
@@ -218,7 +218,7 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
             List<MissionStructureGraphNode> newNodes = new List<MissionStructureGraphNode>();
 
 
-            Debug.Log($"EXECUTE: \"{rule.Name}\"    Node1: {node1.GrammarSymbol}    Node2: {(childNodeData == null ? "null" : childNodeData.ChildNode.GrammarSymbol)}");
+            //Debug.Log($"EXECUTE: \"{rule.Name}\"    Node1: {node1.GrammarSymbol}    Node2: {(childNodeData == null ? "null" : childNodeData.ChildNode.GrammarSymbol)}");
 
 
             // Remove the connection between the two nodes.
@@ -303,6 +303,10 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
 
                         // Add the node to our mission structure graph as well.
                         _MissionStructureGraph.AddNode(newNode);
+
+                        // If this is the goal node, then set it to the GoalNode field on the mission structure graph.
+                        if (newNode.GrammarSymbol == GrammarSymbols.T_Goal)
+                            _MissionStructureGraph.GoalNode = newNode;
 
                     } // end if
 
@@ -397,7 +401,7 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
         /// <summary>
         /// This method gives all the nodes positions so that they will draw nicely if MissionStructureGraphGizmos are neabled in MissionStructureGraphGizmos.cs.
         /// </summary>
-        private static void SetPositions()
+        public static void SetPositions()
         {
             // This dictionary tracks the positions assigned to a node. If a node has multiple parents, it will have multiple
             // positions stored in its list in this dictionary. It's final position will be Vector2(maxX, averageY) of all
@@ -438,7 +442,7 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
 
 
                 int childIndex = 0;
-                foreach (MSCNData childNodeData in curNode.ChildNodesData)
+                foreach (MSCNData childNodeData in curNode.GetPrioritizedChildNodeList())
                 {
                     // If this child node is not tightly coupled to this node, then we need to check if it is tightly
                     // coupled to any other node. If so, we need to skip it here so it is added just after the parent

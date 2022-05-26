@@ -61,6 +61,11 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonGraphGeneration
             _RoomDirection = direction;
             _RoomPosition = position;
 
+
+
+            for (int i = 0; i < data.DoorsList.Count; i++)
+                Doorways.Add(new DungeonDoor());
+
         }
 
 
@@ -75,6 +80,28 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonGraphGeneration
             }
 
             return doors;
+        }
+
+        /// <summary>
+        /// Checks if this room has a unconnected doorway available for a non-tightly-coupled room.
+        /// </summary>
+        /// <returns>True if this room has at least one unused doorway available.</returns>
+        public bool HasUnusedDoorway()
+        {
+            // Count tightly coupled doorway connections so far.
+            int tightlyCoupledDoors = 0;
+            foreach (DungeonDoor door in Doorways)
+            {
+                if (door.IsTightlyCoupledRoomConnection)
+                    tightlyCoupledDoors++;
+            }
+
+            int totalTightlyCoupledChildren = _MissionStructureNode.GetTightlyCoupledChildNodeCount();
+            int tightlyCoupledDoorsLeftToPlace = totalTightlyCoupledChildren - tightlyCoupledDoors;
+
+            bool result = (Doorways.Count - tightlyCoupledDoorsLeftToPlace) > 1;
+            //Debug.LogError($"\"{RoomBlueprint.RoomName}\"    Door Count: {Doorways.Count}    tcDoorCount: {tightlyCoupledDoors}    tcDoorsLeftCount: {tightlyCoupledDoorsLeftToPlace}    tcChildNodes: {totalTightlyCoupledChildren}    Result: {result}");
+            return result;
         }
 
 

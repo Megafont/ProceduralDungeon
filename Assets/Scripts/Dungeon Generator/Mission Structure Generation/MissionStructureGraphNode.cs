@@ -41,7 +41,6 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
             ID = id;
         }
 
-
         public bool ContainsChild(MissionStructureGraphNode childNode)
         {
             foreach (MSCNData childNodeData in ChildNodesData)
@@ -54,6 +53,26 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
 
         }
 
+        /// <summary>
+        /// Checks if the specified node is a child of this node and tightly coupled to it.
+        /// </summary>
+        /// <param name="childNode">The node to check.</param>
+        /// <returns>True if the specified node is a child of this one and tightly coupled to it.</returns>
+        public bool ContainsTightlyCoupledChild(MissionStructureGraphNode childNode)
+        {
+            foreach (MSCNData childData in ChildNodesData)
+            {
+                if (childData.ChildNode == childNode &&
+                    childData.IsTightlyCoupled)
+                {
+                    return true;
+                }
+
+            } // end foreach childData
+
+            return false;
+        }
+
         public MSCNData GetChildNodeData(MissionStructureGraphNode childNode)
         {
             foreach (MSCNData childNodeData in ChildNodesData)
@@ -64,13 +83,14 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
 
             return null;
         }
+
         /// <summary>
         /// Returns the child nodes list arranged with tightly coupled nodes all moved ahead of ones that aren't.
         /// </summary>
         /// <returns>The child nodes list arranged with all tightly coupled nodes coming before all nodes that are not.</returns>
-        public List<MissionStructureGraphNode> GetPrioritizedChildNodeList()
+        public List<MissionStructureChildNodeData> GetPrioritizedChildNodeList()
         {
-            List<MissionStructureGraphNode> childList = new List<MissionStructureGraphNode>();
+            List<MissionStructureChildNodeData> childList = new List<MissionStructureChildNodeData>();
 
 
             int lastTightlyCoupledIndex = 0;
@@ -78,16 +98,16 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
             {
                 if (childNodeData.IsTightlyCoupled)
                 {
-                    childList.Insert(lastTightlyCoupledIndex, childNodeData.ChildNode);
+                    childList.Insert(lastTightlyCoupledIndex, childNodeData);
                     lastTightlyCoupledIndex++;
                 }
                 else if (childNodeData.ChildNode.GetTightlyCoupledChildNodeCount() > 0)
                 {
-                    childList.Insert(lastTightlyCoupledIndex, childNodeData.ChildNode);
+                    childList.Insert(lastTightlyCoupledIndex, childNodeData);
                 }
                 else
                 {
-                    childList.Add(childNodeData.ChildNode);
+                    childList.Add(childNodeData);
                 }
 
             } // end foreach
