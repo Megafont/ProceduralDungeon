@@ -134,6 +134,8 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction.PlaceholderUti
                         // Use our out parameter to return the position of the other door's tile 1 coordinate so the calliing code can use it to look up the doorway.
                         otherDoor_Tile1WorldPos = tile1ScanPos;
 
+                        // Debug.Log($"LVL DATA:    Tile1: \"{doorScanTile1.TileType}\"    Tile2: \"{doorScanTile2.TileType}\"    Room: \"{roomNode.RoomBlueprint.RoomLevel}\"");
+
                         // Check if the two doors that connected by chance are on the same floor in the dungeon.
                         if (TileIsOnFloor(doorScanTile1, roomNode.RoomBlueprint.RoomLevel) &&
                             TileIsOnFloor(doorScanTile2, roomNode.RoomBlueprint.RoomLevel))
@@ -443,11 +445,11 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction.PlaceholderUti
 
         private static bool TileIsOnFloor(BasicDungeonTile tile, RoomLevels floor)
         {
-            if (tile.TileType == DungeonTileTypes.Floors_Basement && floor == RoomLevels.Level_Basement)
+            if (tile.TileType == DungeonTileTypes.Placeholders_Doors_Basement && floor == RoomLevels.Level_Basement)
                 return true;
-            if (tile.TileType == DungeonTileTypes.Floors_1stFloor && floor == RoomLevels.Level_1stFloor)
+            if (tile.TileType == DungeonTileTypes.Placeholders_Doors_1stFloor && floor == RoomLevels.Level_1stFloor)
                 return true;
-            if (tile.TileType == DungeonTileTypes.Floors_2ndFloor && floor == RoomLevels.Level_2ndFloor)
+            if (tile.TileType == DungeonTileTypes.Placeholders_Doors_2ndFloor && floor == RoomLevels.Level_2ndFloor)
                 return true;
 
             return false;

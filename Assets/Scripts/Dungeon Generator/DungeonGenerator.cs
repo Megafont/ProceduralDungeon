@@ -217,9 +217,10 @@ namespace ProceduralDungeon.DungeonGeneration
             // 3659563007
             // 3659637319
             // 3659734668
+            // 3659799015
 
             // Init the random number generators.
-            InitRNG();
+            InitRNG(3659799015);
             Debug.Log($"SEED: {_RNG_Seed.GetSeed()}");
 
 
@@ -330,7 +331,7 @@ namespace ProceduralDungeon.DungeonGeneration
         {
             int attempts = 0;
             List<DungeonDoor> blockedDoors = new List<DungeonDoor>(); // Holds doors that are blocked
-            List<DungeonDoor> chanceConnectionDoors = new List<DungeonDoor>(); // Holds doors that connected by chance.
+            List<DungeonDoor> doorsToLink = new List<DungeonDoor>(); // Holds doors that connected by chance.
             DungeonGraphNode roomNode = null;
 
 
@@ -344,7 +345,7 @@ namespace ProceduralDungeon.DungeonGeneration
                 attempts++;
 
                 blockedDoors.Clear();
-                chanceConnectionDoors.Clear();
+                doorsToLink.Clear();
 
 
                 // Try to find an existing door to connect a new room to.
@@ -371,7 +372,7 @@ namespace ProceduralDungeon.DungeonGeneration
                 }
 
                 // Generate the DungeonGraphNode for the new room.
-                roomNode = CreateRoom(missionStructureNode, doorToConnectTo);
+                roomNode = CreateRoom(missionStructureNode, doorToConnectTo, doorsToLink);
                 if (roomNode == null)
                 {
                     //Debug.LogWarning($"DungeonGenerator.SnapNewRoomIntoDungeon() - Attempt #{attempts}: Failed to connect new room onto the dungeon!");
@@ -386,7 +387,7 @@ namespace ProceduralDungeon.DungeonGeneration
 
                 // Check the door layout of the possible placement of this
                 int doorsLost = 0;
-                if (!CheckPossibleRoomPlacementDoorLayout(roomNode, doorToConnectTo, blockedDoors, chanceConnectionDoors, out doorsLost))
+                if (!CheckPossibleRoomPlacementDoorLayout(roomNode, doorToConnectTo, blockedDoors, doorsToLink, out doorsLost))
                 {
                     CleanupRejectedRoomData(roomNode);
 
@@ -437,16 +438,21 @@ namespace ProceduralDungeon.DungeonGeneration
             } // end while
 
 
-            // Connect any doors that ended up next to each other by chance.
-            foreach (DungeonDoor door in chanceConnectionDoors)
-                ConfigureConnectingDoorway(door.ThisRoom_Node, (int) door.ThisRoom_DoorIndex, door.OtherRoom_Node, (int) door.OtherRoom_DoorIndex);
+            // If this is the goal room, then assign one of the unused doors to be the exit door.
+            if (missionStructureNode == _MissionStructureGraph.GoalNode)
+                ConfigureEntranceOrExitRoomDoor(roomNode, false);
+
+            // Connect any doors that need to be linked.
+            // NOTE: The DungeonDoor objects in this list are not actual doors, but being used as data holders.
+            foreach (DungeonDoor doorData in doorsToLink)
+                ConfigureConnectingDoorway(doorData);
 
 
             return roomNode;
 
         }
 
-        private static DungeonGraphNode CreateRoom(MissionStructureGraphNode missionStructureNode, DungeonDoor doorToConnectTo)
+        private static DungeonGraphNode CreateRoom(MissionStructureGraphNode missionStructureNode, DungeonDoor doorToConnectTo, List<DungeonDoor> doorsToLink)
         {
             if (missionStructureNode.GrammarSymbol != GrammarSymbols.T_Entrance && doorToConnectTo.OtherRoom_Node == null)
                 throw new Exception("DungeonGenerator.CreateRoom() - The parentRoom parameter is null! All dungeon rooms must have a parent except the starting room.");
@@ -550,15 +556,13 @@ namespace ProceduralDungeon.DungeonGeneration
             // Initialize the doorways list on the new room's node.
             InitRoomDoors(newRoomNode);
 
-            ConfigureConnectingDoorway(doorToConnectTo.OtherRoom_Node,
-                                       (int)doorToConnectTo.OtherRoom_DoorIndex,
-                                       newRoomNode,
-                                       (int)newRoomDoorIndex);
-
-            if (missionStructureNode == _MissionStructureGraph.GoalNode)
-                ConfigureEntranceOrExitRoomDoor(newRoomNode, false);
-
-
+            // Create a DungeonDoor object with all the data needed to link up these doorways if this room is kept as part of the dungeon as it is now.
+            DungeonDoor doorToLink = new DungeonDoor();
+            doorToLink.ThisRoom_Node = doorToConnectTo.OtherRoom_Node;
+            doorToLink.ThisRoom_DoorIndex = doorToConnectTo.OtherRoom_DoorIndex;
+            doorToLink.OtherRoom_Node = newRoomNode;
+            doorToLink.OtherRoom_DoorIndex = newRoomDoorIndex;
+            doorsToLink.Add(doorToLink);
 
 
             return newRoomNode;
@@ -621,7 +625,7 @@ namespace ProceduralDungeon.DungeonGeneration
                     newRoomDoor.OtherRoom_Node = doorway.ThisRoom_Node;
                     newRoomDoor.OtherRoom_DoorIndex = doorway.ThisRoom_DoorIndex;
 
-                    // Generate a new room attached to this doorway.f
+                    // Generate a new room attached to this doorway.
                     DungeonGraphNode roomNode = SnapNewRoomIntoDungeon(structureNode, newRoomDoor);
                     if (roomNode == null)
                     {
@@ -720,13 +724,11 @@ namespace ProceduralDungeon.DungeonGeneration
                     doorway.OtherRoom_Node = otherRoomDoor.ThisRoom_Node;
                     doorway.OtherRoom_DoorIndex = otherRoomDoor.ThisRoom_DoorIndex;
 
-                    Debug.Log($"OTHER: \"{doorway.OtherRoom_Node.RoomBlueprint.RoomName}\"");
+
                     // Check if the room we connected to by chance has any extra unused doors available beyond those needed for any of its tightly coupled neighbors that haven't been generated yet.
                     if (!doorway.OtherRoom_Node.HasUnusedDoorway())
-                    {
-                        Debug.LogError("I AM ERROR!");
                         return false; // Tell the calling code that this room placement is invalid.
-                    }
+
 
                     if (doorway.ThisRoom_Node.MissionStructureNode.LockCount != doorToConnectTo.OtherRoom_Node.MissionStructureNode.LockCount)
                     {
@@ -801,22 +803,39 @@ namespace ProceduralDungeon.DungeonGeneration
 
         }
 
-        private static void ConfigureConnectingDoorway(DungeonGraphNode parentRoomNode, int parentRoomDoorIndex, DungeonGraphNode newRoomNode, int newRoomDoorIndex)
+        private static void ConfigureConnectingDoorway(DungeonDoor doorData)
         {
-            // Setup the fields that link the doors.
-            parentRoomNode.Doorways[parentRoomDoorIndex].OtherRoom_Node = newRoomNode;
-            parentRoomNode.Doorways[parentRoomDoorIndex].OtherRoom_DoorIndex = (uint)newRoomDoorIndex;
+            DungeonGraphNode parentRoomNode = doorData.ThisRoom_Node;
+            uint parentRoomDoorIndex = doorData.ThisRoom_DoorIndex;
+            DungeonGraphNode newRoomNode = doorData.OtherRoom_Node;
+            uint newRoomDoorIndex = doorData.OtherRoom_DoorIndex;
+
+
+            // Get the parent node's doorway object.
+            DungeonDoor doorToEdit = doorData.ThisRoom_Node.Doorways[(int) parentRoomDoorIndex];
+
+            // Setup the fields that link it to the child room door.
+            doorToEdit.ThisRoom_Node = parentRoomNode;
+            doorToEdit.ThisRoom_DoorIndex = parentRoomDoorIndex;
+            doorToEdit.OtherRoom_Node = newRoomNode;
+            doorToEdit.OtherRoom_DoorIndex = newRoomDoorIndex;
             if (parentRoomNode.MissionStructureNode.ContainsTightlyCoupledChild(newRoomNode.MissionStructureNode))
-                parentRoomNode.Doorways[parentRoomDoorIndex].IsTightlyCoupledRoomConnection = true;
+                doorToEdit.IsTightlyCoupledRoomConnection = true;
 
 
-            newRoomNode.Doorways[newRoomDoorIndex].OtherRoom_Node = parentRoomNode;
-            newRoomNode.Doorways[newRoomDoorIndex].OtherRoom_DoorIndex = (uint)parentRoomDoorIndex;
+            // Get the child room's doorway object.
+            doorToEdit = newRoomNode.Doorways[(int) newRoomDoorIndex];
+
+            // Setup the fields that link it to the parent room door.
+            doorToEdit.ThisRoom_Node = newRoomNode;
+            doorToEdit.ThisRoom_DoorIndex = newRoomDoorIndex;
+            doorToEdit.OtherRoom_Node = parentRoomNode;
+            doorToEdit.OtherRoom_DoorIndex = parentRoomDoorIndex;
 
 
             // Remove each room's door from the unconnected doors list since they are no longer unconnected.
-            _UnconnectedDoorways.Remove(parentRoomNode.Doorways[parentRoomDoorIndex]);
-            _UnconnectedDoorways.Remove(newRoomNode.Doorways[newRoomDoorIndex]);
+            _UnconnectedDoorways.Remove(parentRoomNode.Doorways[(int) parentRoomDoorIndex]);
+            _UnconnectedDoorways.Remove(newRoomNode.Doorways[(int) newRoomDoorIndex]);
         }
 
         private static void InitRoomDoors(DungeonGraphNode room)
@@ -894,7 +913,7 @@ namespace ProceduralDungeon.DungeonGeneration
                     if (unusedDoors.Count < 1)
                         throw new Exception($"DungeonGenerator.SelectGoalRoomExitDoor() - Failed to select an { (isEntranceDoor ? "entrance" : "exit") } door because no viable unused doorways are available in the room!");
 
-                    Debug.LogError($"Room \"{room.RoomBlueprint.RoomName}\"    Door[{doorIndex}] -->    Unused: {unusedDoors.Count}    Total: {room.Doorways.Count}");
+                    // Debug.LogError($"Room \"{room.RoomBlueprint.RoomName}\"    Door[{doorIndex}] -->    Unused: {unusedDoors.Count}    Total: {room.Doorways.Count}");
                 }
 
             } // end while true
