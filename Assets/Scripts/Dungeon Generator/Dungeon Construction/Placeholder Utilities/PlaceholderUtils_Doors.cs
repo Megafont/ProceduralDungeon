@@ -93,24 +93,33 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction.PlaceholderUti
         /// <summary>
         /// This function scans some number of blocks from the front of a door to see if it hits a wall or another door.
         /// </summary>
+        /// <param name="tileMapManager">The dungeon tilemap manager.</param>
         /// <param name="roomNode">The parent room of the door wer're doing a blockage scan for.</param>
         /// <param name="doorIndex">The index of the door within its parent room.</param>
+        /// <param name="otherDoor_Tile1WorldPos">If the door has by chance connected to another door, the position of the other door's first tile is returned via this out parameter.</param>
         /// <param name="scanLength">How many tiles to scan outward from the front of the door. This defaults to 10, so it will scan each tile until it is 10 tiles out from the front of the door.
         /// <returns>The result of the scan.</returns>
-        public static LinearScanFromDoorResults DoLinearScanFromDoor(DungeonTilemapManager tileMapManager, DungeonGraphNode roomNode, int doorIndex, int scanLength = 10)
+        public static LinearScanFromDoorResults DoLinearScanFromDoor(DungeonTilemapManager tileMapManager, DungeonGraphNode roomNode, int doorIndex, out Vector3Int otherDoor_Tile1WorldPos, int scanLength = 10)
         {
+            otherDoor_Tile1WorldPos = Vector3Int.zero;
+
+
             DungeonDoor door = roomNode.Doorways[doorIndex];
 
             // Get the direction of the door on room 1 and adjust it to take into account that room's rotation direction.
             Vector3Int scanVector = door.ThisRoom_DoorAdjustedDirection.DirectionToNormalizedVector();
 
 
+            Vector3Int doorTile1Pos = door.ThisRoom_DoorTile1WorldPosition;
+            Vector3Int doorTile2Pos = door.ThisRoom_DoorTile2WorldPosition;
+
+
             Vector3Int tile1ScanPos, tile2ScanPos;
             for (int i = 1; i < scanLength; i++)
             {
                 // Get the position for the next tile to scan in front of each of the door's tiles.
-                tile1ScanPos = door.ThisRoom_DoorTile1WorldPosition + (scanVector * i);
-                tile2ScanPos = door.ThisRoom_DoorTile2WorldPosition + (scanVector * i);
+                tile1ScanPos = doorTile1Pos + (scanVector * i);
+                tile2ScanPos = doorTile2Pos + (scanVector * i);
 
 
                 // Are we are scanning the first tile in front of both door tiles?
@@ -120,22 +129,23 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction.PlaceholderUti
                     BasicDungeonTile doorScanTile1 = (BasicDungeonTile)tileMapManager.DungeonMap.Placeholders_General_Map.GetTile(tile1ScanPos);
                     BasicDungeonTile doorScanTile2 = (BasicDungeonTile)tileMapManager.DungeonMap.Placeholders_General_Map.GetTile(tile2ScanPos);
 
-                    if (doorScanTile1 != null &&
-                        (doorScanTile1.TileType == DungeonTileTypes.Placeholders_Doors_Basement ||
-                         doorScanTile1.TileType == DungeonTileTypes.Placeholders_Doors_1stFloor ||
-                         doorScanTile1.TileType == DungeonTileTypes.Placeholders_Doors_2ndFloor))
+                    if (TileIsDoorPlaceholder(doorScanTile1) && TileIsDoorPlaceholder(doorScanTile2))
                     {
-                        if (doorScanTile2 != null &&
-                            (doorScanTile2.TileType == DungeonTileTypes.Placeholders_Doors_Basement ||
-                             doorScanTile2.TileType == DungeonTileTypes.Placeholders_Doors_1stFloor ||
-                             doorScanTile2.TileType == DungeonTileTypes.Placeholders_Doors_2ndFloor))
+                        // Use our out parameter to return the position of the other door's tile 1 coordinate so the calliing code can use it to look up the doorway.
+                        otherDoor_Tile1WorldPos = tile1ScanPos;
+
+                        // Check if the two doors that connected by chance are on the same floor in the dungeon.
+                        if (TileIsOnFloor(doorScanTile1, roomNode.RoomBlueprint.RoomLevel) &&
+                            TileIsOnFloor(doorScanTile2, roomNode.RoomBlueprint.RoomLevel))
                         {
-                            if (doorScanTile1.TileType == doorScanTile2.TileType)
-                                return LinearScanFromDoorResults.ChanceConnection_MatchingFloor;
-                            else
-                                return LinearScanFromDoorResults.ChanceConnection_FloorMismatch;
+                            return LinearScanFromDoorResults.ChanceConnection_MatchingFloor;
                         }
-                    }
+                        else
+                        {
+                            return LinearScanFromDoorResults.ChanceConnection_FloorMismatch;
+                        }
+
+                    } // end if doorScanTile1 and doorScanTile2 are both door placeholder tiles
 
                 } // end if i == 1
 
@@ -415,6 +425,32 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction.PlaceholderUti
 
 
             return result;
+        }
+
+        private static bool TileIsDoorPlaceholder(BasicDungeonTile tile)
+        {
+            if (tile != null &&
+                (tile.TileType == DungeonTileTypes.Placeholders_Doors_Basement ||
+                 tile.TileType == DungeonTileTypes.Placeholders_Doors_1stFloor ||
+                 tile.TileType == DungeonTileTypes.Placeholders_Doors_2ndFloor))
+            {
+                return true;
+            }
+
+            return false;
+
+        }
+
+        private static bool TileIsOnFloor(BasicDungeonTile tile, RoomLevels floor)
+        {
+            if (tile.TileType == DungeonTileTypes.Floors_Basement && floor == RoomLevels.Level_Basement)
+                return true;
+            if (tile.TileType == DungeonTileTypes.Floors_1stFloor && floor == RoomLevels.Level_1stFloor)
+                return true;
+            if (tile.TileType == DungeonTileTypes.Floors_2ndFloor && floor == RoomLevels.Level_2ndFloor)
+                return true;
+
+            return false;
         }
 
 
