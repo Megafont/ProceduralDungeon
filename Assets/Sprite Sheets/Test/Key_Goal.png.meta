@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 2f63e6d4f20a7874ca4a1a06027cfec4
+guid: 80ac8100d05440040be4a2721b435a95
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -104,85 +104,30 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Placeholders_Doors_Basement
+      name: Items_Key_Goal
       rect:
         serializedVersion: 2
         x: 0
-        y: 240
+        y: 0
         width: 16
         height: 16
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
-      physicsShape: []
+      physicsShape:
+      - - {x: 3, y: -3}
+        - {x: 3, y: -7}
+        - {x: -3, y: -7}
+        - {x: -3, y: -3}
+        - {x: -5, y: 1}
+        - {x: -5, y: 7}
+        - {x: 5, y: 7}
+        - {x: 5, y: 1}
       tessellationDetail: 0
       bones: []
-      spriteID: 26422c3bbf7fe724a83c64bb4e1daeac
-      internalID: -518213313
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Placeholders_Doors_1stFloor
-      rect:
-        serializedVersion: 2
-        x: 16
-        y: 240
-        width: 16
-        height: 16
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: a6549064079b21044b181aff058f2988
-      internalID: 1105143702
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Placeholders_Doors_2ndFloor
-      rect:
-        serializedVersion: 2
-        x: 32
-        y: 240
-        width: 16
-        height: 16
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 75a9a1b58830c8649b842f3f6c406cfa
-      internalID: 116298976
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Placeholders_Entity_Player
-      rect:
-        serializedVersion: 2
-        x: 128
-        y: 240
-        width: 16
-        height: 16
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 645e1b856957ce64a84d73dfbdd7f04c
-      internalID: -2023910191
+      spriteID: a42601ea5656794408ef524259a795ca
+      internalID: -1472476886
       vertices: []
       indices: 
       edges: []
@@ -198,10 +143,8 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      Placeholders_Entity_Player: -2023910191
-      Placeholders_Doors_1stFloor: 1105143702
-      Placeholders_Doors_2ndFloor: 116298976
-      Placeholders_Doors_Basement: -518213313
+      Items_Key_Goal: -1472476886
+      Key_Goal_0: -662657981
   spritePackingTag: 
   pSDRemoveMatte: 0
   pSDShowRemoveMatteOption: 0

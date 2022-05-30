@@ -70,8 +70,8 @@ namespace ProceduralDungeon.EditorScripts
 
             EditorGUILayout.PrefixLabel("Sprite");
             EditorGUILayout.BeginVertical();
-            _DungeonTile.sprite = (Sprite)EditorGUILayout.ObjectField(_DungeonTile.sprite, typeof(Sprite), true);
 
+            _DungeonTile.sprite = (Sprite)EditorGUILayout.ObjectField(_DungeonTile.sprite, typeof(Sprite), true);
 
             EditorGUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace(); // Adding a FlexibleSpace before the button within the same horizontal group causes the button to be aligned to the right side of its parent group.
@@ -110,6 +110,11 @@ namespace ProceduralDungeon.EditorScripts
             //EditorGUILayout.PropertyField(_TileType);
 
 
+            // We have to do this if statement since this custom inspector allows you to edit some properties that are inherited from
+            // the Tile object's base class. This tells Unity that some data needs to be saved. This is not necessary when only
+            // using EditorGUILayout.PropertyField() (to display fields non-inherited fields).
+            if (GUI.changed)
+                EditorUtility.SetDirty(_DungeonTile);
 
             serializedObject.ApplyModifiedProperties();
         }

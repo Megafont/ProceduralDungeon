@@ -192,18 +192,16 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
 
 
-            // NOTE: The if statement below is commented out on purpose. It was here to make the placeholder layers only visible
-            //       in the Unity Editor but not in play mode. However, this caused an unforseen problem!
-            //       If this if statement is here, then the placeholder layers will be empty in playmode, which breaks the
-            //       PlaceholderUtils_Doors.DoLinearScanFromDoor() function, which looks for the door placeholder tiles in order
-            //       to detect doors that connected by chance. This in turn causes the same seed to generate different
-            //       dungeons in playmode than it does in the Unity Editor.
-            //
-            //       The solution to this problem is simply to hide the placeholder Tilemap layers in the Unity Editor and
-            //       simply unhide them if needed for testing. Just don't forget to hide them again before building the game.
+            // If we are in play mode, then disable the renderers on the placeholder layers.
+            // If edit mode, these can be hidden in the editor individually using the eye icon.
+            bool state = true;
+            if (Application.isPlaying) // Only include the placeholders if the dungeon generator is running in Unity's edit mode.
+                state = false;
+            tilemapManager.DungeonMap.Placeholders_General_Map.GetComponent<TilemapRenderer>().enabled = state;
+            tilemapManager.DungeonMap.Placeholders_Items_Map.GetComponent<TilemapRenderer>().enabled = state;
+            tilemapManager.DungeonMap.Placeholders_Enemies_Map.GetComponent<TilemapRenderer>().enabled = state;
+          
 
-            //if (!Application.isPlaying) // Only include the placeholders if the dungeon generator is running in Unity's edit mode.
-            //{
 
             //Debug.Log("DRAW PLACEHOLDERS!");
             CopyTilesIntoDungeonMap(roomNode.RoomBlueprint.Placeholders_General_Tiles,
@@ -220,8 +218,6 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
                                     tilemapManager.DungeonMap.Placeholders_Enemies_Map,
                                     roomNode,
                                     roomFromTileDict);
-
-            //}
 
         }
 

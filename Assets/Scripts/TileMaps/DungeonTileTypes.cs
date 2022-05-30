@@ -85,6 +85,9 @@ namespace ProceduralDungeon.TileMaps
 
 
         // Placeholder Tiles - Items
+        Placeholders_Items_Key = 120000,
+        Placeholders_Items_Key_Multipart = 120001,
+        Placeholders_Items_Key_Goal = 120002,
 
 
         // Placeholder Tiles - Enemies

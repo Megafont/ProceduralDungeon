@@ -3,7 +3,8 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - Door
   layers:
   - Default
   - TransparentFX
@@ -11,8 +12,8 @@ TagManager:
   - 
   - Water
   - UI
-  - GeneratorPlaceholders
   - Walls
+  - GeneratorPlaceholders
   - Objects
   - Floor
   - 
@@ -41,7 +42,7 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
-  - name: Floor
+  - name: GeneratorPlaceholders
     uniqueID: 2115625029
     locked: 0
   - name: Objects
@@ -50,6 +51,6 @@ TagManager:
   - name: Walls
     uniqueID: 3800475121
     locked: 0
-  - name: GeneratorPlaceholders
+  - name: Floor
     uniqueID: 3070093029
     locked: 0

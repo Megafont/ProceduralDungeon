@@ -14,7 +14,7 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
 
     public class MissionStructureGraphNode
     {
-        public readonly List<MissionStructureChildNodeData> ChildNodesData; // The list of this node's childe nodes.
+        public readonly List<MSCNData> ChildNodesData; // The list of this node's childe nodes.
         public DungeonGraphNode DungeonRoomNode; // A reference to the dungeon room node generated from this mission structure node.
         public GenerativeGrammar.Symbols GrammarSymbol; // The dungeon grammar symbol assigned to this room. It defines the type of room within the procedurally generated dungeon design, like a boss room).
         public uint LockCount; // The number of locks up to this point in the dungeon. This property is essentially a built-in Dijkstra map. It allows us to ensure we don't connect parts of the dungeon that would bypass locked doors.
@@ -28,7 +28,7 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
 
         public MissionStructureGraphNode(GenerativeGrammar.Symbols symbol)
         {
-            ChildNodesData = new List<MissionStructureChildNodeData>();
+            ChildNodesData = new List<MSCNData>();
 
             GrammarSymbol = symbol;
 
@@ -88,13 +88,13 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
         /// Returns the child nodes list arranged with tightly coupled nodes all moved ahead of ones that aren't.
         /// </summary>
         /// <returns>The child nodes list arranged with all tightly coupled nodes coming before all nodes that are not.</returns>
-        public List<MissionStructureChildNodeData> GetPrioritizedChildNodeList()
+        public List<MSCNData> GetPrioritizedChildNodeList()
         {
-            List<MissionStructureChildNodeData> childList = new List<MissionStructureChildNodeData>();
+            List<MSCNData> childList = new List<MSCNData>();
 
 
             int lastTightlyCoupledIndex = 0;
-            foreach (MissionStructureChildNodeData childNodeData in ChildNodesData)
+            foreach (MSCNData childNodeData in ChildNodesData)
             {
                 if (childNodeData.IsTightlyCoupled)
                 {

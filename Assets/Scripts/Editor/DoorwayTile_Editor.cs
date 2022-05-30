@@ -43,11 +43,14 @@ namespace ProceduralDungeon.EditorScripts
             EditorGUILayout.PropertyField(_ReplacementWallTile);
 
 
+            // We have to do this if statement since this custom inspector allows you to edit some properties that are inherited from
+            // the Tile object's base class. This tells Unity that some data needs to be saved. This is not necessary when only
+            // using EditorGUILayout.PropertyField() (to display fields non-inherited fields).
+            if (GUI.changed)
+                EditorUtility.SetDirty(_DungeonTile);
+
             serializedObject.ApplyModifiedProperties();
         }
-
-
-
 
 
     }

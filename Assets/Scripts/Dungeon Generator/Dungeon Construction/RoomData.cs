@@ -25,6 +25,11 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
         public Dictionary<Vector3Int, SavedTile> Placeholders_Item_Tiles;
         public Dictionary<Vector3Int, SavedTile> Placeholders_Enemy_Tiles;
 
+        // Positions of key placeholders.
+        public List<Vector3Int> KeyPositions;
+        public List<Vector3Int> KeyMultipartPositions;
+        public List<Vector3Int> KeyGoalPositions;
+
 
         public string RoomName;
         public RoomLevels RoomLevel = RoomLevels.Level_1stFloor;
@@ -55,14 +60,36 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             MiscellaneousUtils.CopyTilesListToDictionary(loadedRoom.Placeholders_Item_Tiles, Placeholders_Item_Tiles);
             MiscellaneousUtils.CopyTilesListToDictionary(loadedRoom.Placeholders_Enemy_Tiles, Placeholders_Enemy_Tiles);
 
+            KeyPositions = new List<Vector3Int>();
+            KeyMultipartPositions = new List<Vector3Int>();
+            KeyGoalPositions = new List<Vector3Int>();
+
 
             RoomName = loadedRoom.RoomName;
             RoomLevel = loadedRoom.RoomLevel;
             RoomTypeFlags = loadedRoom.RoomTypeFlags;
 
+
+            Init();
         }
 
+        public void Init()
+        {
+            foreach (KeyValuePair<Vector3Int, SavedTile> pair in Placeholders_Item_Tiles)
+            {
+                SavedTile sTile = pair.Value;
+                Vector3Int tilePosition = pair.Key;
 
+                if (sTile.Tile.TileType == DungeonTileTypes.Placeholders_Items_Key)
+                    KeyPositions.Add(tilePosition);
+                else if (sTile.Tile.TileType == DungeonTileTypes.Placeholders_Items_Key_Multipart)
+                    KeyMultipartPositions.Add(tilePosition);
+                else if (sTile.Tile.TileType == DungeonTileTypes.Placeholders_Items_Key_Goal)
+                    KeyGoalPositions.Add(tilePosition);
+
+            } // end foreach sTile
+
+        }
 
         public static List<SavedTile> GetTilesOfType(Dictionary<Vector3Int, SavedTile> srcTilesDict, List<DungeonTileTypes> typesToGet)
         {

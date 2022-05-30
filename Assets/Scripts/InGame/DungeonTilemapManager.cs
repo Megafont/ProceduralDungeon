@@ -29,16 +29,14 @@ namespace ProceduralDungeon.InGame
         [SerializeField] private Tilemap _Placeholders_Enemies_Map;
 
 
-
         [SerializeField] private GameObject _Player;
 
         [SerializeField] private RoomSets _RoomSet; // Determines which folder a room will be saved/loaded to/from.
 
 
-
         public GameObject Player { get { return _Player; } }
         public string RoomSet { get { return Enum.GetName(typeof(RoomSets), _RoomSet); } }
-
+        
 
         private DungeonMap _DungeonMap;
 

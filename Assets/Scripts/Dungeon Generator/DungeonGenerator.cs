@@ -26,7 +26,7 @@ namespace ProceduralDungeon.DungeonGeneration
 {
     public static class DungeonGenerator
     {
-        private const float EXTRA_DOORS_ROOM_SPAWN_CHANCE = 0.333f; // The probability that each unused doorway will have a new room spawned next to it after the main dungeon generation is done.
+        private const float EXTRA_DOORS_ROOM_SPAWN_CHANCE = 0.25f; // The probability that each unused doorway will have a new room spawned next to it after the main dungeon generation is done.
         private const int LINEAR_DOOR_SCAN_LENGTH = 5; // How many tiles to scan in front of a door for room collisions and neighboring doors.
         private const int MAX_ROOM_BLUEPRINT_SELECTION_ATTEMPTS = 16; // Max. number of times to try choosing and placing a room blueprint before aborting.
         private const int MAX_ROOM_CONNECTION_ATTEMPTS = 16; // Max. number of times to try connecting a new room into one of the unconnected doors on the dungeon.
@@ -220,7 +220,7 @@ namespace ProceduralDungeon.DungeonGeneration
             // 3659799015
 
             // Init the random number generators.
-            InitRNG(3659799015);
+            InitRNG(3659894818);
             Debug.Log($"SEED: {_RNG_Seed.GetSeed()}");
 
 
@@ -239,6 +239,7 @@ namespace ProceduralDungeon.DungeonGeneration
 
             _DungeonTilemapManager.DungeonMap.CompressBoundsOfAllTileMaps();
 
+            DungeonPopulator.PopulateDungeon(_DungeonGraph, _RNG_DungeonGen);
 
             _IsGeneratingDungeon = false;
 
@@ -398,7 +399,7 @@ namespace ProceduralDungeon.DungeonGeneration
 
                 // See if there are still enough doors available on the room after collisions were detected.
                 int doorsLeft = roomNode.RoomBlueprint.DoorsList.Count - 1 - doorsLost; // We subtract one since the room already has one door unavailable since it is already used to connect it to the parent room.
-                int minRemainingDoorsRequired = 0;
+                int minRemainingDoorsRequired;
                 if (missionStructureNode.GrammarSymbol != GrammarSymbols.T_Goal)
                     minRemainingDoorsRequired = missionStructureNode.GetTightlyCoupledChildNodeCount();
                 else
@@ -467,8 +468,8 @@ namespace ProceduralDungeon.DungeonGeneration
 
 
             // Get minumum number of doors needed for the room.
-            int minDoorsNeeded = 0;
-            bool greaterThanOrEqual = false;
+            int minDoorsNeeded;
+            bool greaterThanOrEqual;
             if (!_IsFinalizingDoors)
             {
                 minDoorsNeeded = missionStructureNode.GetTightlyCoupledChildNodeCount() + 1;
@@ -502,8 +503,14 @@ namespace ProceduralDungeon.DungeonGeneration
             {
                 attempts++;
 
+
                 // Select a random room on the same level as that door.
-                newRoomData = SelectRandomRoomWithFilters((uint)minDoorsNeeded, greaterThanOrEqual, parentDoorLevel);
+                RoomTypeFlags filterFlags = GetRoomTypeFlagsFromMissionStructureNode(missionStructureNode);
+                if (filterFlags == 0)
+                    newRoomData = SelectRandomRoomWithFilters((uint)minDoorsNeeded, greaterThanOrEqual, parentDoorLevel);
+                else
+                    newRoomData = SelectRandomRoomWithFilters((uint)minDoorsNeeded, greaterThanOrEqual, parentDoorLevel, true, filterFlags);
+
 
                 // Select a random door on the new room to connect to the existing door we already chose.
                 newRoomDoorIndex = (uint)SelectRandomDoorOnRoom(newRoomData, parentDoorLevel);
@@ -601,6 +608,28 @@ namespace ProceduralDungeon.DungeonGeneration
             return startRoomNode;
         }
 
+        private static RoomTypeFlags GetRoomTypeFlagsFromMissionStructureNode(MissionStructureGraphNode missionStructureNode)
+        {
+            RoomTypeFlags flags = 0;
+            switch (missionStructureNode.GrammarSymbol)
+            {
+                case GrammarSymbols.T_Goal:
+                    flags = RoomTypeFlags.CanBeGoal;
+                    break;
+                case GrammarSymbols.T_Treasure_Key:
+                    flags = RoomTypeFlags.CanHaveKey;
+                    break;
+                case GrammarSymbols.T_Treasure_Key_Multipart:
+                    flags = RoomTypeFlags.CanHaveKey_Multipart;
+                    break;
+                case GrammarSymbols.T_Treasure_Key_Goal:
+                    flags = RoomTypeFlags.CanHaveKey_Goal;
+                    break;
+            }
+
+            return flags;
+        }
+
         /// <summary>
         /// Iterates through all unused doorways and for each one randomly adds a room or seals the doorway with wall tiles.
         /// </summary>
@@ -614,8 +643,14 @@ namespace ProceduralDungeon.DungeonGeneration
             {
                 float random = _RNG_DungeonGen.RollRandomFloat_ZeroToOne();
 
-                // Should we spawn a new door?
-                if (random <= EXTRA_DOORS_ROOM_SPAWN_CHANCE)
+                // Certain types of rooms are not allowed to have extra rooms attached, so check for those first.
+                if (doorway.ThisRoom_Node.MissionStructureNode.GrammarSymbol == GrammarSymbols.T_Boss_Mini ||
+                    doorway.ThisRoom_Node.MissionStructureNode.GrammarSymbol == GrammarSymbols.T_Boss_Main ||
+                    doorway.ThisRoom_Node.MissionStructureNode.GrammarSymbol == GrammarSymbols.T_Treasure_Bonus)
+                {
+                    _BlockedDoorways.Add(doorway);
+                }                
+                else if (random <= EXTRA_DOORS_ROOM_SPAWN_CHANCE) // Should we spawn a new door?
                 {
                     // Create a mission structure node for the new room.
                     MissionStructureGraphNode structureNode = new MissionStructureGraphNode(GrammarSymbols.T_Test_Combat);

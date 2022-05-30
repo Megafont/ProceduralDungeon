@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -15,6 +16,7 @@ namespace ProceduralDungeon.TileMaps.TileTypes
     /// which also covers saving and loading in two ways. The second is better for games with built-in
     /// level editors. 
     /// </remarks>
+    [Serializable]
     [CreateAssetMenu(fileName = "New Dungeon Tile", menuName = "2D/Tiles/Dungeon Tiles/Basic Dungeon Tile")]
     public class BasicDungeonTile : Tile
     {
