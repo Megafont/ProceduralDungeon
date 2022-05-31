@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 5a34876a0cdc1354fa707dfdac0d0548
+guid: f201fc202d1289f4d80ac069818e3684
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -124,6 +124,27 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: Objects_Chest_Closed
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 193b14074687f4f4383d006a31ea1448
+      internalID: -1080490435
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     physicsShape: []
     bones: []
@@ -135,9 +156,8 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      Player_1: 368994155
+      Objects_Chest_Closed: -1080490435
       Player: -1472476886
-      Player_0: 925789969
   spritePackingTag: 
   pSDRemoveMatte: 0
   pSDShowRemoveMatteOption: 0

@@ -7,6 +7,7 @@ using UnityEngine.Assertions;
 using ToolboxLib_Shared.Math;
 
 using ProceduralDungeon.DungeonGeneration.DungeonGraphGeneration;
+using ProceduralDungeon.InGame;
 using ProceduralDungeon.InGame.Items;
 using ProceduralDungeon.InGame.Objects;
 
@@ -22,19 +23,19 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
         private static GameObject _ItemsParent;
         private static GameObject _ObjectsParent;
 
-        private static GameObject _Prefab_Door;
-        private static GameObject _Prefab_Key;
-        private static GameObject _Prefab_KeyMultipart;
-        private static GameObject _Prefab_KeyGoal;
-        
-        private static List<Item_Key> _MultipartKeysList;
+        private static GameObject _Prefab_Object_Chest;
+        private static GameObject _Prefab_Object_ChestGoal;
+        private static GameObject _Prefab_Object_Door;
 
+        private static GameObject _Prefab_Item_Key;
+        
         private static Vector3 _ItemOffsetVector = new Vector3(0.5f, 0.5f);
 
         private static uint _NextKeyID;
         private static uint _NextKeyMultipartID;
         private static uint _NextKeyGoalID;
 
+        private static uint _CurrentMultipartKeyCount;
 
 
 
@@ -44,14 +45,16 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             Assert.IsNotNull(rng, "DungeonPopulator.PopulateDungeon() - The passed in random number generator is null!");
 
 
-            // Initialize the multipart key list.
-            _MultipartKeysList = new List<Item_Key>();
+            LoadPrefabs();
 
 
             // Reset the key ID counters.
             _NextKeyID = 0;
             _NextKeyMultipartID = 10000;
             _NextKeyGoalID = 20000;
+
+            
+            _CurrentMultipartKeyCount = 0;
 
 
             // Find the parent game objects of spawned dungeon items/objects.
@@ -109,6 +112,23 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
         }
 
+        private static void LoadPrefabs()        
+        {
+            if (_Prefab_Object_Chest == null)
+                _Prefab_Object_Chest = (GameObject)Resources.Load("Prefabs/Objects/Object_Chest");
+
+            if (_Prefab_Object_ChestGoal == null)
+                _Prefab_Object_ChestGoal = (GameObject)Resources.Load("Prefabs/Objects/Object_ChestGoal");
+
+            if (_Prefab_Object_Door == null)
+                _Prefab_Object_Door = (GameObject)Resources.Load("Prefabs/Objects/Object_Door");
+
+
+
+            if (_Prefab_Item_Key == null)
+                _Prefab_Item_Key = (GameObject)Resources.Load("Prefabs/Items/Item_Key");
+
+        }
 
         private static void SpawnDoor(DungeonDoor doorToSpawn, DoorStates doorState, DoorLockTypes lockType)
         {
@@ -132,13 +152,8 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             centerPoint += offset;
 
 
-            // Get the key prefab.
-            if (_Prefab_Door == null)
-                _Prefab_Door = (GameObject)Resources.Load("Prefabs/Objects/Object_Door");
-
-
             // Spawn a door object and configure it.
-            GameObject door = GameObject.Instantiate(_Prefab_Door, centerPoint, rotation, _ObjectsParent.transform);
+            GameObject door = GameObject.Instantiate(_Prefab_Object_Door, centerPoint, rotation, _ObjectsParent.transform);
             Object_Door doorComponent = door.GetComponent<Object_Door>();
 
             uint keyID = 0;
@@ -156,9 +171,12 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             
             doorComponent.DoorState = DoorStates.Locked;
             doorComponent.LockType = lockType;
-            doorComponent.MultipartKeyCount = GetMultipartKeysCount(keyID);
+            doorComponent.MultipartKeyCount = _CurrentMultipartKeyCount;
             doorComponent.ToggleState();
 
+
+            // Reset this counter back to 0 so it works properly for any subsequent multipart key doors.
+            _CurrentMultipartKeyCount = 0;
         }
 
         private static void SpawnKey(DungeonGraphNode roomNode, NoiseRNG rng, KeyTypes keyType)
@@ -174,14 +192,12 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             // Calculate the world coordinates of the key position.
             Vector3Int keyPosWorld = DungeonConstructionUtils.AdjustTileCoordsForRoomPositionAndRotation(keyPosLocal, roomNode.RoomPosition, roomNode.RoomDirection);
 
-            // Get a key object and configure it.
-            if (_Prefab_Key == null)
-                _Prefab_Key = (GameObject) Resources.Load("Prefabs/Items/Item_Key");
 
+            /*
             // Spawn a key object and configure it.
-            GameObject key = GameObject.Instantiate(_Prefab_Key, _ItemOffsetVector + keyPosWorld, Quaternion.identity, _ItemsParent.transform);
+            GameObject key = GameObject.Instantiate(_Prefab_Item_Key, _ItemOffsetVector + keyPosWorld, Quaternion.identity, _ItemsParent.transform);
             Item_Key keyComponent = key.GetComponent<Item_Key>();
-
+            
 
             uint keyID = 0;
             if (keyType == KeyTypes.Key)
@@ -204,6 +220,38 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             keyComponent.KeyID = keyID;
             keyComponent.KeyType = keyType;
             keyComponent.UpdateSprite();
+            */
+
+
+            uint keyID = 0;
+            if (keyType == KeyTypes.Key)
+            {
+                keyID = _NextKeyID;
+                _NextKeyID++;
+            }
+            else if (keyType == KeyTypes.Key_Multipart)
+            {
+                keyID = _NextKeyMultipartID;
+                _CurrentMultipartKeyCount++;
+            }
+            else if (keyType == KeyTypes.Key_Goal)
+            {
+                keyID = _NextKeyGoalID;
+                _NextKeyGoalID++;
+            }
+
+
+            // Select chest type.
+            GameObject chestPrefab = null;
+            if (keyType != KeyTypes.Key_Goal)
+                chestPrefab = _Prefab_Object_Chest;
+            else
+                chestPrefab = _Prefab_Object_ChestGoal;
+
+            // Spawn a chest containing a key.
+            GameObject chest = GameObject.Instantiate(chestPrefab, _ItemOffsetVector + keyPosWorld, Quaternion.identity, _ObjectsParent.transform);
+            chest.GetComponent<Inventory>().InsertItem(new ItemData() { ItemType = Item_Key.KeyTypeFromItemType(keyType), ItemCount = 1, GroupID = (int)keyID });
+
 
         }
 
@@ -231,16 +279,6 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             }
 
             return null;
-        }
-
-        private static uint GetMultipartKeysCount(uint keyID)
-        {
-            uint count = 0;
-
-            foreach (Item_Key key in _MultipartKeysList)
-                if (key.KeyID == keyID) { count++; }
-
-            return count;
         }
 
         private static void DestroyAllChildGameObjects(GameObject parent)

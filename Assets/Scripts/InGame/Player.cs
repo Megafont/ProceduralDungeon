@@ -6,6 +6,9 @@ using UnityEngine.InputSystem;
 
 namespace ProceduralDungeon.InGame
 {
+
+    [RequireComponent(typeof(Inventory))]
+    [RequireComponent(typeof(PlayerInput))]
     public class Player : MonoBehaviour
     {
         [SerializeField] float MoveSpeed = 10f;

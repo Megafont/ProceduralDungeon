@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 5a34876a0cdc1354fa707dfdac0d0548
+guid: 630cc5df073596149ab10b1dcd7d0755
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -104,7 +104,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Player
+      name: Player_0
       rect:
         serializedVersion: 2
         x: 0
@@ -124,6 +124,27 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: Objects_Chest_Open
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 30bdec233b8ddaa4b9f9121339115775
+      internalID: -867577344
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     physicsShape: []
     bones: []
@@ -135,9 +156,8 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      Player_1: 368994155
-      Player: -1472476886
-      Player_0: 925789969
+      Objects_Chest_Open: -867577344
+      Player_0: -1472476886
   spritePackingTag: 
   pSDRemoveMatte: 0
   pSDShowRemoveMatteOption: 0

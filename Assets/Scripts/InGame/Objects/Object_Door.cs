@@ -47,13 +47,15 @@ namespace ProceduralDungeon.InGame.Objects
         public uint MultipartKeyCount = 0;
 
 
-        private GameObject _Player;
+
+        private static GameObject _Player;
 
 
 
         private void Start()
         {
-            _Player = GameObject.FindGameObjectWithTag("Player");
+            if (_Player == null)
+                _Player = GameObject.FindGameObjectWithTag("Player");
         }
 
         private void OnCollisionEnter2D(Collision2D collision)
@@ -63,33 +65,27 @@ namespace ProceduralDungeon.InGame.Objects
                 Inventory inventory = _Player.GetComponent<Inventory>();
 
 
-                bool playerCanUnlock = false;
-                KeyTypes keyType = KeyTypes.Key;
+                bool unlocked = false;
 
-                if (LockType == DoorLockTypes.Lock && inventory.HasKey(KeyTypes.Key, Key_ID))
+                if (LockType == DoorLockTypes.Lock && 
+                    inventory.RemoveItem(ItemTypes.Key, 1, (int) Key_ID))
                 {
-                    keyType = KeyTypes.Key;
-                    playerCanUnlock = true;
+                    unlocked = true;
                 }
-                else if (LockType == DoorLockTypes.Lock_Multipart && inventory.HasKey(KeyTypes.Key_Multipart, Key_ID, MultipartKeyCount))
+                else if (LockType == DoorLockTypes.Lock_Multipart && 
+                         inventory.RemoveItem(ItemTypes.Key_Multipart, MultipartKeyCount, (int) Key_ID))
                 {
-                    keyType = KeyTypes.Key_Multipart;
-                    playerCanUnlock = true;
+                    unlocked = true;
                 }
-                else if (LockType == DoorLockTypes.Lock_Goal && inventory.HasKey(KeyTypes.Key_Goal, Key_ID))
+                else if (LockType == DoorLockTypes.Lock_Goal &&
+                         inventory.RemoveItem(ItemTypes.Key_Goal, 1, (int) Key_ID))
                 {
-                    keyType = KeyTypes.Key_Goal;
-                    playerCanUnlock = true;
+                    unlocked = true;
                 }
 
 
-                if (playerCanUnlock)
+                if (unlocked)
                 {
-                    if (LockType != DoorLockTypes.Lock_Multipart)
-                        inventory.UseKey(keyType, Key_ID);
-                    else
-                        inventory.UseKey(keyType, Key_ID, MultipartKeyCount);
-
                     DoorState = DoorStates.Closed; // Switch from locked state to just closed so we can open the door.
                     ToggleState(); // Open the door.
                 }

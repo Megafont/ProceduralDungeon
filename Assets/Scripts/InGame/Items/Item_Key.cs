@@ -3,6 +3,8 @@ using System.Collections.Generic;
 
 using UnityEngine;
 
+using ProceduralDungeon.InGame;
+
 
 namespace ProceduralDungeon.InGame.Items
 {
@@ -34,7 +36,10 @@ namespace ProceduralDungeon.InGame.Items
         {
             base.OnCollected();
 
-            _Player.GetComponent<Inventory>().InsertItem(this);
+            _Player.GetComponent<Inventory>().InsertItem(new ItemData() { ItemType = KeyTypeFromItemType(KeyType), 
+                                                                          ItemCount = 1, 
+                                                                          GroupID = (int) KeyID } );
+
         }
 
         
@@ -60,6 +65,19 @@ namespace ProceduralDungeon.InGame.Items
             PolygonCollider2D newCollider = gameObject.AddComponent<PolygonCollider2D>();
             newCollider.isTrigger = true; // Set it to be a trigger so we can walk through it rather than be blocked by it.
 
+        }
+
+        public static ItemTypes KeyTypeFromItemType(KeyTypes keyType)
+        {
+            if (keyType == KeyTypes.Key)
+                return ItemTypes.Key;
+            if (keyType == KeyTypes.Key_Multipart)
+                return ItemTypes.Key_Multipart;
+            if (keyType == KeyTypes.Key_Goal)
+                return ItemTypes.Key_Goal;
+
+            // This should never run, but is just here to stop the compiler complaining that not all paths return a value.
+            return ItemTypes.Unknown;
         }
 
 

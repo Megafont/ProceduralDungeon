@@ -1,95 +1,143 @@
-using ProceduralDungeon.InGame.Items;
 using System.Collections.Generic;
+
 using UnityEngine;
+
+using ProceduralDungeon.InGame.Items;
 
 
 namespace ProceduralDungeon.InGame
 {
-    struct KeyItem
+    public enum ItemTypes
     {
-        public uint KeyID;
-        public KeyTypes KeyType;        
+        Unknown = -1,
+
+        Key,
+        Key_Multipart,
+        Key_Goal,
+    }
+
+
+
+    public class ItemData
+    {
+        public int GroupID; // An ID used to differentiate between multiple sets of the same type of item.
+        public uint ItemCount; // How many of this item are present.
+        public ItemTypes ItemType; // The type of this item.
+        public int ExtraData; // Optional extra data relating to this item.
     }
 
 
 
     public class Inventory : MonoBehaviour
     {
-        Dictionary<uint, KeyItem> _Keys;
-        Dictionary<uint, uint> _Keys_Multipart; // Stores the ID and count of how many multipart keys with that ID the player has.
-        Dictionary<uint, KeyItem> _Keys_Goal;
+        private List<ItemData> _Items;
 
 
-        private void Start()
+
+        public Inventory()
         {
-            _Keys = new Dictionary<uint, KeyItem>();
-            _Keys_Multipart = new Dictionary<uint, uint>();
-            _Keys_Goal = new Dictionary<uint, KeyItem>();
-
+            _Items = new List<ItemData>();
         }
 
 
 
-        public bool HasKey(KeyTypes keyType, uint keyID, uint multipartKeyCount = 0)
+        /// <summary>
+        /// Checks if the inventory contains a given item of some amount.
+        /// </summary>
+        /// <param name="itemType">The type of item to check for.</param>
+        /// <param name="itemCount">The number of the item required. Defaults to 1.</param>
+        /// <param name="groupID">The group ID of the item. This is used for things like Key IDs. Defaults to -1. This parameter is completely ignored when negative.</param>
+        /// <returns>The item data if it was found, or null otherwise.</returns>
+        public ItemData GetItemData(ItemTypes itemType, uint itemCount = 1, int groupID = -1)
         {
-            if (keyType == KeyTypes.Key)
+
+            foreach (ItemData itemData in _Items)
             {
-                return _Keys.ContainsKey(keyID);
-            }
-            else if (keyType == KeyTypes.Key_Multipart)
-            {
-                if (_Keys_Multipart.ContainsKey(keyID) && _Keys_Multipart[keyID] == multipartKeyCount)
-                        return true;                
-            }
-            else if (keyType == KeyTypes.Key_Goal)
-            {
-                return _Keys_Goal.ContainsKey(keyID);
-            }
+                bool bMatch = true;
+
+                if (itemData.ItemType != itemType || 
+                    itemData.ItemCount < itemCount)
+                {
+                    bMatch = false;
+                }
+
+                if (groupID >= 0 && itemData.GroupID != groupID)
+                    bMatch = false;
 
 
-            return false;
+                if (bMatch)
+                    return itemData;
+
+            } // end foreach itemData
+
+
+            return null;
         }
 
-
-        public void InsertItem(Collectable item)
+        /// <summary>
+        /// Checks if the inventory contains a given item of some amount.
+        /// </summary>
+        /// <param name="itemType">The type of item to check for.</param>
+        /// <param name="itemCount">The number of the item required. Defaults to 1.</param>
+        /// <param name="groupID">The group ID of the item. This is used for things like Key IDs. Defaults to -1. This parameter is completely ignored when negative.</param>
+        /// <returns>True if the item was found or false otherwise.</returns>
+        public bool HasItem(ItemTypes itemType, uint itemCount = 1, int groupID = -1)
         {
-            if (item is Item_Key)
-                InsertKey((Item_Key) item);
-
-
-            item.DestroyCollectable();
+            return (GetItemData(itemType, itemCount, groupID) != null);
         }
 
-        public void UseKey(KeyTypes keyType, uint keyID, uint multipartKeyCount = 0)
+        public void InsertItem(ItemData itemData)
         {
-            if (keyType == KeyTypes.Key && _Keys.ContainsKey(keyID))
-                _Keys.Remove(keyID);
-            else if (keyType == KeyTypes.Key_Multipart && _Keys_Multipart.ContainsKey(keyID) && _Keys_Multipart[keyID] >= multipartKeyCount)
-                _Keys_Multipart.Remove(keyID);
-            else if (keyType == KeyTypes.Key_Goal && _Keys_Goal.ContainsKey(keyID))
-                _Keys_Goal.Remove(keyID);
+            ItemData currentData = GetItemData(itemData.ItemType, itemData.ItemCount, itemData.GroupID);
+            if (currentData != null)
+            {
+                currentData.ItemCount++;
+            }
+            else
+            {
+                if (itemData.ItemCount < 1)
+                    itemData.ItemCount = 1;
+
+                _Items.Add(itemData);
+            }
+
         }
 
-
-        private void InsertKey(Item_Key key)
+        public void InsertItems(Inventory inventory)
         {
-            KeyItem keyItem = new KeyItem() { KeyID = key.KeyID, KeyType = key.KeyType };
+            foreach (ItemData itemData in inventory._Items)
+                InsertItem(itemData);
 
-            if (key.KeyType == KeyTypes.Key)
-            {
-                _Keys.Add(key.KeyID, keyItem);
-            }
-            else if (key.KeyType == KeyTypes.Key_Multipart)
-            {
-                if (_Keys_Multipart.ContainsKey(key.KeyID))
-                    _Keys_Multipart[key.KeyID]++;
-                else
-                    _Keys_Multipart.Add(key.KeyID, 1);
-            }
-            else if (key.KeyType == KeyTypes.Key_Goal)
-            {
-                _Keys_Goal.Add(key.KeyID, keyItem);
-            }
+        }
+
+        /// <summary>
+        /// Checks if the inventory contains a given item of some amount.
+        /// </summary>
+        /// <param name="itemType">The type of item to remove.</param>
+        /// <param name="itemCount">The number of the item to remove.</param>
+        /// <param name="groupID">The group ID of the item. This is used for things like Key IDs. Defaults to -1. This parameter is completely ignored when negative.</param>
+        /// <returns>True if removal was successful, and false otherwise.</returns>
+        public bool RemoveItem(ItemTypes itemType, uint itemCount = 1, int groupID = -1)
+        {
+            ItemData currentData = GetItemData(itemType, itemCount, groupID);
+            if (currentData == null)
+                return false;
+
+            if (currentData.ItemCount < itemCount)
+                return false;
+
+
+            currentData.ItemCount -= itemCount;            
+            if (currentData.ItemCount == 0)
+                _Items.Remove(currentData);
+
+            return true;
+
+        }
+
+        public void Clear()
+        {
+            _Items.Clear();
         }
 
 

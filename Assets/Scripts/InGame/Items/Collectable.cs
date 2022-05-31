@@ -6,10 +6,6 @@ using UnityEngine;
 
 namespace ProceduralDungeon.InGame.Items
 {
-    public enum ItemTypes
-    {
-        Item_Key = 0,
-    }
 
     public abstract class Collectable : MonoBehaviour
     {
@@ -30,16 +26,9 @@ namespace ProceduralDungeon.InGame.Items
 
 
 
-        public void DestroyCollectable()
-        {
-            Destroy(this.gameObject);
-        }
-
-
-
         protected virtual void OnCollected()
         {
-
+            Destroy(gameObject);
         }
 
 
