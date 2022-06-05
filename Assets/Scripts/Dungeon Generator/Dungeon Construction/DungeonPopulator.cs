@@ -137,12 +137,12 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             if (doorToSpawn.ThisRoom_DoorAdjustedDirection == Directions.North ||
                 doorToSpawn.ThisRoom_DoorAdjustedDirection == Directions.South)
             {
-                offset = new Vector3(1.0f, 0.5f);
+                offset = new Vector3(1.0f, 1.0f);
                 rotation = doorToSpawn.ThisRoom_DoorAdjustedDirection.DirectionToRotation(); // We don't flip the direction here like we do for east/west doors. This is because the door object faces south by default, so we don't need to flip the door to make it face north.
             }
             else
             {
-                offset = new Vector3(0.5f, 0.0f);
+                offset = new Vector3(1.0f, 0.0f);
                 rotation = doorToSpawn.ThisRoom_DoorAdjustedDirection.FlipDirection().DirectionToRotation();
             }
 
@@ -252,7 +252,6 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             GameObject chest = GameObject.Instantiate(chestPrefab, _ItemOffsetVector + keyPosWorld, Quaternion.identity, _ObjectsParent.transform);
             chest.GetComponent<Inventory>().InsertItem(new ItemData() { ItemType = Item_Key.KeyTypeFromItemType(keyType), ItemCount = 1, GroupID = (int)keyID });
 
-
         }
 
         private static DungeonDoor GetDoorFromParentRoomToThisRoom(DungeonGraphNode roomNode)
@@ -274,7 +273,9 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             // Find the door to the boss room.
             foreach (DungeonDoor door in roomNode.Doorways)
             {
-                if (door.OtherRoom_Node.MissionStructureNode.GrammarSymbol == GrammarSymbols.T_Boss_Main)
+                if (door.OtherRoom_Node == null)
+                    continue;
+                else if (door.OtherRoom_Node.MissionStructureNode.GrammarSymbol == GrammarSymbols.T_Boss_Main)
                     return door;
             }
 

@@ -29,7 +29,7 @@ namespace ProceduralDungeon.TileMaps.TileTypes
         public bool RotateWithRoom = true;
 
         [SerializeField]
-        public DungeonTileTypes TileType;
+        public DungeonTileTypes TileType = DungeonTileTypes.None;
 
     }
 

@@ -125,10 +125,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ClosedSprite: {fileID: -1472476886, guid: 7f9bb97bedea9b3479618e7586545e24, type: 3}
-  LockedSprite: {fileID: -1472476886, guid: f18685ce8670fc349b6eef3900b85b17, type: 3}
+  LockedSprite: {fileID: -1472476886, guid: 01ad18f76762986468f034ef9d106f25, type: 3}
   LockedMultipartSprite: {fileID: -1472476886, guid: 71032ad9f4e49d24ca70af661e465196, type: 3}
   LockedGoalSprite: {fileID: -1472476886, guid: fe930ce897db25f499aac7203f1e1fe1, type: 3}
   DoorState: 0
-  IsMultipartLock: 0
-  IsGoalLock: 0
+  LockType: 0
   Key_ID: 0
+  MultipartKeyCount: 0

@@ -20,7 +20,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonGraphGeneration
 
 
 
-        public DungeonGraphNode GoalRoomNode { get { return _GoalRoomNode; } }
+        public DungeonGraphNode GoalRoomNode { get { return _GoalRoomNode; } set { _GoalRoomNode = value; } }
         public List<DungeonGraphNode> Nodes { get { return _Nodes; } }
         public DungeonGraphNode StartRoomNode { get { return _StartRoomNode; } }
 

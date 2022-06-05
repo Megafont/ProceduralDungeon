@@ -64,13 +64,13 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction.PlaceholderUti
         public static Vector3Int CalculateDoorPositionFromConnectedDoor(Vector3Int doorPosition, Directions doorDirection)
         {
             if (doorDirection == Directions.North)
-                return new Vector3Int(doorPosition.x, doorPosition.y + 1);
+                return new Vector3Int(doorPosition.x, doorPosition.y + 2);
             else if (doorDirection == Directions.East)
-                return new Vector3Int(doorPosition.x + 1, doorPosition.y);
+                return new Vector3Int(doorPosition.x + 2, doorPosition.y);
             else if (doorDirection == Directions.South)
-                return new Vector3Int(doorPosition.x, doorPosition.y - 1);
+                return new Vector3Int(doorPosition.x, doorPosition.y - 2);
             else if (doorDirection == Directions.West)
-                return new Vector3Int(doorPosition.x - 1, doorPosition.y);
+                return new Vector3Int(doorPosition.x - 2, doorPosition.y);
 
 
             // Execution should never reach this line, but its here to stop the compiler saying not all paths return a value.
@@ -160,8 +160,17 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction.PlaceholderUti
                 BasicDungeonTile floorScanTile1 = (BasicDungeonTile)tileMapManager.DungeonMap.FloorsMap.GetTile(tile1ScanPos);
                 BasicDungeonTile floorScanTile2 = (BasicDungeonTile)tileMapManager.DungeonMap.FloorsMap.GetTile(tile2ScanPos);
 
+
+                // Check for doorway top tiles first to prevent them from causing a false collision.
+                if ((wallScanTile1 != null && wallScanTile2 != null) && 
+                    (wallScanTile1.TileType == DungeonTileTypes.Walls_Doorway_Top && wallScanTile2.TileType == DungeonTileTypes.Walls_Doorway_Top))
+                {
+                    Debug.Log("Detected door top!");
+                    continue;
+                }
+
                 // Check for collision.
-                if (wallScanTile1 != null || wallScanTile2 != null || floorScanTile1 != null || floorScanTile2 != null)
+                if (wallScanTile1 != null || wallScanTile2 != null || floorScanTile1 != null || floorScanTile2 != null)                   
                     return LinearScanFromDoorResults.Collision;
 
 

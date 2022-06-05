@@ -291,7 +291,7 @@ GameObject:
   - component: {fileID: 88518364180361942}
   - component: {fileID: 2091082867870506175}
   m_Layer: 0
-  m_Name: DungeonTestTiles
+  m_Name: DungeonTiles_Test
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

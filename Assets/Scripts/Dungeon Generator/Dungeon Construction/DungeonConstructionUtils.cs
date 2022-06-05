@@ -5,6 +5,8 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
+using ToolboxLib_Shared.Math;
+
 using ProceduralDungeon.DungeonGeneration.DungeonConstruction;
 using ProceduralDungeon.DungeonGeneration.DungeonConstruction.PlaceholderUtilities;
 using ProceduralDungeon.DungeonGeneration.DungeonGraphGeneration;
@@ -22,6 +24,14 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
         private static bool _RecordMinAndMax;
         private static float _MinX, _MinY;
         private static float _MaxX, _MaxY;
+
+        private static string _CurrentRoomSet;
+
+        private static Dictionary<string, BasicDungeonTile> _WallTopCornerTiles_3Way = new Dictionary<string, BasicDungeonTile>();
+        private static Dictionary<string, BasicDungeonTile> _WallTopCornerTiles_4Way = new Dictionary<string, BasicDungeonTile>();
+
+        private static Dictionary<string, List<BasicDungeonTile>> _DoorwayReplacement_Wall_Tiles = new Dictionary<string, List<BasicDungeonTile>>();
+        private static Dictionary<string, List<BasicDungeonTile>> _DoorwayReplacement_WallTop_Tiles = new Dictionary<string, List<BasicDungeonTile>>();
 
 
 
@@ -155,7 +165,9 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
                 //pos = sTile.Position;
                 if (roomFromTileDict.ContainsKey(pos))
+                {
                     return true;
+                }
 
             } // end foreach
 
@@ -171,6 +183,8 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
         /// <param name="roomFromTileDict">The dungeon generator's tracking dictionary that associates tiles with the rooms they belong to.</param>
         public static void PlaceRoomTiles(DungeonTilemapManager tilemapManager, DungeonGraphNode roomNode, Dictionary<Vector3Int, DungeonGraphNode> roomFromTileDict)
         {
+            _CurrentRoomSet = tilemapManager.RoomSet;
+
             _MinX = _MinY = float.MaxValue;
             _MaxX = _MaxY = float.MinValue;
 
@@ -230,19 +244,25 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
         /// <param name="roomFromTileDict">The dungeon generator's dictionary for tracking which tiles belong to which rooms.</param>
         private static void CopyTilesIntoDungeonMap(Dictionary<Vector3Int, SavedTile> src, Tilemap dst, DungeonGraphNode roomNode, Dictionary<Vector3Int, DungeonGraphNode> roomFromTileDict)
         {
-            Vector3Int pos = Vector3Int.zero;
-            Quaternion rot = new Quaternion();
-
+            Vector3Int pos;
+            Quaternion rot;
 
             Directions roomDirection = roomNode.RoomDirection;
             Vector3Int roomPosition = roomNode.RoomPosition;
+
+            List<Vector3Int> wallTopCornerPositions = new List<Vector3Int>();
+
+
 
             foreach (KeyValuePair<Vector3Int, SavedTile> pair in src)
             {
                 SavedTile sTile = pair.Value;
 
-
                 pos = AdjustTileCoordsForRoomPositionAndRotation(sTile.Position, roomPosition, roomDirection);
+
+
+                if (sTile.Tile.TileType == DungeonTileTypes.Walls_Top_Corner)
+                    wallTopCornerPositions.Add(pos);
 
 
                 if ((!sTile.Tile.RotateWithRoom) || roomDirection == Directions.North)
@@ -268,8 +288,12 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
 
                 // Register this tile in the dungeon generator's dictionary to associate it with the room it now belongs to.
-                if (!roomFromTileDict.ContainsKey(pos))
+                // Wall top tiles are excluded from counting since the wall top tiles of rooms are allowed to overlap because its fine for them to get overwritten.
+                if (!roomFromTileDict.ContainsKey(pos) &&
+                    (sTile.Tile.TileType != DungeonTileTypes.Walls_Doorway_Top && sTile.Tile.TileType != DungeonTileTypes.Walls_Top))
+                {
                     roomFromTileDict.Add(pos, roomNode);
+                }
 
 
                 if (_RecordMinAndMax)
@@ -291,7 +315,65 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             roomNode.RoomCenterPoint = new Vector3((_MaxX + _MinX) / 2 + 0.5f, // We add 0.5f just to offset the coordinate since tile coordinates are always the lower left corner of the tile.
                                                    (_MaxY + _MinY) / 2 + 0.5f);
 
+            if (wallTopCornerPositions.Count > 0)
+                FixUpWallTopCornerTiles(dst, wallTopCornerPositions);
+
             //Debug.Log($"Room: \"{roomNode.RoomBlueprint.RoomName}\"    Center: {roomNode.RoomCenterPoint}");
+        }
+
+        private static void FixUpWallTopCornerTiles(Tilemap wallsMap, List<Vector3Int> wallTopCornerPositions)
+        {
+            BasicDungeonTile north, south, east, west;
+
+            foreach (Vector3Int pos in wallTopCornerPositions)
+            {
+                north = (BasicDungeonTile) wallsMap.GetTile(pos + Vector3Int.up);
+                east = (BasicDungeonTile)wallsMap.GetTile(pos + Vector3Int.right);
+                south = (BasicDungeonTile)wallsMap.GetTile(pos + Vector3Int.down);
+                west = (BasicDungeonTile)wallsMap.GetTile(pos + Vector3Int.left);
+
+
+                int count = 0;
+                if (north != null && north.TileType == DungeonTileTypes.Walls_Top)
+                    count++;
+                if (east != null && east.TileType == DungeonTileTypes.Walls_Top)
+                    count++;
+                if (south != null && south.TileType == DungeonTileTypes.Walls_Top)
+                    count++;
+                if (west != null && west.TileType == DungeonTileTypes.Walls_Top)
+                    count++;
+
+
+                if (count == 4)
+                {
+                    wallsMap.SetTile(pos, GetWallTopCorner4WayTile());
+                }
+
+
+                if (count == 3)
+                {
+                    wallsMap.SetTile(pos, GetWallTopCorner3WayTile());
+                    
+                    Directions rotationDirection = Directions.North; // North means no rotation.
+                    if (west == null || west.TileType != DungeonTileTypes.Walls_Top)
+                        rotationDirection = Directions.North;
+                    else if (north == null || north.TileType != DungeonTileTypes.Walls_Top)
+                        rotationDirection = Directions.West;
+                    else if (east == null || east.TileType != DungeonTileTypes.Walls_Top)
+                        rotationDirection = Directions.South;
+                    else if (south == null || south.TileType != DungeonTileTypes.Walls_Top)
+                        rotationDirection = Directions.East;
+
+                    Matrix4x4 matrix = Matrix4x4.TRS(Vector3.zero, // We set the position parameter to Vector3.zero, as we don't want to add any offset to the tile's position.
+                                                     rotationDirection.DirectionToRotation(),
+                                                     Vector3.one);
+
+                    wallsMap.SetTransformMatrix(pos, matrix);
+
+                }
+
+            } // end foreach pos
+
         }
 
         /// <summary>
@@ -384,18 +466,97 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             tilemapManager.PositionPlayerByStartDoor(playerPos, doorDirection);
         }
 
-        public static void SealOffBlockedDoors(DungeonTilemapManager tilemapManager, List<DungeonDoor> blockedDoors)
+        public static void SealOffBlockedDoors(DungeonTilemapManager tilemapManager, List<DungeonDoor> blockedDoors, NoiseRNG rng)
         {
+            _CurrentRoomSet = tilemapManager.RoomSet;
+
+            List<BasicDungeonTile> doorwayReplacement_Wall_Tiles = GetDoorwayReplacementWallTiles();
+            List<BasicDungeonTile> doorwayReplacement_WallTop_Tiles = GetDoorwayReplacementWallTopTiles();
+
+
             foreach (DungeonDoor door in blockedDoors)
             {
                 DungeonGraphNode parentRoom = door.ThisRoom_Node;
-                //DoorData parentRoomDoor = parentRoom.RoomBlueprint.DoorsList[(int)door.ThisRoom_DoorIndex];
 
 
                 Tilemap wallsMap = tilemapManager.DungeonMap.WallsMap;
 
                 // Place a wall tile at the first tile position.
+                //BasicDungeonTile tile1 = (BasicDungeonTile)wallsMap.GetTile(door.ThisRoom_DoorTile1WorldPosition);
+                //BasicDungeonTile tile2 = (BasicDungeonTile)wallsMap.GetTile(door.ThisRoom_DoorTile2WorldPosition);
+                Vector3Int upperLeftMost = MiscellaneousUtils.GetUpperLeftMostTile(door.ThisRoom_DoorTile1WorldPosition, door.ThisRoom_DoorTile2WorldPosition);
+
+                Vector3Int wallTopStartPos = Vector3Int.zero;
+                Vector3Int wallStartPos = Vector3Int.zero;
+                Vector3Int floorStartPos = Vector3Int.zero; // Used to remove the bottom protruding bits of the door frame.
+                Vector3Int fillDirection = Vector3Int.right;
+
+                if (door.ThisRoom_DoorAdjustedDirection == Directions.North)
+                {
+                    wallStartPos = upperLeftMost + Vector3Int.left;
+                    wallTopStartPos = upperLeftMost + Vector3Int.up + Vector3Int.left;
+                    floorStartPos = upperLeftMost + Vector3Int.down + Vector3Int.left;
+                    fillDirection = Vector3Int.right;
+                }
+                else if (door.ThisRoom_DoorAdjustedDirection == Directions.South)
+                {
+                    wallStartPos = upperLeftMost + Vector3Int.left;
+                    wallTopStartPos = upperLeftMost + Vector3Int.down + Vector3Int.left;
+                    floorStartPos = upperLeftMost + Vector3Int.up + Vector3Int.left;
+                    fillDirection = Vector3Int.right;
+                }
+                else if (door.ThisRoom_DoorAdjustedDirection == Directions.East)
+                {
+                    wallStartPos = upperLeftMost + Vector3Int.up;
+                    wallTopStartPos = upperLeftMost + Vector3Int.right + Vector3Int.up;
+                    floorStartPos = upperLeftMost + Vector3Int.left + Vector3Int.up;
+                    fillDirection = Vector3Int.down;
+                }
+                else if (door.ThisRoom_DoorAdjustedDirection == Directions.West)
+                {
+                    wallStartPos = upperLeftMost + Vector3Int.up;
+                    wallTopStartPos = upperLeftMost + Vector3Int.left + Vector3Int.up;
+                    floorStartPos = upperLeftMost + Vector3Int.right + Vector3Int.up;
+                    fillDirection = Vector3Int.down;
+                }
+
+
+                Directions direction = door.ThisRoom_DoorAdjustedDirection;
+                if (direction == Directions.East || direction == Directions.West)
+                    direction = direction.FlipDirection();
+
+                for (int i = 0; i < 4; i++)
+                {
+                    Vector3Int wallPos = wallStartPos + (fillDirection * i);
+                    Vector3Int wallTopPos = wallTopStartPos + (fillDirection * i);
+                    Vector3Int floorPos = floorStartPos + (fillDirection * i);
+
+                    // Create a transform matrix for setting the tile's rotation.
+                    Matrix4x4 matrix = Matrix4x4.TRS(Vector3.zero, // We set the position parameter to Vector3.zero, as we don't want to add any offset to the tile's position.
+                                                     direction.DirectionToRotation(),
+                                                     Vector3.one);
+
+
+                    // Replace the doorway wall tiles.
+                    BasicDungeonTile tile = doorwayReplacement_Wall_Tiles[rng.RollRandomIntInRange(0, doorwayReplacement_Wall_Tiles.Count - 1)];
+                    tilemapManager.DungeonMap.WallsMap.SetTile(wallPos, tile);
+                    tilemapManager.DungeonMap.WallsMap.SetTransformMatrix(wallPos, matrix);
+
+
+                    // Replace the doorway wall top tiles.
+                    tile = doorwayReplacement_WallTop_Tiles[rng.RollRandomIntInRange(0, doorwayReplacement_WallTop_Tiles.Count - 1)];
+                    tilemapManager.DungeonMap.WallsMap.SetTile(wallTopPos, tile);
+                    tilemapManager.DungeonMap.WallsMap.SetTransformMatrix(wallTopPos, matrix);
+
+
+                    // Remove the protruding bits at the base of the door frame.
+                    tilemapManager.DungeonMap.WallsMap.SetTile(floorPos, null);
+                }
+
+                /*
+                // Place a wall tile at the first tile position.
                 BasicDungeonTile tile1 = (BasicDungeonTile)wallsMap.GetTile(door.ThisRoom_DoorTile1WorldPosition);
+
                 if (tile1 == null)
                     Debug.LogError($"Cannot seal off door[{door.ThisRoom_DoorIndex}] in room \"{parentRoom.RoomBlueprint.RoomName}\" (Center Point: {parentRoom.RoomCenterPoint}), because the wall tile at {door.ThisRoom_DoorTile1WorldPosition} is null!");
 
@@ -436,6 +597,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
                     wallsMap.SetTransformMatrix(door.ThisRoom_DoorTile2WorldPosition, transformMatrix2);
                 }
+                */
 
             } // end foreach door
 
@@ -444,6 +606,73 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
         }
 
+        private static BasicDungeonTile GetWallTopCorner3WayTile()
+        {
+            if (_WallTopCornerTiles_3Way.ContainsKey(_CurrentRoomSet))
+                return _WallTopCornerTiles_3Way[_CurrentRoomSet];
+
+
+            string tilesPath = ScriptableRoomUtilities.GetRoomSetTilesPath(_CurrentRoomSet);
+            
+            BasicDungeonTile tile = (BasicDungeonTile)Resources.Load(tilesPath + "/Wall_Top_Corner_3Way");
+
+            _WallTopCornerTiles_3Way[_CurrentRoomSet] = tile;
+
+            return tile;
+        }
+
+        private static BasicDungeonTile GetWallTopCorner4WayTile()
+        {
+            if (_WallTopCornerTiles_4Way.ContainsKey(_CurrentRoomSet))
+                return _WallTopCornerTiles_4Way[_CurrentRoomSet];
+
+
+            string tilesPath = ScriptableRoomUtilities.GetRoomSetTilesPath(_CurrentRoomSet);
+
+            BasicDungeonTile tile = (BasicDungeonTile)Resources.Load(tilesPath + "/Wall_Top_Corner_4Way");
+
+            _WallTopCornerTiles_4Way[_CurrentRoomSet] = tile;
+
+            return tile;
+        }
+
+        private static List<BasicDungeonTile> GetDoorwayReplacementWallTiles()
+        {
+            if (_DoorwayReplacement_Wall_Tiles.ContainsKey(_CurrentRoomSet))
+                return _DoorwayReplacement_Wall_Tiles[_CurrentRoomSet];
+
+
+            string tilesPath = ScriptableRoomUtilities.GetRoomSetTilesPath(_CurrentRoomSet);
+
+            List<BasicDungeonTile> list = new List<BasicDungeonTile>();
+            list.Add((BasicDungeonTile) Resources.Load(tilesPath + "/Wall_Straight_01"));
+            list.Add((BasicDungeonTile) Resources.Load(tilesPath + "/Wall_Straight_02"));
+            list.Add((BasicDungeonTile) Resources.Load(tilesPath + "/Wall_Straight_03"));
+
+            _DoorwayReplacement_Wall_Tiles[_CurrentRoomSet] = list;
+
+            return list;
+        }
+
+        private static List<BasicDungeonTile> GetDoorwayReplacementWallTopTiles()
+        {
+            if (_DoorwayReplacement_WallTop_Tiles.ContainsKey(_CurrentRoomSet))
+                return _DoorwayReplacement_WallTop_Tiles[_CurrentRoomSet];
+
+
+            string tilesPath = ScriptableRoomUtilities.GetRoomSetTilesPath(_CurrentRoomSet);
+
+            List<BasicDungeonTile> list = new List<BasicDungeonTile>();
+            list.Add((BasicDungeonTile) Resources.Load(tilesPath + "/Wall_Top_Cracks_01"));
+            list.Add((BasicDungeonTile) Resources.Load(tilesPath + "/Wall_Top_Cracks_02"));
+            list.Add((BasicDungeonTile) Resources.Load(tilesPath + "/Wall_Top_Cracks_03"));
+            list.Add((BasicDungeonTile) Resources.Load(tilesPath + "/Wall_Top_Cracks_04"));
+            list.Add((BasicDungeonTile) Resources.Load(tilesPath + "/Wall_Top_Cracks_05"));
+
+            _DoorwayReplacement_WallTop_Tiles[_CurrentRoomSet] = list;
+
+            return list;
+        }
 
     }
 

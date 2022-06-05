@@ -220,7 +220,7 @@ namespace ProceduralDungeon.DungeonGeneration
             // 3659799015
 
             // Init the random number generators.
-            InitRNG(3659894818);
+            InitRNG(3660324596);
             Debug.Log($"SEED: {_RNG_Seed.GetSeed()}");
 
 
@@ -230,7 +230,7 @@ namespace ProceduralDungeon.DungeonGeneration
 
             BuildDungeonRooms();
             FinalizeUnusedDoorways();
-            DungeonConstructionUtils.SealOffBlockedDoors(_DungeonTilemapManager, _BlockedDoorways);
+            DungeonConstructionUtils.SealOffBlockedDoors(_DungeonTilemapManager, _BlockedDoorways, _RNG_DungeonGen);
 
             // Reset the node positions so the ones added by FinalizedUnusedDoorways() for extra rooms get positions assigned.
             // This is only needed so they show up properly in the Unity Editor when the MissionStructureGraphGizmos script is not set to snap nodes to their generated dungeon rooms.
@@ -316,6 +316,9 @@ namespace ProceduralDungeon.DungeonGeneration
                 } // end foreach childNode
 
 
+                if (curStructureNode.GrammarSymbol == GrammarSymbols.T_Goal)
+                    _DungeonGraph.GoalRoomNode = curStructureNode.DungeonRoomNode;
+
                 Debug.Log($"Generated room \"{curStructureNode.GrammarSymbol}\"");
 
 
@@ -362,6 +365,7 @@ namespace ProceduralDungeon.DungeonGeneration
                         if (doorToConnectTo.OtherRoom_Node.HasUnusedDoorway() == false &&
                             !doorToConnectTo.OtherRoom_Node.MissionStructureNode.ContainsTightlyCoupledChild(missionStructureNode))
                             continue;
+
                     }
 
                 }
@@ -373,7 +377,7 @@ namespace ProceduralDungeon.DungeonGeneration
                 }
 
                 // Generate the DungeonGraphNode for the new room.
-                roomNode = CreateRoom(missionStructureNode, doorToConnectTo, doorsToLink);
+                roomNode = CreateRoom(missionStructureNode, doorToConnectTo, doorsToLink);               
                 if (roomNode == null)
                 {
                     //Debug.LogWarning($"DungeonGenerator.SnapNewRoomIntoDungeon() - Attempt #{attempts}: Failed to connect new room onto the dungeon!");
@@ -1116,7 +1120,7 @@ namespace ProceduralDungeon.DungeonGeneration
             // I added this if statement, because it crashed when my test room set had no start rooms on the 2nd floor. So now it returns null in this case.
             if (list.Count == 0)
             {
-                throw new Exception($"DungeonGenerator.CreateRoom() - Failed to create a new room, because no room blueprint with {doorCount} doors was found for the given floor!");
+                throw new Exception($"DungeonGenerator.CreateRoom() - Failed to create a new room, because no room blueprint with {doorCount} doors was found on floor {roomLevel}!");
                 //return null;
             }
             else

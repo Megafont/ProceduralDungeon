@@ -83,8 +83,9 @@ namespace ProceduralDungeon.RoomCreator
                 }
 
 
+#if UNITY_EDITOR
                 ScriptableRoomEditorUtilities.SaveRoomAsset(newRoom, RoomSet);
-
+#endif
 
                 return SaveRoomReturnCodes.Success;
             }

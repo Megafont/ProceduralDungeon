@@ -68,10 +68,13 @@ namespace ProceduralDungeon.TileMaps
 
         // Straight Wall Tiles
         // --------------------
-        Walls_Corner = 10000,
-        Walls_DoorFrame_Left = 10001,
-        Walls_DoorFrame_Right = 10002,
-        Walls_Straight = 10003,
+        Walls = 10000,
+        Walls_Corner = 10001,
+        Walls_DoorFrame_Left = 10002,
+        Walls_DoorFrame_Right = 10003,
+        Walls_Doorway_Top = 10004,
+        Walls_Top = 10005,
+        Walls_Top_Corner = 10005,
 
 
 

@@ -12,6 +12,7 @@ namespace ProceduralDungeon.TileMaps
     /// </summary>
     public enum RoomSets
     {
+        Ice,
         Test,
     }
 

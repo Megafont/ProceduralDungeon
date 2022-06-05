@@ -28,7 +28,6 @@ namespace ProceduralDungeon.EditorScripts
 
         void OnEnable()
         {
-            Debug.Log($"Typeof({target.GetType()})");
             _DungeonTile = (BasicDungeonTile)target;
 
             _RotateWithRoom = serializedObject.FindProperty("RotateWithRoom");
