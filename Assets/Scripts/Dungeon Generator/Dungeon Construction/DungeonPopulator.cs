@@ -7,9 +7,11 @@ using UnityEngine.Assertions;
 using ToolboxLib_Shared.Math;
 
 using ProceduralDungeon.DungeonGeneration.DungeonGraphGeneration;
+using ProceduralDungeon.DungeonGeneration.MissionStructureGeneration;
 using ProceduralDungeon.InGame;
 using ProceduralDungeon.InGame.Items;
 using ProceduralDungeon.InGame.Objects;
+using ProceduralDungeon.TileMaps;
 
 
 using GrammarSymbols = ProceduralDungeon.DungeonGeneration.MissionStructureGeneration.GenerativeGrammar.Symbols;
@@ -20,6 +22,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
     public static class DungeonPopulator
     {
+        private static string _CurrentRoomSet;
         private static GameObject _ItemsParent;
         private static GameObject _ObjectsParent;
 
@@ -31,30 +34,33 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
         
         private static Vector3 _ItemOffsetVector = new Vector3(0.5f, 0.5f);
 
+        private static Dictionary<string, Dictionary<string, Sprite>> _SpritesDictionary;
+
+        private static Dictionary<MissionStructureGraphNode, Object_Door> _LockedDoorsDictionary;
+        private static Dictionary<MissionStructureGraphNode, Inventory> _KeyChestsDictionary;
         private static uint _NextKeyID;
-        private static uint _NextKeyMultipartID;
-        private static uint _NextKeyGoalID;
-
-        private static uint _CurrentMultipartKeyCount;
 
 
 
-        public static void PopulateDungeon(DungeonGraph dungeonGraph, NoiseRNG rng)
+
+        public static void PopulateDungeon(DungeonGraph dungeonGraph, NoiseRNG rng, string roomSet)
         {
             Assert.IsNotNull(dungeonGraph, "DungeonPopulator.PopulateDungeon() - The passed in dungeon graph is null!");
             Assert.IsNotNull(rng, "DungeonPopulator.PopulateDungeon() - The passed in random number generator is null!");
 
 
+            _CurrentRoomSet = roomSet;
+
+
             LoadPrefabs();
 
 
-            // Reset the key ID counters.
+            _LockedDoorsDictionary = new Dictionary<MissionStructureGraphNode, Object_Door>();
+            _KeyChestsDictionary = new Dictionary<MissionStructureGraphNode, Inventory>();
             _NextKeyID = 0;
-            _NextKeyMultipartID = 10000;
-            _NextKeyGoalID = 20000;
 
             
-            _CurrentMultipartKeyCount = 0;
+            _SpritesDictionary = new Dictionary<string, Dictionary<string, Sprite>>();
 
 
             // Find the parent game objects of spawned dungeon items/objects.
@@ -71,15 +77,15 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
                 switch (roomNode.MissionStructureNode.GrammarSymbol)
                 {
                     case GrammarSymbols.T_Lock:
-                        SpawnDoor(GetDoorFromParentRoomToThisRoom(roomNode), DoorStates.Locked, DoorLockTypes.Lock);
+                        SpawnDoor(GetDoorFromParentRoomToThisRoom(roomNode), DoorLockTypes.Lock);
                         break;
 
                     case GrammarSymbols.T_Lock_Multi:
-                        SpawnDoor(GetDoorFromParentRoomToThisRoom(roomNode), DoorStates.Locked, DoorLockTypes.Lock_Multipart);
+                        SpawnDoor(GetDoorFromParentRoomToThisRoom(roomNode), DoorLockTypes.Lock_Multipart);
                         break;
 
                     case GrammarSymbols.T_Lock_Goal:
-                        SpawnDoor(GetDoorFromBossRoomToThisRoom(roomNode), DoorStates.Locked, DoorLockTypes.Lock_Goal);
+                        SpawnDoor(GetDoorFromBossRoomToThisRoom(roomNode), DoorLockTypes.Lock_Goal);
                         break;
 
                     case GrammarSymbols.T_Treasure_Key:
@@ -98,6 +104,8 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
                 } // end switch
 
             } // end foreach room node
+
+            FinalizeLockedDoors();
 
         }        
 
@@ -130,19 +138,23 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
         }
 
-        private static void SpawnDoor(DungeonDoor doorToSpawn, DoorStates doorState, DoorLockTypes lockType)
+        private static void SpawnDoor(DungeonDoor doorToSpawn, DoorLockTypes lockType)
         {
-            Vector3 offset = Vector3.zero;
+            Vector3 offset;
             Quaternion rotation;
-            if (doorToSpawn.ThisRoom_DoorAdjustedDirection == Directions.North ||
-                doorToSpawn.ThisRoom_DoorAdjustedDirection == Directions.South)
+            Directions doorDirection = doorToSpawn.ThisRoom_DoorAdjustedDirection;
+
+            if (doorDirection == Directions.North ||
+                doorDirection == Directions.South)
             {
-                offset = new Vector3(1.0f, 1.0f);
+                offset = doorDirection == Directions.North ? new Vector3(1.0f, 0.0f) : 
+                                                             new Vector3(1.0f, 1.0f);
                 rotation = doorToSpawn.ThisRoom_DoorAdjustedDirection.DirectionToRotation(); // We don't flip the direction here like we do for east/west doors. This is because the door object faces south by default, so we don't need to flip the door to make it face north.
             }
             else
             {
-                offset = new Vector3(1.0f, 0.0f);
+                offset = doorDirection == Directions.East ? new Vector3(0.0f, 0.0f) :
+                                                            new Vector3(1.0f, 0.0f);
                 rotation = doorToSpawn.ThisRoom_DoorAdjustedDirection.FlipDirection().DirectionToRotation();
             }
 
@@ -156,27 +168,29 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             GameObject door = GameObject.Instantiate(_Prefab_Object_Door, centerPoint, rotation, _ObjectsParent.transform);
             Object_Door doorComponent = door.GetComponent<Object_Door>();
 
-            uint keyID = 0;
-            if (lockType == DoorLockTypes.Lock)
-                keyID = _NextKeyID - 1;
-            else if (lockType == DoorLockTypes.Lock_Multipart)
-            {
-                _NextKeyMultipartID++; // Spawning a door with a multipart key lock tells us there are no more multi-part keys in the current set, so we can increment that counter now.
-                keyID = _NextKeyMultipartID - 1;
-            }
-            else if (lockType == DoorLockTypes.Lock_Goal)
-                keyID = _NextKeyGoalID - 1;
+            
+            // We use the other room node for non-goal locked doors, because these locked doors spawn in the room next to the lock room,
+            // thus preventing access to the room.
+            if (lockType != DoorLockTypes.Lock_Goal)
+                _LockedDoorsDictionary.Add(doorToSpawn.OtherRoom_Node.MissionStructureNode, doorComponent);
+            else
+                _LockedDoorsDictionary.Add(doorToSpawn.ThisRoom_Node.MissionStructureNode, doorComponent);
+            
 
-            doorComponent.Key_ID = keyID;
+
+            doorComponent.Key_ID = _NextKeyID;
+            _NextKeyID++;
             
             doorComponent.DoorState = DoorStates.Locked;
             doorComponent.LockType = lockType;
-            doorComponent.MultipartKeyCount = _CurrentMultipartKeyCount;
+
+            doorComponent.ClosedSprite = GetObjectSprite("Objects_Door_Closed", _CurrentRoomSet);
+            doorComponent.LockedSprite = GetObjectSprite("Objects_Door_Locked", _CurrentRoomSet);
+            doorComponent.LockedMultipartSprite = GetObjectSprite("Objects_Door_Locked_Multipart", _CurrentRoomSet);
+            doorComponent.LockedGoalSprite = GetObjectSprite("Objects_Door_Locked_Goal", _CurrentRoomSet);
+
             doorComponent.ToggleState();
 
-
-            // Reset this counter back to 0 so it works properly for any subsequent multipart key doors.
-            _CurrentMultipartKeyCount = 0;
         }
 
         private static void SpawnKey(DungeonGraphNode roomNode, NoiseRNG rng, KeyTypes keyType)
@@ -187,62 +201,16 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             // Get the local room coordinates of the selected key spawn point.
             if (roomNode.RoomBlueprint.KeyPositions.Count < 1)
                 throw new System.Exception($"DungeonPopulator.SpawnKey() - The room \"{roomNode.RoomBlueprint.RoomName}\" at {roomNode.RoomCenterPoint} does not contain any key spawn points!");
+
+            // Get the key's local position within the parent room.
             Vector3Int keyPosLocal = roomNode.RoomBlueprint.KeyPositions[index];
 
             // Calculate the world coordinates of the key position.
             Vector3Int keyPosWorld = DungeonConstructionUtils.AdjustTileCoordsForRoomPositionAndRotation(keyPosLocal, roomNode.RoomPosition, roomNode.RoomDirection);
 
 
-            /*
-            // Spawn a key object and configure it.
-            GameObject key = GameObject.Instantiate(_Prefab_Item_Key, _ItemOffsetVector + keyPosWorld, Quaternion.identity, _ItemsParent.transform);
-            Item_Key keyComponent = key.GetComponent<Item_Key>();
-            
-
-            uint keyID = 0;
-            if (keyType == KeyTypes.Key)
-            {
-                keyID = _NextKeyID;
-                _NextKeyID++;
-            }
-            else if (keyType == KeyTypes.Key_Multipart)
-            {
-                keyID = _NextKeyMultipartID;
-                _MultipartKeysList.Add(keyComponent);
-            }
-            else if (keyType == KeyTypes.Key_Goal)
-            {
-                keyID = _NextKeyGoalID;
-                _NextKeyGoalID++;
-            }
-
-
-            keyComponent.KeyID = keyID;
-            keyComponent.KeyType = keyType;
-            keyComponent.UpdateSprite();
-            */
-
-
-            uint keyID = 0;
-            if (keyType == KeyTypes.Key)
-            {
-                keyID = _NextKeyID;
-                _NextKeyID++;
-            }
-            else if (keyType == KeyTypes.Key_Multipart)
-            {
-                keyID = _NextKeyMultipartID;
-                _CurrentMultipartKeyCount++;
-            }
-            else if (keyType == KeyTypes.Key_Goal)
-            {
-                keyID = _NextKeyGoalID;
-                _NextKeyGoalID++;
-            }
-
-
             // Select chest type.
-            GameObject chestPrefab = null;
+            GameObject chestPrefab;
             if (keyType != KeyTypes.Key_Goal)
                 chestPrefab = _Prefab_Object_Chest;
             else
@@ -250,9 +218,68 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
             // Spawn a chest containing a key.
             GameObject chest = GameObject.Instantiate(chestPrefab, _ItemOffsetVector + keyPosWorld, Quaternion.identity, _ObjectsParent.transform);
-            chest.GetComponent<Inventory>().InsertItem(new ItemData() { ItemType = Item_Key.KeyTypeFromItemType(keyType), ItemCount = 1, GroupID = (int)keyID });
+            
+            // Get the Inventory component and add it to our dictionary to track it for a later pass to setup the key/lock pairs.
+            Inventory chestInventory = chest.GetComponent<Inventory>();
+            _KeyChestsDictionary.Add(roomNode.MissionStructureNode, chestInventory);
+
+            // Setup the chest's sprite properties.
+            Object_Chest objChest = chest.GetComponent<Object_Chest>();
+            if (keyType != KeyTypes.Key_Goal)
+            {
+                objChest.ClosedSprite = GetObjectSprite("Objects_Chest_Closed", _CurrentRoomSet);
+                objChest.OpenSprite = GetObjectSprite("Objects_Chest_Open", _CurrentRoomSet);
+            }
+            else
+            {
+                objChest.ClosedSprite = GetObjectSprite("Objects_ChestGoal_Closed", _CurrentRoomSet);
+                objChest.OpenSprite = GetObjectSprite("Objects_ChestGoal_Open", _CurrentRoomSet);
+            }
+
+            objChest.GetComponent<SpriteRenderer>().sprite = objChest.ClosedSprite;
 
         }
+
+        private static void FinalizeLockedDoors()
+        {
+            foreach (KeyValuePair<MissionStructureGraphNode, Inventory> pair in _KeyChestsDictionary)
+            {
+                foreach (MissionStructureChildNodeData childNodeData in pair.Key.ChildNodesData)
+                {
+                    GrammarSymbols symbol = childNodeData.ChildNode.GrammarSymbol;
+                    if (symbol == GrammarSymbols.T_Lock || symbol == GrammarSymbols.T_Lock_Multi || symbol == GrammarSymbols.T_Lock_Goal)
+                    {
+                        Object_Door lockedDoor;
+                        _LockedDoorsDictionary.TryGetValue(childNodeData.ChildNode, out lockedDoor);
+                        if (lockedDoor == null)
+                            continue;
+
+                        lockedDoor.MultipartKeyCount++;
+
+                        KeyTypes keyType = KeyTypes.Key;
+                        if (lockedDoor.LockType == DoorLockTypes.Lock)
+                            keyType = KeyTypes.Key;
+                        else if (lockedDoor.LockType == DoorLockTypes.Lock_Multipart)
+                            keyType = KeyTypes.Key_Multipart;
+                        else if (lockedDoor.LockType == DoorLockTypes.Lock_Goal)
+                            keyType = KeyTypes.Key_Goal;
+
+
+                        // Insert an appropriate key into the chest's inventory.
+                        pair.Value.InsertItem(new ItemData() { ItemType = Item_Key.KeyTypeFromItemType(keyType), ItemCount = 1, GroupID = (int)lockedDoor.Key_ID });
+
+
+                        break;
+
+                    } // end if child node is lock room
+
+
+                } // end foreach childNodeData
+
+            } // end foreach pair
+
+        }
+
 
         private static DungeonDoor GetDoorFromParentRoomToThisRoom(DungeonGraphNode roomNode)
         {
@@ -307,6 +334,44 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
                 GameObject.DestroyImmediate(child.gameObject);
             }
 
+        }
+
+        private static Sprite GetItemSprite(string spriteName, string roomSet)
+        {
+            return GetSprite(spriteName, roomSet, "Items");
+        }
+
+        private static Sprite GetObjectSprite(string spriteName, string roomSet)
+        {
+            return GetSprite(spriteName, roomSet, "Objects");
+        }
+
+        private static Sprite GetSprite(string spriteName, string roomSet, string type)
+        {
+            Sprite sprite;
+            Dictionary<string, Sprite> dict;
+            
+
+            _SpritesDictionary.TryGetValue(roomSet, out dict);
+            if (dict != null)
+            {
+                dict.TryGetValue(spriteName, out sprite);
+
+                if (sprite != null)
+                    return sprite;
+            }
+            else
+            {
+                dict = new Dictionary<string, Sprite>();
+                _SpritesDictionary.Add(roomSet, dict);
+            }
+
+
+            string spritesPath = ScriptableRoomUtilities.GetRoomSetSpritesPath(roomSet);
+            sprite = Resources.Load<Sprite>($"{spritesPath}/{type}/{spriteName}");
+            dict.Add(spriteName, sprite);
+
+            return sprite;
         }
 
 

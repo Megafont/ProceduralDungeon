@@ -108,6 +108,8 @@ namespace ProceduralDungeon.InGame
             foreach (ItemData itemData in inventory._Items)
                 InsertItem(itemData);
 
+
+            DEBUG_PrintInventory();
         }
 
         /// <summary>
@@ -138,6 +140,16 @@ namespace ProceduralDungeon.InGame
         public void Clear()
         {
             _Items.Clear();
+        }
+
+
+        void DEBUG_PrintInventory()
+        {
+            Debug.Log("INVENTORY CONTENTS:");
+            Debug.Log(new string('-', 256));
+
+            foreach (ItemData itemData in _Items)
+                Debug.Log($"   {itemData.ItemType} - Count: {itemData.ItemCount}    - Group ID: {itemData.GroupID}");
         }
 
 

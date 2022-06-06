@@ -85,6 +85,7 @@ namespace ProceduralDungeon.TileMaps
         Placeholders_Doors_Basement = 100000,
         Placeholders_Doors_1stFloor = 100001,
         Placeholders_Doors_2ndFloor = 100002,
+        Placeholders_Doors_EntryOrExit = 100003,
 
 
         // Placeholder Tiles - Items

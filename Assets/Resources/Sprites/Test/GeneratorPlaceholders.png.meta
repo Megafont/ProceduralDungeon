@@ -250,6 +250,27 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: Placeholders_Doors_EntryOrExit
+      rect:
+        serializedVersion: 2
+        x: 48
+        y: 240
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1a35dac044635fa46b281cc759e5d7eb
+      internalID: 845565842
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     physicsShape: []
     bones: []
@@ -261,6 +282,7 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
+      Placeholders_Doors_EntryOrExit: 845565842
       Placeholders_Entity_Player: -2023910191
       Placeholders_Items_Key_Multipart: 308713404
       Placeholders_Doors_1stFloor: 1105143702

@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 2016870903037180158}
   - component: {fileID: 6930470422146928848}
   - component: {fileID: 5746974028409836303}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Object_ChestGoal
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -73,8 +73,8 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: -929972105
-  m_SortingLayer: 2
+  m_SortingLayerID: 1243288589
+  m_SortingLayer: 4
   m_SortingOrder: 0
   m_Sprite: {fileID: -1472476886, guid: 35f3adbf29db452469464482755f4d2b, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}

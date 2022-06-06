@@ -9,7 +9,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction.PlaceholderUti
     {
         public Directions DoorDirection; // The direction this door is facing.
         public RoomLevels DoorLevel; // The level this door is on.
-
+        public bool IsEntryOrExitDoor; // Indicates whether this door is the dungeon's exit or entry door.
 
 
         private Vector3Int _TilePosition1;

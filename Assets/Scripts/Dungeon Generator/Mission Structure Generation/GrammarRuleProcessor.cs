@@ -95,6 +95,9 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
             } // end while
 
 
+            // Calculate the lock count for each node (number of locks between it and the start room).
+            EvaluateNodeLockCounts();
+
             // Set preliminary position values for all nodes so the MissionStructureGraphGizmos class will draw them correctly if enabled.
             SetPositions();
 
@@ -258,14 +261,12 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
                         // This node in the rule has ID 2, meaning it is the one that corresponds to node2. node2 may not exist if the rule is only replacing one node instead of two, in which case the else clause will run instead.
                         childNodeData.ChildNode.GrammarSymbol = ruleChildNodeData.ChildNode.GrammarSymbol;
                         childNodeData.IsTightlyCoupled = ruleChildNodeData.IsTightlyCoupled;
-
+                        
                         if (!curNode.ContainsChild(childNodeData.ChildNode))
                             curNode.ChildNodesData.Add(childNodeData);
 
                         // Add it to the new nodes list so we can tell the difference between ones the rule created, and ones that already existed.
                         newNodes.Add(childNodeData.ChildNode);
-
-                        // Flag that node2 has been inserted.
                     }
                     else
                     {
@@ -274,15 +275,6 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
                         if (!rightSideNodesCreated.ContainsKey(id))
                         {
                             newNode = new MissionStructureGraphNode(ruleChildNodeData.ChildNode.GrammarSymbol);
-
-                            newNode.LockCount = curNode.LockCount; // Set this node's lock count equal to that of its parent.
-                            // If this node is a lock room, then add one to its lock count.
-                            if (newNode.GrammarSymbol == GrammarSymbols.T_Lock ||
-                                newNode.GrammarSymbol == GrammarSymbols.T_Lock_Multi ||
-                                newNode.GrammarSymbol == GrammarSymbols.T_Lock_Goal)
-                            {
-                                newNode.LockCount++;
-                            }
 
                             // Add the new node and its ID from the right side of the rule into this dictionary. That way if the same node is linked elsewhere in the rule, we can correctly link to it instead of accidentally recreating the same node.
                             rightSideNodesCreated.Add(ruleChildNodeData.ChildNode.ID, newNode);
@@ -396,6 +388,50 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
 
 
             return false;
+        }
+
+        public static void EvaluateNodeLockCounts()
+        {            
+            Queue<MissionStructureGraphNode> nodeQueue = new Queue<MissionStructureGraphNode>();
+            List<MissionStructureGraphNode> visitedNodes = new List<MissionStructureGraphNode>();
+            nodeQueue.Enqueue(_MissionStructureGraph.StartNode);
+            _MissionStructureGraph.StartNode.LockCount = 0;
+
+            while (true)
+            {               
+                MissionStructureGraphNode curNode = nodeQueue.Dequeue();
+
+
+                foreach (MSCNData childNodeData in curNode.ChildNodesData)
+                {
+                    MissionStructureGraphNode childNode = childNodeData.ChildNode;
+
+                    if (!visitedNodes.Contains(childNode))
+                        visitedNodes.Add(childNode);
+
+                    
+                    // If this node is a lock room, then add one to its lock count.
+                    if (childNode.GrammarSymbol == GrammarSymbols.T_Lock ||
+                        childNode.GrammarSymbol == GrammarSymbols.T_Lock_Multi ||
+                        childNode.GrammarSymbol == GrammarSymbols.T_Lock_Goal)
+                    {
+                        childNode.LockCount = Math.Max(childNode.LockCount, curNode.LockCount + 1);
+                    }
+                    else
+                    {
+                        childNode.LockCount = curNode.LockCount;
+                    }
+
+
+                    nodeQueue.Enqueue(childNodeData.ChildNode);
+                }
+
+
+                if (nodeQueue.Count < 1)
+                    break;
+
+            } // end foreach node
+
         }
 
         /// <summary>

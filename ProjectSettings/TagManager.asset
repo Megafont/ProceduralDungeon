@@ -42,15 +42,15 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
-  - name: GeneratorPlaceholders
-    uniqueID: 2115625029
-    locked: 0
-  - name: Objects
+  - name: Floors
     uniqueID: 3364995191
     locked: 0
   - name: Walls
     uniqueID: 3800475121
     locked: 0
-  - name: Floor
+  - name: GeneratorPlaceholders
     uniqueID: 3070093029
+    locked: 0
+  - name: Objects
+    uniqueID: 1243288589
     locked: 0

@@ -42,6 +42,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction.PlaceholderUti
             DungeonTileTypes.Placeholders_Doors_Basement,
             DungeonTileTypes.Placeholders_Doors_1stFloor,
             DungeonTileTypes.Placeholders_Doors_2ndFloor,
+            DungeonTileTypes.Placeholders_Doors_EntryOrExit,
         };
 
         static List<DungeonTileTypes> _FloorTypes_Basement = new List<DungeonTileTypes>()
@@ -165,7 +166,6 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction.PlaceholderUti
                 if ((wallScanTile1 != null && wallScanTile2 != null) && 
                     (wallScanTile1.TileType == DungeonTileTypes.Walls_Doorway_Top && wallScanTile2.TileType == DungeonTileTypes.Walls_Doorway_Top))
                 {
-                    Debug.Log("Detected door top!");
                     continue;
                 }
 
@@ -294,14 +294,17 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction.PlaceholderUti
             // Get the direction and level of the door.
             door.DoorDirection = GetDoorDirectionFromFloorLayer(door, floorTiles);
 
-
+            
             if (sTile.Tile.TileType == DungeonTileTypes.Placeholders_Doors_Basement)
                 door.DoorLevel = RoomLevels.Level_Basement;
             else if (sTile.Tile.TileType == DungeonTileTypes.Placeholders_Doors_1stFloor)
                 door.DoorLevel = RoomLevels.Level_1stFloor;
             else if (sTile.Tile.TileType == DungeonTileTypes.Placeholders_Doors_2ndFloor)
                 door.DoorLevel = RoomLevels.Level_2ndFloor;
+            
 
+            if (sTile.Tile.TileType == DungeonTileTypes.Placeholders_Doors_EntryOrExit)
+                door.IsEntryOrExitDoor = true;
 
             CheckFloorLevelAtDoor(door, floorTiles);
 
@@ -352,6 +355,12 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction.PlaceholderUti
                 floorTile2Level = RoomLevels.Level_1stFloor;
             else if (_FloorTypes_2ndFloor.Contains(floorTile2Type))
                 floorTile2Level = RoomLevels.Level_2ndFloor;
+
+            // If the door in question is the dungeon's entry or exit door, then the door level will be set to AnyLevel since
+            // it cannot be detected from the placeholder. As such, we set it here.
+            if (floorTile1Level == floorTile2Level && door.DoorLevel == RoomLevels.Level_AnyFloor)
+                door.DoorLevel = floorTile1Level;
+
 
             if (floorTile1Level != door.DoorLevel || floorTile2Level != door.DoorLevel)
             {

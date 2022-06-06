@@ -16,6 +16,7 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
         // This overrides all other constants below.
         public const bool ENABLE_MISSION_STRUCTURE_GRAPH_GIZMOS = true;
         public const bool ENABLE_SNAPPING_GIZMOS_TO_GENERATED_ROOMS = true;
+        public const bool SHOW_LOCK_COUNT = true;        
 
 
         private static List<Vector3> _CirclePoints;
@@ -93,6 +94,12 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
                          color,
                          "Node:  " + Enum.GetName(typeof(GenerativeGrammar.Symbols), node.GrammarSymbol));
 
+                if (SHOW_LOCK_COUNT)
+                {
+                    DrawText(nodePos + _NodeTextOffset + new Vector3(0, -0.5f),
+                             color,
+                             "Lock Count:  " + node.LockCount);
+                }
 
 
                 foreach (MSCNData childNodeData in node.ChildNodesData)

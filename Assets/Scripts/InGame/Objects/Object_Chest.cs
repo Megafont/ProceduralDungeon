@@ -43,6 +43,8 @@ public class Object_Chest : MonoBehaviour
         if (_SpriteRenderer == null)
             _SpriteRenderer = GetComponent<SpriteRenderer>();
 
+        _SpriteRenderer.sprite = ClosedSprite;
+
         _Inventory = GetComponent<Inventory>();
     }
 

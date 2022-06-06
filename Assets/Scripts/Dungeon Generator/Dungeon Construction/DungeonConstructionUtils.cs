@@ -482,8 +482,6 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
                 Tilemap wallsMap = tilemapManager.DungeonMap.WallsMap;
 
                 // Place a wall tile at the first tile position.
-                //BasicDungeonTile tile1 = (BasicDungeonTile)wallsMap.GetTile(door.ThisRoom_DoorTile1WorldPosition);
-                //BasicDungeonTile tile2 = (BasicDungeonTile)wallsMap.GetTile(door.ThisRoom_DoorTile2WorldPosition);
                 Vector3Int upperLeftMost = MiscellaneousUtils.GetUpperLeftMostTile(door.ThisRoom_DoorTile1WorldPosition, door.ThisRoom_DoorTile2WorldPosition);
 
                 Vector3Int wallTopStartPos = Vector3Int.zero;
@@ -552,52 +550,6 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
                     // Remove the protruding bits at the base of the door frame.
                     tilemapManager.DungeonMap.WallsMap.SetTile(floorPos, null);
                 }
-
-                /*
-                // Place a wall tile at the first tile position.
-                BasicDungeonTile tile1 = (BasicDungeonTile)wallsMap.GetTile(door.ThisRoom_DoorTile1WorldPosition);
-
-                if (tile1 == null)
-                    Debug.LogError($"Cannot seal off door[{door.ThisRoom_DoorIndex}] in room \"{parentRoom.RoomBlueprint.RoomName}\" (Center Point: {parentRoom.RoomCenterPoint}), because the wall tile at {door.ThisRoom_DoorTile1WorldPosition} is null!");
-
-                if (tile1.TileType != DungeonTileTypes.Walls_DoorFrame_Left &&
-                    tile1.TileType != DungeonTileTypes.Walls_DoorFrame_Right)
-                {
-                    Debug.LogError($"DungeonConstructionUtils.SealOffBlockedDoors() - Cannot seal off door[{door.ThisRoom_DoorIndex}] tile 1 ({tile1.TileType}) in room \"{parentRoom.RoomBlueprint.RoomName}\", because the wall tile at {door.ThisRoom_DoorTile1WorldPosition} is not a door frame tile!");
-                }
-                else
-                {
-                    wallsMap.SetTile(door.ThisRoom_DoorTile1WorldPosition, (tile1 as DoorwayTile).ReplacementWallTile);
-
-                    // Create a transform matrix for setting the tile rotation.
-                    Matrix4x4 transformMatrix1 = Matrix4x4.TRS(Vector3.zero, // We set the position parameter to Vector3.zero, as we don't want to add any offset to the tile's position.
-                                                              GetNewTileRotation(Quaternion.identity, door.ThisRoom_DoorAdjustedDirection.DirectionToRotation()),
-                                                              Vector3.one);
-
-                    wallsMap.SetTransformMatrix(door.ThisRoom_DoorTile1WorldPosition, transformMatrix1);
-                }
-
-                // Place a wall tile at the second tile position.
-                BasicDungeonTile tile2 = (BasicDungeonTile)wallsMap.GetTile(door.ThisRoom_DoorTile2WorldPosition);
-
-                if (tile2.TileType != DungeonTileTypes.Walls_DoorFrame_Left &&
-                    tile2.TileType != DungeonTileTypes.Walls_DoorFrame_Right)
-                {
-                    Debug.LogError($"DungeonConstructionUtils.SealOffBlockedDoors() - Cannot seal off door[{door.ThisRoom_DoorIndex}] tile 2 ({tile2.TileType}) in room \"{parentRoom.RoomBlueprint.RoomName}\", because the wall tile at {door.ThisRoom_DoorTile2WorldPosition} is not a door frame tile!");
-                }
-                else
-                {
-                    wallsMap.SetTile(door.ThisRoom_DoorTile2WorldPosition, (tile2 as DoorwayTile).ReplacementWallTile);
-
-                    // Create a transform matrix for setting the tile rotation.
-                    Matrix4x4 transformMatrix2 = Matrix4x4.TRS(Vector3.zero, // We set the position parameter to Vector3.zero, as we don't want to add any offset to the tile's position.
-                                                              GetNewTileRotation(Quaternion.identity, door.ThisRoom_DoorAdjustedDirection.DirectionToRotation()),
-                                                              Vector3.one);
-
-
-                    wallsMap.SetTransformMatrix(door.ThisRoom_DoorTile2WorldPosition, transformMatrix2);
-                }
-                */
 
             } // end foreach door
 

@@ -17,7 +17,7 @@ namespace ProceduralDungeon.TileMaps
         /// <returns>The room file name and path as a relative path starting with the Assets/ folder and all subfolders.</returns>
         public static string GetRoomFilePath(string roomName, string roomSet)
         {
-            return $"Assets/Resources//{roomSet}/{roomName}.asset";
+            return $"Assets/Resources/Rooms/{roomSet}/{roomName}.asset";
         }
 
         public static string GetRoomFileLoadPath(string roomName, string roomSet)
