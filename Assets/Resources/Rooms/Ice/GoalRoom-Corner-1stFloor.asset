@@ -494,7 +494,7 @@ MonoBehaviour:
   - Position: {x: 5, y: 5, z: 0}
     Rotation: {x: 0, y: 0, z: -0.7071069, w: 0.7071067}
     Tile: {fileID: 11400000, guid: 7d26ad78a3e636740970d1354a5209df, type: 2}
-  Placeholders_General_Tiles:
+  Placeholders_Object_Tiles:
   - Position: {x: 4, y: -1, z: 0}
     Rotation: {x: 0, y: 0, z: 0, w: 1}
     Tile: {fileID: 11400000, guid: b6a1b03d121ca794c8d163bbbcde3441, type: 2}

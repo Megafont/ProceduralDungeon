@@ -15,7 +15,7 @@ namespace ProceduralDungeon.TileMaps
     {
         Floors,
         Walls,
-        Placeholders_General,
+        Placeholders_Objects,
         Placeholders_Items,
         Placeholders_Enemies,
     }
@@ -29,7 +29,7 @@ namespace ProceduralDungeon.TileMaps
     {
         public List<SavedTile> FloorTiles;
         public List<SavedTile> WallTiles;
-        public List<SavedTile> Placeholders_General_Tiles;
+        public List<SavedTile> Placeholders_Object_Tiles;
         public List<SavedTile> Placeholders_Item_Tiles;
         public List<SavedTile> Placeholders_Enemy_Tiles;
 

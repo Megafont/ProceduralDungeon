@@ -39,10 +39,10 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction.PlaceholderUti
 
         static List<DungeonTileTypes> _DoorTypes = new List<DungeonTileTypes>()
         {
-            DungeonTileTypes.Placeholders_Doors_Basement,
-            DungeonTileTypes.Placeholders_Doors_1stFloor,
-            DungeonTileTypes.Placeholders_Doors_2ndFloor,
-            DungeonTileTypes.Placeholders_Doors_EntryOrExit,
+            DungeonTileTypes.Placeholders_Objects_Doors_Basement,
+            DungeonTileTypes.Placeholders_Objects_Doors_1stFloor,
+            DungeonTileTypes.Placeholders_Objects_Doors_2ndFloor,
+            DungeonTileTypes.Placeholders_Objects_Doors_EntryOrExit,
         };
 
         static List<DungeonTileTypes> _FloorTypes_Basement = new List<DungeonTileTypes>()
@@ -86,7 +86,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction.PlaceholderUti
             foreach (RoomData room in roomsList)
             {
                 _CurrentRoomData = room;
-                FindRoomDoors(room.Placeholders_General_Tiles, room.FloorTiles);
+                FindRoomDoors(room.Placeholders_Object_Tiles, room.FloorTiles);
             } // end foreach
 
         }
@@ -126,9 +126,9 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction.PlaceholderUti
                 // Are we are scanning the first tile in front of both door tiles?
                 if (i == 1)
                 {
-                    // Get placeholder_general map tile that is i tiles in front of each of the door's tiles.
-                    BasicDungeonTile doorScanTile1 = (BasicDungeonTile)tileMapManager.DungeonMap.Placeholders_General_Map.GetTile(tile1ScanPos);
-                    BasicDungeonTile doorScanTile2 = (BasicDungeonTile)tileMapManager.DungeonMap.Placeholders_General_Map.GetTile(tile2ScanPos);
+                    // Get placeholder_objects map tile that is i tiles in front of each of the door's tiles.
+                    BasicDungeonTile doorScanTile1 = (BasicDungeonTile)tileMapManager.DungeonMap.Placeholders_Objects_Map.GetTile(tile1ScanPos);
+                    BasicDungeonTile doorScanTile2 = (BasicDungeonTile)tileMapManager.DungeonMap.Placeholders_Objects_Map.GetTile(tile2ScanPos);
 
                     if (TileIsDoorPlaceholder(doorScanTile1) && TileIsDoorPlaceholder(doorScanTile2))
                     {
@@ -184,21 +184,21 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction.PlaceholderUti
         /// <summary>
         /// This public overload is used by the room editor to validate the positions of door placeholders.
         /// </summary>
-        /// <param name="placeholder_General_Tiles">A list of the room's general placeholder tiles.</param>
+        /// <param name="placeholders_Object_Tiles">A list of the room's object placeholder tiles.</param>
         /// <param name="floorTiles">A list of the room's floor tiles.</param>
-        public static bool FindAndValidateRoomDoors(List<SavedTile> placeholder_General_Tiles, List<SavedTile> floorTiles)
+        public static bool FindAndValidateRoomDoors(List<SavedTile> placeholders_Object_Tiles, List<SavedTile> floorTiles)
         {
 
             _ErrorOccurred = false;
 
 
-            Assert.IsNotNull(placeholder_General_Tiles, "The passed in list of placeholder tiles is null!");
+            Assert.IsNotNull(placeholders_Object_Tiles, "The passed in list of object placeholder tiles is null!");
             Assert.IsNotNull(floorTiles, "The passed in list of floor tiles is null!");
 
 
-            if (placeholder_General_Tiles.Count < 1)
+            if (placeholders_Object_Tiles.Count < 1)
             {
-                Debug.LogError($"PlaceholderUtility_Doors.FindAndValidateRoomDoors() - The passed in placeholders_general_tiles list is empty!");
+                Debug.LogError($"PlaceholderUtility_Doors.FindAndValidateRoomDoors() - The passed in placeholders_object_tiles list is empty!");
                 _ErrorOccurred = true;
                 return false;
             }
@@ -213,7 +213,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction.PlaceholderUti
             SavedTileDictionary placeholderTilesDict = new SavedTileDictionary();
             SavedTileDictionary floorTilesDict = new SavedTileDictionary();
 
-            MiscellaneousUtils.CopyTilesListToDictionary(placeholder_General_Tiles, placeholderTilesDict);
+            MiscellaneousUtils.CopyTilesListToDictionary(placeholders_Object_Tiles, placeholderTilesDict);
             MiscellaneousUtils.CopyTilesListToDictionary(floorTiles, floorTilesDict);
 
 
@@ -295,15 +295,15 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction.PlaceholderUti
             door.DoorDirection = GetDoorDirectionFromFloorLayer(door, floorTiles);
 
             
-            if (sTile.Tile.TileType == DungeonTileTypes.Placeholders_Doors_Basement)
+            if (sTile.Tile.TileType == DungeonTileTypes.Placeholders_Objects_Doors_Basement)
                 door.DoorLevel = RoomLevels.Level_Basement;
-            else if (sTile.Tile.TileType == DungeonTileTypes.Placeholders_Doors_1stFloor)
+            else if (sTile.Tile.TileType == DungeonTileTypes.Placeholders_Objects_Doors_1stFloor)
                 door.DoorLevel = RoomLevels.Level_1stFloor;
-            else if (sTile.Tile.TileType == DungeonTileTypes.Placeholders_Doors_2ndFloor)
+            else if (sTile.Tile.TileType == DungeonTileTypes.Placeholders_Objects_Doors_2ndFloor)
                 door.DoorLevel = RoomLevels.Level_2ndFloor;
             
 
-            if (sTile.Tile.TileType == DungeonTileTypes.Placeholders_Doors_EntryOrExit)
+            if (sTile.Tile.TileType == DungeonTileTypes.Placeholders_Objects_Doors_EntryOrExit)
                 door.IsEntryOrExitDoor = true;
 
             CheckFloorLevelAtDoor(door, floorTiles);
@@ -450,9 +450,9 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction.PlaceholderUti
         private static bool TileIsDoorPlaceholder(BasicDungeonTile tile)
         {
             if (tile != null &&
-                (tile.TileType == DungeonTileTypes.Placeholders_Doors_Basement ||
-                 tile.TileType == DungeonTileTypes.Placeholders_Doors_1stFloor ||
-                 tile.TileType == DungeonTileTypes.Placeholders_Doors_2ndFloor))
+                (tile.TileType == DungeonTileTypes.Placeholders_Objects_Doors_Basement ||
+                 tile.TileType == DungeonTileTypes.Placeholders_Objects_Doors_1stFloor ||
+                 tile.TileType == DungeonTileTypes.Placeholders_Objects_Doors_2ndFloor))
             {
                 return true;
             }
@@ -463,11 +463,11 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction.PlaceholderUti
 
         private static bool TileIsOnFloor(BasicDungeonTile tile, RoomLevels floor)
         {
-            if (tile.TileType == DungeonTileTypes.Placeholders_Doors_Basement && floor == RoomLevels.Level_Basement)
+            if (tile.TileType == DungeonTileTypes.Placeholders_Objects_Doors_Basement && floor == RoomLevels.Level_Basement)
                 return true;
-            if (tile.TileType == DungeonTileTypes.Placeholders_Doors_1stFloor && floor == RoomLevels.Level_1stFloor)
+            if (tile.TileType == DungeonTileTypes.Placeholders_Objects_Doors_1stFloor && floor == RoomLevels.Level_1stFloor)
                 return true;
-            if (tile.TileType == DungeonTileTypes.Placeholders_Doors_2ndFloor && floor == RoomLevels.Level_2ndFloor)
+            if (tile.TileType == DungeonTileTypes.Placeholders_Objects_Doors_2ndFloor && floor == RoomLevels.Level_2ndFloor)
                 return true;
 
             return false;

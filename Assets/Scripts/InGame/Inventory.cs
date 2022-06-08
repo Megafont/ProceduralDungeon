@@ -109,7 +109,7 @@ namespace ProceduralDungeon.InGame
                 InsertItem(itemData);
 
 
-            DEBUG_PrintInventory();
+            //DEBUG_PrintInventory();
         }
 
         /// <summary>

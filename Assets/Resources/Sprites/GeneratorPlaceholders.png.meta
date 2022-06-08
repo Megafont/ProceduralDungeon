@@ -104,7 +104,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Placeholders_Doors_Basement
+      name: Placeholders_Objects_Doors_Basement
       rect:
         serializedVersion: 2
         x: 0
@@ -125,7 +125,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Placeholders_Doors_1stFloor
+      name: Placeholders_Objects_Doors_1stFloor
       rect:
         serializedVersion: 2
         x: 16
@@ -146,7 +146,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Placeholders_Doors_2ndFloor
+      name: Placeholders_Objects_Doors_2ndFloor
       rect:
         serializedVersion: 2
         x: 32
@@ -251,11 +251,32 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Placeholders_Doors_EntryOrExit
+      name: Placeholders_Objects_Doors_EntryOrExit
       rect:
         serializedVersion: 2
         x: 48
         y: 240
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1a35dac044635fa46b281cc759e5d7eb
+      internalID: 845565842
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Placeholders_Objects_Spikes
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 160
         width: 16
         height: 16
       alignment: 0
@@ -265,8 +286,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 1a35dac044635fa46b281cc759e5d7eb
-      internalID: 845565842
+      spriteID: 3f48e84185f3570409c615102dae0481
+      internalID: 1352249957
       vertices: []
       indices: 
       edges: []
@@ -282,14 +303,15 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      Placeholders_Doors_EntryOrExit: 845565842
+      Placeholders_Objects_Doors_EntryOrExit: 845565842
+      Placeholders_Objects_Spikes: 1352249957
+      Placeholders_Objects_Doors_1stFloor: 1105143702
+      Placeholders_Objects_Doors_Basement: -518213313
       Placeholders_Entity_Player: -2023910191
       Placeholders_Items_Key_Multipart: 308713404
-      Placeholders_Doors_1stFloor: 1105143702
+      Placeholders_Objects_Doors_2ndFloor: 116298976
       Placeholders_Items_Key_Goal: -528717469
-      Placeholders_Doors_2ndFloor: 116298976
       Placeholders_Items_Key: 1536171610
-      Placeholders_Doors_Basement: -518213313
   spritePackingTag: 
   pSDRemoveMatte: 0
   pSDShowRemoveMatteOption: 0

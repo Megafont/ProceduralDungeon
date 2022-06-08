@@ -26,20 +26,22 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
         private static GameObject _ItemsParent;
         private static GameObject _ObjectsParent;
 
-        private static GameObject _Prefab_Object_Chest;
-        private static GameObject _Prefab_Object_ChestGoal;
-        private static GameObject _Prefab_Object_Door;
-
-        private static GameObject _Prefab_Item_Key;
-        
-        private static Vector3 _ItemOffsetVector = new Vector3(0.5f, 0.5f);
-
         private static Dictionary<string, Dictionary<string, Sprite>> _SpritesDictionary;
 
         private static Dictionary<MissionStructureGraphNode, Object_Door> _LockedDoorsDictionary;
         private static Dictionary<MissionStructureGraphNode, Inventory> _KeyChestsDictionary;
         private static uint _NextKeyID;
 
+
+        private static Vector3 _ObjectOffsetVector = new Vector3(0.5f, 0.5f);
+        private static Vector3 _ItemOffsetVector = new Vector3(0.5f, 0.5f);
+
+        private static GameObject _Prefab_Object_Chest;
+        private static GameObject _Prefab_Object_ChestGoal;
+        private static GameObject _Prefab_Object_Door;
+        private static GameObject _Prefab_Object_Spikes;
+
+        private static GameObject _Prefab_Item_Key;
 
 
 
@@ -59,55 +61,89 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             _KeyChestsDictionary = new Dictionary<MissionStructureGraphNode, Inventory>();
             _NextKeyID = 0;
 
-            
+
             _SpritesDictionary = new Dictionary<string, Dictionary<string, Sprite>>();
 
 
             // Find the parent game objects of spawned dungeon items/objects.
             _ItemsParent = GameObject.Find("SpawnedItems");
             _ObjectsParent = GameObject.Find("SpawnedObjects");
-            
+
             // Clear out any previously spawned dungeon items/objects.
             ClearAnyPreviousSpawnedPrefabs();
 
 
             // Populate each room in the dungeon.
+            DungeonDoor doorway;
             foreach (DungeonGraphNode roomNode in dungeonGraph.Nodes)
             {
                 switch (roomNode.MissionStructureNode.GrammarSymbol)
                 {
                     case GrammarSymbols.T_Lock:
-                        SpawnDoor(GetDoorFromParentRoomToThisRoom(roomNode), DoorLockTypes.Lock);
+                        doorway = GetDoorFromMiniBossRoomToThisRoom(roomNode);
+                        if (doorway == null)
+                            doorway = GetDoorFromParentRoomToThisRoom(roomNode);
+
+                        SpawnObject_Door(doorway, DoorLockTypes.Lock);
                         break;
 
                     case GrammarSymbols.T_Lock_Multi:
-                        SpawnDoor(GetDoorFromParentRoomToThisRoom(roomNode), DoorLockTypes.Lock_Multipart);
+                        doorway = GetDoorFromMiniBossRoomToThisRoom(roomNode);
+                        if (doorway == null)
+                            doorway = GetDoorFromParentRoomToThisRoom(roomNode);
+
+                        SpawnObject_Door(doorway, DoorLockTypes.Lock_Multipart);
                         break;
 
                     case GrammarSymbols.T_Lock_Goal:
-                        SpawnDoor(GetDoorFromBossRoomToThisRoom(roomNode), DoorLockTypes.Lock_Goal);
+                        doorway = GetDoorFromMainBossRoomToThisRoom(roomNode);
+                        if (doorway == null)
+                            doorway = GetDoorFromParentRoomToThisRoom(roomNode);
+
+                        SpawnObject_Door(doorway, DoorLockTypes.Lock_Goal);
                         break;
 
                     case GrammarSymbols.T_Treasure_Key:
-                        SpawnKey(roomNode, rng, KeyTypes.Key);
+                        SpawnItem_Key(roomNode, rng, KeyTypes.Key);
                         break;
 
                     case GrammarSymbols.T_Treasure_Key_Multipart:
-                        SpawnKey(roomNode, rng, KeyTypes.Key_Multipart);
+                        SpawnItem_Key(roomNode, rng, KeyTypes.Key_Multipart);
                         break;
 
                     case GrammarSymbols.T_Treasure_Key_Goal:
-                        SpawnKey(roomNode, rng, KeyTypes.Key_Goal);
+                        SpawnItem_Key(roomNode, rng, KeyTypes.Key_Goal);
                         break;
 
 
                 } // end switch
 
+
+                SpawnOtherRoomObjects(roomNode);
+
             } // end foreach room node
+
 
             FinalizeLockedDoors();
 
-        }        
+        }
+
+        private static void SpawnOtherRoomObjects(DungeonGraphNode roomNode)
+        {
+            foreach (KeyValuePair<Vector3Int, SavedTile> pair in roomNode.RoomBlueprint.Placeholders_Object_Tiles)
+            {
+                switch (pair.Value.Tile.TileType)
+                {
+                    case DungeonTileTypes.Placeholders_Objects_Spikes:
+                        SpawnObject_Spikes(pair.Key, roomNode);
+                        break;
+
+                } // end switch
+
+            } // end foreach sTile
+
+        }
+
 
         private static void ClearAnyPreviousSpawnedPrefabs()
         {
@@ -120,7 +156,13 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
         }
 
-        private static void LoadPrefabs()        
+        private static void LoadPrefabs()
+        {
+            LoadObjectPrefabs();
+            LoadItemPrefabs();
+        }
+
+        private static void LoadObjectPrefabs()
         {
             if (_Prefab_Object_Chest == null)
                 _Prefab_Object_Chest = (GameObject)Resources.Load("Prefabs/Objects/Object_Chest");
@@ -131,14 +173,17 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             if (_Prefab_Object_Door == null)
                 _Prefab_Object_Door = (GameObject)Resources.Load("Prefabs/Objects/Object_Door");
 
-
-
-            if (_Prefab_Item_Key == null)
-                _Prefab_Item_Key = (GameObject)Resources.Load("Prefabs/Items/Item_Key");
-
+            if (_Prefab_Object_Spikes == null)
+                _Prefab_Object_Spikes = (GameObject)Resources.Load("Prefabs/Objects/Object_Spikes");
         }
 
-        private static void SpawnDoor(DungeonDoor doorToSpawn, DoorLockTypes lockType)
+        private static void LoadItemPrefabs()
+        {
+            if (_Prefab_Item_Key == null)
+                _Prefab_Item_Key = (GameObject)Resources.Load("Prefabs/Items/Item_Key");
+        }
+
+        private static void SpawnObject_Door(DungeonDoor doorToSpawn, DoorLockTypes lockType)
         {
             Vector3 offset;
             Quaternion rotation;
@@ -193,7 +238,22 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
         }
 
-        private static void SpawnKey(DungeonGraphNode roomNode, NoiseRNG rng, KeyTypes keyType)
+        private static void SpawnObject_Spikes(Vector3Int position, DungeonGraphNode roomNode)
+        {
+            // Calculate the position of the spikes.
+            Vector3 centerPoint = DungeonConstructionUtils.AdjustTileCoordsForRoomPositionAndRotation(position, roomNode.RoomPosition, roomNode.RoomDirection);
+
+            // Spawn a spikes object and configure it.
+            GameObject spikes = GameObject.Instantiate(_Prefab_Object_Spikes, 
+                                                       centerPoint + _ObjectOffsetVector, 
+                                                       Quaternion.identity, 
+                                                       _ObjectsParent.transform);
+
+            Object_Spikes spikesComponent = spikes.GetComponent<Object_Spikes>();
+            spikesComponent.GetComponent<SpriteRenderer>().sprite = GetObjectSprite("Objects_Spikes", _CurrentRoomSet);
+        }
+
+        private static void SpawnItem_Key(DungeonGraphNode roomNode, NoiseRNG rng, KeyTypes keyType)
         {
             // Randomly select a key placeholder position.
             int index = rng.RollRandomIntInRange(0, roomNode.RoomBlueprint.KeyPositions.Count - 1);
@@ -295,7 +355,21 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             return null;
         }
 
-        private static DungeonDoor GetDoorFromBossRoomToThisRoom(DungeonGraphNode roomNode)
+        private static DungeonDoor GetDoorFromMiniBossRoomToThisRoom(DungeonGraphNode roomNode)
+        {
+            // Find the door to the boss room.
+            foreach (DungeonDoor door in roomNode.Doorways)
+            {
+                if (door.OtherRoom_Node == null)
+                    continue;
+                else if (door.OtherRoom_Node.MissionStructureNode.GrammarSymbol == GrammarSymbols.T_Boss_Mini)
+                    return door;
+            }
+
+            return null;
+        }
+
+        private static DungeonDoor GetDoorFromMainBossRoomToThisRoom(DungeonGraphNode roomNode)
         {
             // Find the door to the boss room.
             foreach (DungeonDoor door in roomNode.Doorways)

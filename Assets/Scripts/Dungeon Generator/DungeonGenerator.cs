@@ -607,7 +607,6 @@ namespace ProceduralDungeon.DungeonGeneration
             // Give the mission structure node a link to the room generated from it.
             _MissionStructureGraph.StartNode.DungeonRoomNode = startRoomNode;
 
-
             InitRoomDoors(startRoomNode);
 
             ConfigureEntranceOrExitRoomDoor(startRoomNode, true);
@@ -1088,7 +1087,9 @@ namespace ProceduralDungeon.DungeonGeneration
 
         private static bool RoomIsTypeRequiringDirectCouplingOfTightlyCoupledChildren(GrammarSymbols symbol)
         {
-            if (symbol == GrammarSymbols.T_Test || symbol == GrammarSymbols.T_Test_Combat || symbol == GrammarSymbols.T_Test_MainDungeonItem || symbol == GrammarSymbols.T_Test_PreviousItem || symbol == GrammarSymbols.T_Test_Secret)
+            if (symbol == GrammarSymbols.T_Boss_Mini || symbol == GrammarSymbols.T_Boss_Main ||
+                symbol == GrammarSymbols.T_Lock || symbol == GrammarSymbols.T_Lock_Multi || symbol == GrammarSymbols.T_Lock_Goal ||
+                symbol == GrammarSymbols.T_Test || symbol == GrammarSymbols.T_Test_Combat || symbol == GrammarSymbols.T_Test_MainDungeonItem || symbol == GrammarSymbols.T_Test_PreviousItem || symbol == GrammarSymbols.T_Test_Secret)
             {
                 return true;
             }

@@ -19,12 +19,11 @@ namespace ProceduralDungeon.EditorScripts
         DungeonTilemapManager _DungeonTilemapManager = null;
 
 
-        SerializedProperty _Placeholders_Enemies_Map;
         SerializedProperty _FloorsMap;
-        SerializedProperty _Placeholders_Items_Map;
-        SerializedProperty _Placeholders_General_Map;
         SerializedProperty _WallsMap;
-
+        SerializedProperty _Placeholders_Objects_Map;
+        SerializedProperty _Placeholders_Items_Map;
+        SerializedProperty _Placeholders_Enemies_Map;
 
         SerializedProperty _Player;
         SerializedProperty _RoomSet;
@@ -38,7 +37,7 @@ namespace ProceduralDungeon.EditorScripts
 
             _FloorsMap = serializedObject.FindProperty("_FloorsMap");
             _WallsMap = serializedObject.FindProperty("_WallsMap");
-            _Placeholders_General_Map = serializedObject.FindProperty("_Placeholders_General_Map");
+            _Placeholders_Objects_Map = serializedObject.FindProperty("_Placeholders_Objects_Map");
             _Placeholders_Items_Map = serializedObject.FindProperty("_Placeholders_Items_Map");
             _Placeholders_Enemies_Map = serializedObject.FindProperty("_Placeholders_Enemies_Map");
 
@@ -63,7 +62,7 @@ namespace ProceduralDungeon.EditorScripts
 
             EditorGUILayout.PropertyField(_FloorsMap);
             EditorGUILayout.PropertyField(_WallsMap);
-            EditorGUILayout.PropertyField(_Placeholders_General_Map);
+            EditorGUILayout.PropertyField(_Placeholders_Objects_Map);
             EditorGUILayout.PropertyField(_Placeholders_Items_Map);
             EditorGUILayout.PropertyField(_Placeholders_Enemies_Map);
 
@@ -105,8 +104,8 @@ namespace ProceduralDungeon.EditorScripts
 
                 menu.AddItem(new GUIContent("Clear Floors"), false, HandleClearTilemapMenuSelection, "Floors");
                 menu.AddItem(new GUIContent("Clear Walls"), false, HandleClearTilemapMenuSelection, "Walls");
+                menu.AddItem(new GUIContent("Clear Objects"), false, HandleClearTilemapMenuSelection, "Placeholders_Objects");
                 menu.AddItem(new GUIContent("Clear Items"), false, HandleClearTilemapMenuSelection, "Placeholders_Items");
-                menu.AddItem(new GUIContent("Clear Placeholders"), false, HandleClearTilemapMenuSelection, "Placeholders_General");
                 menu.AddItem(new GUIContent("Clear Enemies"), false, HandleClearTilemapMenuSelection, "Placeholders_Enemies");
                 menu.AddItem(new GUIContent("Clear ALL Tile Maps"), false, HandleClearTilemapMenuSelection, "ALL");
 
@@ -138,8 +137,8 @@ namespace ProceduralDungeon.EditorScripts
                 case "Walls":
                     _DungeonTilemapManager.DungeonMap.ClearTileMap(TileMapTypes.Walls);
                     break;
-                case "Placeholders_General":
-                    _DungeonTilemapManager.DungeonMap.ClearTileMap(TileMapTypes.Placeholders_General);
+                case "Placeholders_Objects":
+                    _DungeonTilemapManager.DungeonMap.ClearTileMap(TileMapTypes.Placeholders_Objects);
                     break;
                 case "Placeholders_Items":
                     _DungeonTilemapManager.DungeonMap.ClearTileMap(TileMapTypes.Placeholders_Items);

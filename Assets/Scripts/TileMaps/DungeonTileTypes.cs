@@ -18,8 +18,8 @@ namespace ProceduralDungeon.TileMaps
         WALLS_START = 10000,
         WALLS_END = 99999,
 
-        PLACEHOLDERS_GENERAL_START = 100000,
-        PLACEHOLDERS_GENERAL_END = 119999,
+        PLACEHOLDERS_OBJECTS_START = 100000,
+        PLACEHOLDERS_OBJECTS_END = 119999,
 
         PLACEHOLDERS_ITEMS_START = 120000,
         PLACEHOLDERS_ITEMS_END = 139999,
@@ -81,11 +81,13 @@ namespace ProceduralDungeon.TileMaps
         // PLACEHOLDER TILES
         // ====================================================================================================
 
-        // Placeholder Tiles - Doors
-        Placeholders_Doors_Basement = 100000,
-        Placeholders_Doors_1stFloor = 100001,
-        Placeholders_Doors_2ndFloor = 100002,
-        Placeholders_Doors_EntryOrExit = 100003,
+        // Placeholder Tiles - Objects
+        Placeholders_Objects_Doors_Basement = 100000,
+        Placeholders_Objects_Doors_1stFloor = 100001,
+        Placeholders_Objects_Doors_2ndFloor = 100002,
+        Placeholders_Objects_Doors_EntryOrExit = 100003,
+
+        Placeholders_Objects_Spikes = 100020,
 
 
         // Placeholder Tiles - Items

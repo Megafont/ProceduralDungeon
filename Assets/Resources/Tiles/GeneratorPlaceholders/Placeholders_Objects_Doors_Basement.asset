@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5717fe11abd12e44196e7d5da19d288f, type: 3}
-  m_Name: Placeholders_Doors_Basement
+  m_Name: Placeholders_Objects_Doors_Basement
   m_EditorClassIdentifier: 
   m_Sprite: {fileID: -518213313, guid: 2f63e6d4f20a7874ca4a1a06027cfec4, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}

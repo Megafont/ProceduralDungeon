@@ -21,7 +21,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
     {
         public Dictionary<Vector3Int, SavedTile> FloorTiles;
         public Dictionary<Vector3Int, SavedTile> WallTiles;
-        public Dictionary<Vector3Int, SavedTile> Placeholders_General_Tiles;
+        public Dictionary<Vector3Int, SavedTile> Placeholders_Object_Tiles;
         public Dictionary<Vector3Int, SavedTile> Placeholders_Item_Tiles;
         public Dictionary<Vector3Int, SavedTile> Placeholders_Enemy_Tiles;
 
@@ -50,13 +50,13 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
             FloorTiles = new Dictionary<Vector3Int, SavedTile>();
             WallTiles = new Dictionary<Vector3Int, SavedTile>();
-            Placeholders_General_Tiles = new Dictionary<Vector3Int, SavedTile>();
+            Placeholders_Object_Tiles = new Dictionary<Vector3Int, SavedTile>();
             Placeholders_Item_Tiles = new Dictionary<Vector3Int, SavedTile>();
             Placeholders_Enemy_Tiles = new Dictionary<Vector3Int, SavedTile>();
 
             MiscellaneousUtils.CopyTilesListToDictionary(loadedRoom.FloorTiles, FloorTiles);
             MiscellaneousUtils.CopyTilesListToDictionary(loadedRoom.WallTiles, WallTiles);
-            MiscellaneousUtils.CopyTilesListToDictionary(loadedRoom.Placeholders_General_Tiles, Placeholders_General_Tiles);
+            MiscellaneousUtils.CopyTilesListToDictionary(loadedRoom.Placeholders_Object_Tiles, Placeholders_Object_Tiles);
             MiscellaneousUtils.CopyTilesListToDictionary(loadedRoom.Placeholders_Item_Tiles, Placeholders_Item_Tiles);
             MiscellaneousUtils.CopyTilesListToDictionary(loadedRoom.Placeholders_Enemy_Tiles, Placeholders_Enemy_Tiles);
 

@@ -16,7 +16,7 @@ TagManager:
   - GeneratorPlaceholders
   - Objects
   - Floor
-  - 
+  - Player
   - 
   - 
   - 
@@ -53,4 +53,7 @@ TagManager:
     locked: 0
   - name: Objects
     uniqueID: 1243288589
+    locked: 0
+  - name: Player
+    uniqueID: 1655063909
     locked: 0

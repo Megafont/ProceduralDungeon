@@ -264,14 +264,14 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
             _Colors.Add(GenerativeGrammar.Symbols.T_Lock_Multi, new Color32(0, 180, 90, 255));
             _Colors.Add(GenerativeGrammar.Symbols.T_Treasure_Bonus, Color.yellow);
             _Colors.Add(GenerativeGrammar.Symbols.T_Treasure_Key_Goal, Color.cyan);
-            _Colors.Add(GenerativeGrammar.Symbols.T_Treasure_Key, new Color32(0, 153, 204, 255));
+            _Colors.Add(GenerativeGrammar.Symbols.T_Treasure_Key, new Color32(0, 193, 244, 255));
             _Colors.Add(GenerativeGrammar.Symbols.T_Treasure_Key_Multipart, new Color32(0, 153, 204, 255));
             _Colors.Add(GenerativeGrammar.Symbols.T_Treasure_MainDungeonItem, Color.blue);
             _Colors.Add(GenerativeGrammar.Symbols.T_Test, new Color32(255, 0, 255, 255));
-            _Colors.Add(GenerativeGrammar.Symbols.T_Test_Combat, new Color32(255, 0, 255, 255));
+            _Colors.Add(GenerativeGrammar.Symbols.T_Test_Combat, new Color32(255, 0, 135, 255));
             _Colors.Add(GenerativeGrammar.Symbols.T_Test_MainDungeonItem, new Color32(0, 0, 180, 255));
             _Colors.Add(GenerativeGrammar.Symbols.T_Test_PreviousItem, new Color32(255, 0, 255, 255));
-            _Colors.Add(GenerativeGrammar.Symbols.T_Test_Secret, new Color32(180, 0, 180, 255));
+            _Colors.Add(GenerativeGrammar.Symbols.T_Test_Secret, new Color32(159, 128, 255, 255));
 
         }
 

@@ -19,7 +19,7 @@ namespace ProceduralDungeon.TileMaps
     {
         public Tilemap FloorsMap { get { return _FloorsMap; } }
         public Tilemap WallsMap { get { return _WallsMap; } }
-        public Tilemap Placeholders_General_Map { get { return _Placeholders_General_Map; } }
+        public Tilemap Placeholders_Objects_Map { get { return _Placeholders_Objects_Map; } }
         public Tilemap Placeholders_Items_Map { get { return _Placeholders_Items_Map; } }
         public Tilemap Placeholders_Enemies_Map { get { return _Placeholders_Enemies_Map; } }
 
@@ -29,21 +29,21 @@ namespace ProceduralDungeon.TileMaps
         private Tilemap _WallsMap;
         private Tilemap _Placeholders_Enemies_Map;
         private Tilemap _Placeholders_Items_Map;
-        private Tilemap _Placeholders_General_Map;
+        private Tilemap _Placeholders_Objects_Map;
 
 
 
-        public DungeonMap(Tilemap floors, Tilemap walls, Tilemap placeholders_General, Tilemap placeholders_Items, Tilemap placeholders_Enemies)
+        public DungeonMap(Tilemap floors, Tilemap walls, Tilemap placeholders_Objects, Tilemap placeholders_Items, Tilemap placeholders_Enemies)
         {
             Assert.IsNotNull(floors, "DungeonMap: The floors map field is null!");
             Assert.IsNotNull(walls, "DungeonMap: The walls map field is null!");
-            Assert.IsNotNull(placeholders_General, "DungeonMap: The placeholders map field is null!");
+            Assert.IsNotNull(placeholders_Objects, "DungeonMap: The objects map field is null!");
             Assert.IsNotNull(placeholders_Items, "DungeonMap: The items map field is null!");
             Assert.IsNotNull(placeholders_Enemies, "DungeonMap: The enemies map field is null!");
 
             _FloorsMap = floors;
             _WallsMap = walls;
-            _Placeholders_General_Map = placeholders_General;
+            _Placeholders_Objects_Map = placeholders_Objects;
             _Placeholders_Items_Map = placeholders_Items;
             _Placeholders_Enemies_Map = placeholders_Enemies;
         }
@@ -59,8 +59,8 @@ namespace ProceduralDungeon.TileMaps
                 case TileMapTypes.Walls:
                     _WallsMap.ClearAllTiles();
                     break;
-                case TileMapTypes.Placeholders_General:
-                    _Placeholders_General_Map.ClearAllTiles();
+                case TileMapTypes.Placeholders_Objects:
+                    _Placeholders_Objects_Map.ClearAllTiles();
                     break;
                 case TileMapTypes.Placeholders_Items:
                     _Placeholders_Items_Map.ClearAllTiles();
@@ -75,7 +75,7 @@ namespace ProceduralDungeon.TileMaps
         {
             _FloorsMap.ClearAllTiles();
             _WallsMap.ClearAllTiles();
-            _Placeholders_General_Map.ClearAllTiles();
+            _Placeholders_Objects_Map.ClearAllTiles();
             _Placeholders_Items_Map.ClearAllTiles();
             _Placeholders_Enemies_Map.ClearAllTiles();
         }
@@ -93,7 +93,7 @@ namespace ProceduralDungeon.TileMaps
             if (!CopyTileDataIntoTileMap(loadedRoom.WallTiles, _WallsMap, TileMapTypes.Walls))
                 hadError = true;
 
-            if (!CopyTileDataIntoTileMap(loadedRoom.Placeholders_General_Tiles, _Placeholders_General_Map, TileMapTypes.Placeholders_General))
+            if (!CopyTileDataIntoTileMap(loadedRoom.Placeholders_Object_Tiles, _Placeholders_Objects_Map, TileMapTypes.Placeholders_Objects))
                 hadError = true;
 
             if (!CopyTileDataIntoTileMap(loadedRoom.Placeholders_Item_Tiles, _Placeholders_Items_Map, TileMapTypes.Placeholders_Items))
@@ -119,7 +119,7 @@ namespace ProceduralDungeon.TileMaps
             roomData.WallTiles = GetTileDataFromMap(TileMapTypes.Walls, out temp);
             if (temp) { hadError = true; }
 
-            roomData.Placeholders_General_Tiles = GetTileDataFromMap(TileMapTypes.Placeholders_General, out temp);
+            roomData.Placeholders_Object_Tiles = GetTileDataFromMap(TileMapTypes.Placeholders_Objects, out temp);
             if (temp) { hadError = true; }
 
             roomData.Placeholders_Item_Tiles = GetTileDataFromMap(TileMapTypes.Placeholders_Items, out temp);
@@ -136,7 +136,7 @@ namespace ProceduralDungeon.TileMaps
         {
             _FloorsMap.CompressBounds();
             _WallsMap.CompressBounds();
-            _Placeholders_General_Map.CompressBounds();
+            _Placeholders_Objects_Map.CompressBounds();
             _Placeholders_Items_Map.CompressBounds();
             _Placeholders_Enemies_Map.CompressBounds();
         }
@@ -174,10 +174,10 @@ namespace ProceduralDungeon.TileMaps
                         }
                         break;
 
-                    case TileMapTypes.Placeholders_General:
-                        if ((tileType < (int)DungeonTileCategoryRanges.PLACEHOLDERS_GENERAL_START || tileType > (int)DungeonTileCategoryRanges.PLACEHOLDERS_GENERAL_END))
+                    case TileMapTypes.Placeholders_Objects:
+                        if ((tileType < (int)DungeonTileCategoryRanges.PLACEHOLDERS_OBJECTS_START || tileType > (int)DungeonTileCategoryRanges.PLACEHOLDERS_OBJECTS_END))
                         {
-                            Debug.LogError(String.Format("DungeonMap.CopyTileDataIntoTileMap() - Encountered invalid placeholder tile type \"{0}\" at position {1} while copying loaded tile data into the tilemap! This tile was ignored.", Enum.GetName(typeof(DungeonTileTypes), sTile.Tile.TileType), sTile.Position));
+                            Debug.LogError(String.Format("DungeonMap.CopyTileDataIntoTileMap() - Encountered invalid object placeholder tile type \"{0}\" at position {1} while copying loaded tile data into the tilemap! This tile was ignored.", Enum.GetName(typeof(DungeonTileTypes), sTile.Tile.TileType), sTile.Position));
                             tileError = true;
                         }
                         break;
@@ -252,22 +252,22 @@ namespace ProceduralDungeon.TileMaps
                         Debug.LogError(String.Format("DungeonMap.GetTileDataFromMap() - Encountered invalid wall tile type \"{0}\" at position {1} getting data from tile map! This tile was ignored.", Enum.GetName(typeof(DungeonTileTypes), tile.TileType), pos));
                         tileError = true;
                     }
-                    else if (map == _Placeholders_General_Map &&
-                        (type < (int)DungeonTileCategoryRanges.PLACEHOLDERS_GENERAL_START || type > (int)DungeonTileCategoryRanges.PLACEHOLDERS_GENERAL_END))
+                    else if (map == _Placeholders_Objects_Map &&
+                        (type < (int)DungeonTileCategoryRanges.PLACEHOLDERS_OBJECTS_START || type > (int)DungeonTileCategoryRanges.PLACEHOLDERS_OBJECTS_END))
                     {
-                        Debug.LogError(String.Format("DungeonMap.GetTileDataFromMap() - Encountered invalid placeholder tile type \"{0}\" at position {1} while getting data from tile map! This tile was ignored.", Enum.GetName(typeof(DungeonTileTypes), tile.TileType), pos));
+                        Debug.LogError(String.Format("DungeonMap.GetTileDataFromMap() - Encountered invalid object placeholder tile type \"{0}\" at position {1} while getting data from tile map! This tile was ignored.", Enum.GetName(typeof(DungeonTileTypes), tile.TileType), pos));
                         tileError = true;
                     }
                     else if (map == _Placeholders_Items_Map &&
                         (type < (int)DungeonTileCategoryRanges.PLACEHOLDERS_ITEMS_START || type > (int)DungeonTileCategoryRanges.PLACEHOLDERS_ITEMS_END))
                     {
-                        Debug.LogError(String.Format("DungeonMap.GetTileDataFromMap() - Encountered invalid item tile type \"{0}\" a position {1} while getting data from tile map! This tile was ignored.", Enum.GetName(typeof(DungeonTileTypes), tile.TileType), pos));
+                        Debug.LogError(String.Format("DungeonMap.GetTileDataFromMap() - Encountered invalid item placeholder tile type \"{0}\" a position {1} while getting data from tile map! This tile was ignored.", Enum.GetName(typeof(DungeonTileTypes), tile.TileType), pos));
                         tileError = true;
                     }
                     else if (map == _Placeholders_Enemies_Map &&
                         (type < (int)DungeonTileCategoryRanges.PLACEHOLDERS_ENEMIES_START || type > (int)DungeonTileCategoryRanges.PLACEHOLDERS_ENEMIES_END))
                     {
-                        Debug.LogError(String.Format("DungeonMap.GetTileDataFromMap() - Encountered invalid enemy tile type \"{0}\" at position {1} while getting data from tile map! This tile was ignored.", Enum.GetName(typeof(DungeonTileTypes), tile.TileType), pos));
+                        Debug.LogError(String.Format("DungeonMap.GetTileDataFromMap() - Encountered invalid enemy placeholder tile type \"{0}\" at position {1} while getting data from tile map! This tile was ignored.", Enum.GetName(typeof(DungeonTileTypes), tile.TileType), pos));
                         tileError = true;
                     }
 
@@ -298,8 +298,8 @@ namespace ProceduralDungeon.TileMaps
                     return _FloorsMap;
                 case TileMapTypes.Walls:
                     return _WallsMap;
-                case TileMapTypes.Placeholders_General:
-                    return _Placeholders_General_Map;
+                case TileMapTypes.Placeholders_Objects:
+                    return _Placeholders_Objects_Map;
                 case TileMapTypes.Placeholders_Items:
                     return _Placeholders_Items_Map;
                 case TileMapTypes.Placeholders_Enemies:

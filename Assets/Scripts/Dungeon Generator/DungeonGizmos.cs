@@ -49,7 +49,7 @@ namespace ProceduralDungeon.DungeonGeneration
                 if (node.RoomBlueprint == null)
                     continue;
 
-                SavedTileDictionary placeholders_general_map = node.RoomBlueprint.Placeholders_General_Tiles;
+                SavedTileDictionary placeholders_object_map = node.RoomBlueprint.Placeholders_Object_Tiles;
 
 
                 foreach (DungeonDoor door in node.Doorways)

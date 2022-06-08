@@ -211,15 +211,15 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             bool state = true;
             if (Application.isPlaying) // Only include the placeholders if the dungeon generator is running in Unity's edit mode.
                 state = false;
-            tilemapManager.DungeonMap.Placeholders_General_Map.GetComponent<TilemapRenderer>().enabled = state;
+            tilemapManager.DungeonMap.Placeholders_Objects_Map.GetComponent<TilemapRenderer>().enabled = state;
             tilemapManager.DungeonMap.Placeholders_Items_Map.GetComponent<TilemapRenderer>().enabled = state;
             tilemapManager.DungeonMap.Placeholders_Enemies_Map.GetComponent<TilemapRenderer>().enabled = state;
           
 
 
             //Debug.Log("DRAW PLACEHOLDERS!");
-            CopyTilesIntoDungeonMap(roomNode.RoomBlueprint.Placeholders_General_Tiles,
-                                    tilemapManager.DungeonMap.Placeholders_General_Map,
+            CopyTilesIntoDungeonMap(roomNode.RoomBlueprint.Placeholders_Object_Tiles,
+                                    tilemapManager.DungeonMap.Placeholders_Objects_Map,
                                     roomNode,
                                     roomFromTileDict);
 

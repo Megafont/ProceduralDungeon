@@ -24,7 +24,7 @@ namespace ProceduralDungeon.InGame
 
         [SerializeField] private Tilemap _FloorsMap;
         [SerializeField] private Tilemap _WallsMap;
-        [SerializeField] private Tilemap _Placeholders_General_Map; // Holds special placeholder tiles used by the dungeon generator to tell it where it should place certain types of objects.
+        [SerializeField] private Tilemap _Placeholders_Objects_Map;
         [SerializeField] private Tilemap _Placeholders_Items_Map;
         [SerializeField] private Tilemap _Placeholders_Enemies_Map;
 
@@ -46,9 +46,9 @@ namespace ProceduralDungeon.InGame
         {
             Assert.IsNotNull(_FloorsMap, "DungeonManager: The floors map field is null!");
             Assert.IsNotNull(_WallsMap, "DungeonManager: The walls map field is null!");
-            Assert.IsNotNull(_Placeholders_General_Map, "DungeonManager: The placeholders map field is null!");
-            Assert.IsNotNull(_Placeholders_Items_Map, "DungeonManager: The items map field is null!");
-            Assert.IsNotNull(_Placeholders_Enemies_Map, "DungeonManager: The enemies map field is null!");
+            Assert.IsNotNull(_Placeholders_Objects_Map, "DungeonManager: The object placeholders map field is null!");
+            Assert.IsNotNull(_Placeholders_Items_Map, "DungeonManager: The item placeholders map field is null!");
+            Assert.IsNotNull(_Placeholders_Enemies_Map, "DungeonManager: The enemy placeholders map field is null!");
         }
 
 
@@ -94,7 +94,7 @@ namespace ProceduralDungeon.InGame
 
         private void InitDungeonMap()
         {
-            _DungeonMap = new DungeonMap(_FloorsMap, _WallsMap, _Placeholders_General_Map, _Placeholders_Items_Map, _Placeholders_Enemies_Map);
+            _DungeonMap = new DungeonMap(_FloorsMap, _WallsMap, _Placeholders_Objects_Map, _Placeholders_Items_Map, _Placeholders_Enemies_Map);
         }
 
         public DungeonMap DungeonMap

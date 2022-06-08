@@ -390,10 +390,12 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
             return false;
         }
 
-        public static void EvaluateNodeLockCounts()
+        private static void EvaluateNodeLockCounts()
         {            
             Queue<MissionStructureGraphNode> nodeQueue = new Queue<MissionStructureGraphNode>();
             List<MissionStructureGraphNode> visitedNodes = new List<MissionStructureGraphNode>();
+            List<MissionStructureGraphNode> bossLockRooms = new List<MissionStructureGraphNode>();
+
             nodeQueue.Enqueue(_MissionStructureGraph.StartNode);
             _MissionStructureGraph.StartNode.LockCount = 0;
 
@@ -416,6 +418,9 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
                         childNode.GrammarSymbol == GrammarSymbols.T_Lock_Goal)
                     {
                         childNode.LockCount = Math.Max(childNode.LockCount, curNode.LockCount + 1);
+
+                        if (HasBossAsChildNode(childNode) && !bossLockRooms.Contains(childNode))
+                            bossLockRooms.Add(childNode);
                     }
                     else
                     {
@@ -432,7 +437,37 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
 
             } // end foreach node
 
+
+            // Decrement the lock count for any lock room that blocks access to a mini boss or boss.
+            // This way doors on that room can still be used by rooms that don't need to be behind the lock.
+            // We have this special case because if the lock room is blocking a boss, then we make sure to
+            // spawn the lock door on the entrance to the boss room. Otherwise, it gets spawned on the entrance
+            // to the lock room.
+            foreach (MissionStructureGraphNode node in bossLockRooms)
+            {
+                if (node.LockCount > 0)
+                    node.LockCount -= 1;
+            }
         }
+
+
+        private static bool HasBossAsChildNode(MissionStructureGraphNode node)
+        {
+            bool result = false;
+
+            foreach (MSCNData childNodeData in node.ChildNodesData)
+            {
+                if (childNodeData.ChildNode.GrammarSymbol == GrammarSymbols.T_Boss_Mini ||
+                    childNodeData.ChildNode.GrammarSymbol == GrammarSymbols.T_Boss_Main)
+                {
+                    result = true;
+                    break;
+                }
+            }
+
+            return result;
+        }
+
 
         /// <summary>
         /// This method gives all the nodes positions so that they will draw nicely if MissionStructureGraphGizmos are neabled in MissionStructureGraphGizmos.cs.
