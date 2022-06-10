@@ -11,6 +11,8 @@ namespace ProceduralDungeon.InGame
     {
         Unknown = -1,
 
+        Bomb,
+
         Key,
         Key_Multipart,
         Key_Goal,
@@ -81,9 +83,25 @@ namespace ProceduralDungeon.InGame
         /// <param name="itemCount">The number of the item required. Defaults to 1.</param>
         /// <param name="groupID">The group ID of the item. This is used for things like Key IDs. Defaults to -1. This parameter is completely ignored when negative.</param>
         /// <returns>True if the item was found or false otherwise.</returns>
-        public bool HasItem(ItemTypes itemType, uint itemCount = 1, int groupID = -1)
+        public bool ContainsItem(ItemTypes itemType, uint itemCount = 1, int groupID = -1)
         {
             return (GetItemData(itemType, itemCount, groupID) != null);
+        }
+
+        /// <summary>
+        /// Gets the item count of the specified item contained within this inventory.
+        /// </summary>
+        /// <param name="itemType">The type of item to check for.</param>
+        /// <param name="groupID">The group ID of the item. This is used for things like Key IDs. Defaults to -1. This parameter is completely ignored when negative.</param>
+        /// <returns>True if the item was found or false otherwise.</returns>
+        public uint GetItemCount(ItemTypes itemType, int groupID = -1)
+        {
+            ItemData itemData = GetItemData(itemType);
+
+            if (itemData == null)
+                return 0;
+            else
+                return itemData.ItemCount;
         }
 
         public void InsertItem(ItemData itemData)
@@ -106,10 +124,13 @@ namespace ProceduralDungeon.InGame
         public void InsertItems(Inventory inventory)
         {
             foreach (ItemData itemData in inventory._Items)
+            {
+                DEBUG_PrintItem(itemData);
                 InsertItem(itemData);
+            }
+            
 
-
-            //DEBUG_PrintInventory();
+            DEBUG_PrintInventory();
         }
 
         /// <summary>
@@ -149,9 +170,13 @@ namespace ProceduralDungeon.InGame
             Debug.Log(new string('-', 256));
 
             foreach (ItemData itemData in _Items)
-                Debug.Log($"   {itemData.ItemType} - Count: {itemData.ItemCount}    - Group ID: {itemData.GroupID}");
+                DEBUG_PrintItem(itemData);
         }
 
+        void DEBUG_PrintItem(ItemData itemData)
+        {
+            Debug.Log($"   {itemData.ItemType} - Count: {itemData.ItemCount}    - Group ID: {itemData.GroupID}");
+        }
 
     }
 

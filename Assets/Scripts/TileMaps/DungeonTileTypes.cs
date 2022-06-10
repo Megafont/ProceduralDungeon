@@ -74,7 +74,7 @@ namespace ProceduralDungeon.TileMaps
         Walls_DoorFrame_Right = 10003,
         Walls_Doorway_Top = 10004,
         Walls_Top = 10005,
-        Walls_Top_Corner = 10005,
+        Walls_Top_Corner = 10006,
 
 
 

@@ -52,6 +52,8 @@ namespace ProceduralDungeon.TileMaps
         CanHaveKey_Goal = 16,
         CanHaveTreasure = 32,
 
+        CanBeSecretRoom = 64,
+
         Miniboss = 1024,
         Boss = 2048,
     }

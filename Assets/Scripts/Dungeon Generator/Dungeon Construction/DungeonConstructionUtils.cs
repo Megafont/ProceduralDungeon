@@ -33,6 +33,13 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
         private static Dictionary<string, List<BasicDungeonTile>> _DoorwayReplacement_Wall_Tiles = new Dictionary<string, List<BasicDungeonTile>>();
         private static Dictionary<string, List<BasicDungeonTile>> _DoorwayReplacement_WallTop_Tiles = new Dictionary<string, List<BasicDungeonTile>>();
 
+        private static BasicDungeonTile _Door_Bombable_Wall_Closed_Left;
+        private static BasicDungeonTile _Door_Bombable_Wall_Closed_Right;
+        private static BasicDungeonTile _Door_Bombable_Wall_Open_Left;
+        private static BasicDungeonTile _Door_Bombable_Wall_Open_Right;
+        private static BasicDungeonTile _Door_Bombable_WallTop_Left;
+        private static BasicDungeonTile _Door_Bombable_WallTop_Right;
+
 
 
         public static Directions CalculateRoomRotationFromDoorRotation(Directions currentDoorDirection, Directions targetDoorDirection)
@@ -290,7 +297,9 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
                 // Register this tile in the dungeon generator's dictionary to associate it with the room it now belongs to.
                 // Wall top tiles are excluded from counting since the wall top tiles of rooms are allowed to overlap because its fine for them to get overwritten.
                 if (!roomFromTileDict.ContainsKey(pos) &&
-                    (sTile.Tile.TileType != DungeonTileTypes.Walls_Doorway_Top && sTile.Tile.TileType != DungeonTileTypes.Walls_Top))
+                    (sTile.Tile.TileType != DungeonTileTypes.Walls_Doorway_Top && 
+                     sTile.Tile.TileType != DungeonTileTypes.Walls_Top && 
+                     sTile.Tile.TileType != DungeonTileTypes.Walls_Top_Corner))
                 {
                     roomFromTileDict.Add(pos, roomNode);
                 }
@@ -473,6 +482,8 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             List<BasicDungeonTile> doorwayReplacement_Wall_Tiles = GetDoorwayReplacementWallTiles();
             List<BasicDungeonTile> doorwayReplacement_WallTop_Tiles = GetDoorwayReplacementWallTopTiles();
 
+            GetBombableWallTiles();
+
 
             foreach (DungeonDoor door in blockedDoors)
             {
@@ -481,6 +492,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
                 Tilemap wallsMap = tilemapManager.DungeonMap.WallsMap;
 
+                /*
                 // Place a wall tile at the first tile position.
                 Vector3Int upperLeftMost = MiscellaneousUtils.GetUpperLeftMostTile(door.ThisRoom_DoorTile1WorldPosition, door.ThisRoom_DoorTile2WorldPosition);
 
@@ -522,16 +534,27 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
                 Directions direction = door.ThisRoom_DoorAdjustedDirection;
                 if (direction == Directions.East || direction == Directions.West)
                     direction = direction.FlipDirection();
+                */
+
+                DoorwayTilesPlacementInfo tilesInfo = GetDoorTilesPlacementInfo(door);
+
+                bool isBombableWallDoor = false;
+                if (door.OtherRoom_Node != null &&
+                    door.OtherRoom_Node.MissionStructureNode.GrammarSymbol == GenerativeGrammar.Symbols.T_Secret_Room)
+                {
+                    isBombableWallDoor = true;
+                }
+
 
                 for (int i = 0; i < 4; i++)
                 {
-                    Vector3Int wallPos = wallStartPos + (fillDirection * i);
-                    Vector3Int wallTopPos = wallTopStartPos + (fillDirection * i);
-                    Vector3Int floorPos = floorStartPos + (fillDirection * i);
+                    Vector3Int wallPos = tilesInfo.WallStartPos + (tilesInfo.FillDirection * i);
+                    Vector3Int wallTopPos = tilesInfo.WallTopStartPos + (tilesInfo.FillDirection * i);
+                    Vector3Int floorPos = tilesInfo.FloorStartPos + (tilesInfo.FillDirection * i);
 
                     // Create a transform matrix for setting the tile's rotation.
                     Matrix4x4 matrix = Matrix4x4.TRS(Vector3.zero, // We set the position parameter to Vector3.zero, as we don't want to add any offset to the tile's position.
-                                                     direction.DirectionToRotation(),
+                                                     tilesInfo.AdjustedDoorDirection.DirectionToRotation(),
                                                      Vector3.one);
 
 
@@ -549,13 +572,140 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
                     // Remove the protruding bits at the base of the door frame.
                     tilemapManager.DungeonMap.WallsMap.SetTile(floorPos, null);
-                }
+
+
+                    // If this door is a cracked, bombable wall, then replace the two center doorway wall tiles with cracked wall tiles.
+                    if (isBombableWallDoor)
+                        PlaceBombableWallDoor(tilemapManager, tilesInfo, matrix);
+
+
+                } // end for i
 
             } // end foreach door
 
 
             blockedDoors.Clear();
 
+        }
+
+
+        class DoorwayTilesPlacementInfo
+        {
+            public Directions AdjustedDoorDirection; // Door direction adjusted for placing doorway tiles.
+            public Vector3Int FillDirection = Vector3Int.right; // The fill direction for drawing the door tiles (always down or right).
+            public Vector3Int FloorStartPos; // Used to remove the bottom protruding bits of the door frame.
+            public Vector3Int WallTopStartPos; // Position of top or leftmost of the 4-wide row or column of doorway tiles.
+            public Vector3Int WallStartPos; // Position of the top or leftmost of the 4-wide row or column of doorway wall top tiles.
+            public Vector3Int UpperLeftMostTile; // Of the two tiles that make up the door, this is the position of the upperleftmost one.
+        }
+        private static DoorwayTilesPlacementInfo GetDoorTilesPlacementInfo(DungeonDoor door)
+        {
+            DoorwayTilesPlacementInfo tilesInfo = new DoorwayTilesPlacementInfo();
+
+
+            // Place a wall tile at the first tile position.
+            tilesInfo.UpperLeftMostTile = MiscellaneousUtils.GetUpperLeftMostTile(door.ThisRoom_DoorTile1WorldPosition, door.ThisRoom_DoorTile2WorldPosition);
+
+
+            if (door.ThisRoom_DoorAdjustedDirection == Directions.North)
+            {
+                tilesInfo.WallStartPos = tilesInfo.UpperLeftMostTile + Vector3Int.left;
+                tilesInfo.WallTopStartPos = tilesInfo.UpperLeftMostTile + Vector3Int.up + Vector3Int.left;
+                tilesInfo.FloorStartPos = tilesInfo.UpperLeftMostTile + Vector3Int.down + Vector3Int.left;
+                tilesInfo.FillDirection = Vector3Int.right;
+            }
+            else if (door.ThisRoom_DoorAdjustedDirection == Directions.South)
+            {
+                tilesInfo.WallStartPos = tilesInfo.UpperLeftMostTile + Vector3Int.left;
+                tilesInfo.WallTopStartPos = tilesInfo.UpperLeftMostTile + Vector3Int.down + Vector3Int.left;
+                tilesInfo.FloorStartPos = tilesInfo.UpperLeftMostTile + Vector3Int.up + Vector3Int.left;
+                tilesInfo.FillDirection = Vector3Int.right;
+            }
+            else if (door.ThisRoom_DoorAdjustedDirection == Directions.East)
+            {
+                tilesInfo.WallStartPos = tilesInfo.UpperLeftMostTile + Vector3Int.up;
+                tilesInfo.WallTopStartPos = tilesInfo.UpperLeftMostTile + Vector3Int.right + Vector3Int.up;
+                tilesInfo.FloorStartPos = tilesInfo.UpperLeftMostTile + Vector3Int.left + Vector3Int.up;
+                tilesInfo.FillDirection = Vector3Int.down;
+            }
+            else if (door.ThisRoom_DoorAdjustedDirection == Directions.West)
+            {
+                tilesInfo.WallStartPos = tilesInfo.UpperLeftMostTile + Vector3Int.up;
+                tilesInfo.WallTopStartPos = tilesInfo.UpperLeftMostTile + Vector3Int.left + Vector3Int.up;
+                tilesInfo.FloorStartPos = tilesInfo.UpperLeftMostTile + Vector3Int.right + Vector3Int.up;
+                tilesInfo.FillDirection = Vector3Int.down;
+            }
+
+
+            tilesInfo.AdjustedDoorDirection = door.ThisRoom_DoorAdjustedDirection;
+            if (tilesInfo.AdjustedDoorDirection == Directions.East ||
+                tilesInfo.AdjustedDoorDirection == Directions.West)
+            {
+                tilesInfo.AdjustedDoorDirection = tilesInfo.AdjustedDoorDirection.FlipDirection();
+            }
+
+
+            return tilesInfo;
+        }
+
+        public static void PlaceBombableWallDoor(DungeonTilemapManager tilemapManager, DungeonDoor doorway, bool placeOpenTiles = false)
+        {            
+            DoorwayTilesPlacementInfo tilesInfo = GetDoorTilesPlacementInfo(doorway);
+
+            // Create a transform matrix for setting the tile's rotation.
+            Matrix4x4 matrix = Matrix4x4.TRS(Vector3.zero, // We set the position parameter to Vector3.zero, as we don't want to add any offset to the tile's position.
+                                             tilesInfo.AdjustedDoorDirection.DirectionToRotation(),
+                                             Vector3.one);
+
+            PlaceBombableWallDoor(tilemapManager, tilesInfo, matrix, placeOpenTiles);
+        }
+
+        private static void PlaceBombableWallDoor(DungeonTilemapManager tilemapManager, DoorwayTilesPlacementInfo tilesInfo, Matrix4x4 rotationMatrix, bool placeOpenTiles = false)
+        {
+            BasicDungeonTile wallTile1, wallTile2, wallTopTile1, wallTopTile2;
+            BasicDungeonTile tileToPlace;
+
+            wallTopTile1 = _Door_Bombable_WallTop_Left;
+            wallTopTile2 = _Door_Bombable_WallTop_Right;
+
+            if (!placeOpenTiles)
+            {
+                wallTile1 = _Door_Bombable_Wall_Closed_Left;
+                wallTile2 = _Door_Bombable_Wall_Closed_Right;
+            }
+            else
+            {
+                wallTile1 = _Door_Bombable_Wall_Open_Left;
+                wallTile2 = _Door_Bombable_Wall_Open_Right;
+            }
+
+
+            // First, place the two cracked wall tiles.
+            tileToPlace = (tilesInfo.AdjustedDoorDirection == Directions.North || tilesInfo.AdjustedDoorDirection == Directions.West) ? wallTile1 : wallTile2;
+
+            tilemapManager.DungeonMap.WallsMap.SetTile(tilesInfo.WallStartPos + tilesInfo.FillDirection, tileToPlace);
+            tilemapManager.DungeonMap.WallsMap.SetTransformMatrix(tilesInfo.WallStartPos + tilesInfo.FillDirection, rotationMatrix);
+
+
+            tileToPlace = (tilesInfo.AdjustedDoorDirection == Directions.North || tilesInfo.AdjustedDoorDirection == Directions.West) ? wallTile2 : wallTile1;
+
+            tilemapManager.DungeonMap.WallsMap.SetTile(tilesInfo.WallStartPos + tilesInfo.FillDirection * 2, tileToPlace);
+            tilemapManager.DungeonMap.WallsMap.SetTransformMatrix(tilesInfo.WallStartPos + tilesInfo.FillDirection * 2, rotationMatrix);
+
+
+
+            // Next, place the wall top tiles for bombable doors. These have different colliders so the player can walk through the wall.
+            // First, place the two cracked wall tiles.
+            tileToPlace = (tilesInfo.AdjustedDoorDirection == Directions.North || tilesInfo.AdjustedDoorDirection == Directions.West) ? wallTopTile1 : wallTopTile2;
+
+            tilemapManager.DungeonMap.WallsMap.SetTile(tilesInfo.WallTopStartPos + tilesInfo.FillDirection, tileToPlace);
+            tilemapManager.DungeonMap.WallsMap.SetTransformMatrix(tilesInfo.WallTopStartPos + tilesInfo.FillDirection, rotationMatrix);
+
+
+            tileToPlace = (tilesInfo.AdjustedDoorDirection == Directions.North || tilesInfo.AdjustedDoorDirection == Directions.West) ? wallTopTile2 : wallTopTile1;
+
+            tilemapManager.DungeonMap.WallsMap.SetTile(tilesInfo.WallTopStartPos + tilesInfo.FillDirection * 2, tileToPlace);
+            tilemapManager.DungeonMap.WallsMap.SetTransformMatrix(tilesInfo.WallTopStartPos + tilesInfo.FillDirection * 2, rotationMatrix);
         }
 
         private static BasicDungeonTile GetWallTopCorner3WayTile()
@@ -566,7 +716,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
             string tilesPath = ScriptableRoomUtilities.GetRoomSetTilesPath(_CurrentRoomSet);
             
-            BasicDungeonTile tile = (BasicDungeonTile)Resources.Load(tilesPath + "/Wall_Top_Corner_3Way");
+            BasicDungeonTile tile = (BasicDungeonTile)Resources.Load(tilesPath + "/WallTop_Corner_3Way");
 
             _WallTopCornerTiles_3Way[_CurrentRoomSet] = tile;
 
@@ -581,7 +731,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
             string tilesPath = ScriptableRoomUtilities.GetRoomSetTilesPath(_CurrentRoomSet);
 
-            BasicDungeonTile tile = (BasicDungeonTile)Resources.Load(tilesPath + "/Wall_Top_Corner_4Way");
+            BasicDungeonTile tile = (BasicDungeonTile)Resources.Load(tilesPath + "/WallTop_Corner_4Way");
 
             _WallTopCornerTiles_4Way[_CurrentRoomSet] = tile;
 
@@ -615,15 +765,38 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             string tilesPath = ScriptableRoomUtilities.GetRoomSetTilesPath(_CurrentRoomSet);
 
             List<BasicDungeonTile> list = new List<BasicDungeonTile>();
-            list.Add((BasicDungeonTile) Resources.Load(tilesPath + "/Wall_Top_Cracks_01"));
-            list.Add((BasicDungeonTile) Resources.Load(tilesPath + "/Wall_Top_Cracks_02"));
-            list.Add((BasicDungeonTile) Resources.Load(tilesPath + "/Wall_Top_Cracks_03"));
-            list.Add((BasicDungeonTile) Resources.Load(tilesPath + "/Wall_Top_Cracks_04"));
-            list.Add((BasicDungeonTile) Resources.Load(tilesPath + "/Wall_Top_Cracks_05"));
+            list.Add((BasicDungeonTile) Resources.Load(tilesPath + "/WallTop_Cracks_01"));
+            list.Add((BasicDungeonTile) Resources.Load(tilesPath + "/WallTop_Cracks_02"));
+            list.Add((BasicDungeonTile) Resources.Load(tilesPath + "/WallTop_Cracks_03"));
+            list.Add((BasicDungeonTile) Resources.Load(tilesPath + "/WallTop_Cracks_04"));
+            list.Add((BasicDungeonTile) Resources.Load(tilesPath + "/WallTop_Cracks_05"));
 
             _DoorwayReplacement_WallTop_Tiles[_CurrentRoomSet] = list;
 
             return list;
+        }
+
+        private static void GetBombableWallTiles()
+        {
+            if (_Door_Bombable_Wall_Closed_Left != null && _Door_Bombable_Wall_Closed_Right != null &&
+                _Door_Bombable_Wall_Open_Left != null && _Door_Bombable_Wall_Open_Right != null &&
+                _Door_Bombable_WallTop_Left != null && _Door_Bombable_WallTop_Right != null)
+            {
+                return;
+            }
+
+
+            string tilesPath = ScriptableRoomUtilities.GetRoomSetTilesPath(_CurrentRoomSet);
+
+            _Door_Bombable_Wall_Closed_Left = (BasicDungeonTile)Resources.Load(tilesPath + "/Wall_Bombable_Closed_Left");
+            _Door_Bombable_Wall_Closed_Right = (BasicDungeonTile)Resources.Load(tilesPath + "/Wall_Bombable_Closed_Right");
+
+            _Door_Bombable_Wall_Open_Left = (BasicDungeonTile)Resources.Load(tilesPath + "/Wall_Bombable_Open_Left");
+            _Door_Bombable_Wall_Open_Right = (BasicDungeonTile)Resources.Load(tilesPath + "/Wall_Bombable_Open_Right");
+
+            _Door_Bombable_WallTop_Left = (BasicDungeonTile)Resources.Load(tilesPath + "/WallTop_Bombable_Left");
+            _Door_Bombable_WallTop_Right = (BasicDungeonTile)Resources.Load(tilesPath + "/WallTop_Bombable_Right");
+
         }
 
     }

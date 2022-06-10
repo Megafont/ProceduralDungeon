@@ -57,6 +57,7 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
             T_Lock, // A lock opened by a regular key.
             T_Lock_Goal, // The lock blocking the final goal of the area (like a boss room).
             T_Lock_Multi, // A lock opened by a multipart key.
+            T_Secret_Room, // A secret room accessed by destroying a bombable wall.
             T_Treasure_Bonus, // Something like a chest with money or a health item, a mineable resource node, etc.
             T_Treasure_Key, // A regular key.
             T_Treasure_Key_Goal, // The master key that unlocks the final challenge in the area (like a boss key in Zelda games).

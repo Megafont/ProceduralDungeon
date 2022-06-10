@@ -5,6 +5,7 @@ TagManager:
   serializedVersion: 2
   tags:
   - Door
+  - Door_BombableWall
   layers:
   - Default
   - TransparentFX
@@ -17,7 +18,7 @@ TagManager:
   - Objects
   - Floor
   - Player
-  - 
+  - Enemies
   - 
   - 
   - 
@@ -45,6 +46,12 @@ TagManager:
   - name: Floors
     uniqueID: 3364995191
     locked: 0
+  - name: Player
+    uniqueID: 1655063909
+    locked: 0
+  - name: Enemies
+    uniqueID: 1245870035
+    locked: 0
   - name: Walls
     uniqueID: 3800475121
     locked: 0
@@ -53,7 +60,4 @@ TagManager:
     locked: 0
   - name: Objects
     uniqueID: 1243288589
-    locked: 0
-  - name: Player
-    uniqueID: 1655063909
     locked: 0

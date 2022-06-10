@@ -4,47 +4,57 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-//[RequireComponent(typeof(BoxCollider2D))]
-public class Object_Spikes : MonoBehaviour
+namespace ProceduralDungeon.InGame.Objects
 {
-    [SerializeField]
-    private float _DamageDelay = 1.0f; // Time before damage is dealt again if still in contact with the spikes.
-    [SerializeField]
-    private float _DamageAmount = 15f; // Amount of damage to deal on contact.
 
-    Health _PlayerHealth;
-    float _TimeSinceLastDamage = 0;
-
-
-
-    // Start is called before the first frame update
-    void Start()
+    [RequireComponent(typeof(BoxCollider2D))]
+    public class Object_Spikes : MonoBehaviour
     {
-        GameObject player = GameObject.Find("Player");
-        _PlayerHealth = player.GetComponent<Health>();
-    }
+        [SerializeField]
+        private float _DamageDelay = 1.0f; // Time before damage is dealt again if still in contact with the spikes.
+        [SerializeField]
+        private float _DamageAmount = 15f; // Amount of damage to deal on contact.
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+        Health _PlayerHealth;
+        float _TimeSinceLastDamage = 0;
 
-    void OnTriggerEnter2D(Collider2D collision)
-    {
-        _TimeSinceLastDamage = 0;
-    }
 
-    void OnTriggerStay2D(Collider2D collision)
-    {
-        if (collision.tag == "Player" && _TimeSinceLastDamage >= _DamageDelay)
+
+        // Start is called before the first frame update
+        void Start()
         {
-            _PlayerHealth.DealDamage(_DamageAmount);
+            GameObject player = GameObject.Find("Player");
+            _PlayerHealth = player.GetComponent<Health>();
+        }
+
+        // Update is called once per frame
+        void Update()
+        {
+
+        }
+
+        void OnTriggerEnter2D(Collider2D collision)
+        {
             _TimeSinceLastDamage = 0;
         }
 
-        _TimeSinceLastDamage += Time.deltaTime;
-    }
+        private void OnTriggerExit2D(Collider2D collision)
+        {
+            _TimeSinceLastDamage = 0;
+        }
 
+        void OnTriggerStay2D(Collider2D collision)
+        {
+            if (collision.tag == "Player" && _TimeSinceLastDamage == 0 || _TimeSinceLastDamage >= _DamageDelay)
+            {
+                _PlayerHealth.DealDamage(_DamageAmount);
+                _TimeSinceLastDamage = 0;
+            }
+
+            _TimeSinceLastDamage += Time.deltaTime;
+        }
+
+
+    }
 
 }

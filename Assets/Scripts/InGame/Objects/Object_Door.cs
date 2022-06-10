@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 using UnityEngine;
 
+using ProceduralDungeon.DungeonGeneration.DungeonGraphGeneration;
 using ProceduralDungeon.InGame.Items;
 
 
@@ -26,6 +27,10 @@ namespace ProceduralDungeon.InGame.Objects
 
     public class Object_Door : MonoBehaviour
     {
+        [SerializeField]
+        public DungeonDoor Doorway; // The doorway this entity represents.
+
+
         [SerializeField]
         public Sprite ClosedSprite;
         [SerializeField]

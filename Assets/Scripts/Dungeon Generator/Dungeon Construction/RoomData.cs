@@ -33,6 +33,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
         public string RoomName;
         public RoomLevels RoomLevel = RoomLevels.Level_1stFloor;
+        public RoomSets RoomSet = RoomSets.Test;
         public RoomTypeFlags RoomTypeFlags = 0;
 
 
@@ -67,6 +68,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
             RoomName = loadedRoom.RoomName;
             RoomLevel = loadedRoom.RoomLevel;
+            RoomSet = loadedRoom.RoomSet;
             RoomTypeFlags = loadedRoom.RoomTypeFlags;
 
 

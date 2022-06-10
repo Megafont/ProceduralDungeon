@@ -30,6 +30,11 @@ namespace ProceduralDungeon.TileMaps
             return $"Assets/Resources/Rooms/{roomSet}";
         }
 
+        public static string GetRoomSetPrefabsPath(string roomSet)
+        {
+            return $"Prefabs/{roomSet}";
+        }
+
         public static string GetRoomSetSpritesPath(string roomSet)
         {
             return $"Sprites/{roomSet}";

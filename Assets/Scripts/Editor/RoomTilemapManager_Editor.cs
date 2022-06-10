@@ -79,7 +79,7 @@ namespace ProceduralDungeon.EditorScripts
             // Room settings section
             // ----------------------------------------------------------------------------------------------------
 
-            EditorGUILayout.LabelField("Commands", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("Room Settings", EditorStyles.boldLabel);
 
             EditorGUILayout.PropertyField(_RoomName);
             EditorGUILayout.PropertyField(_RoomSet);

@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5717fe11abd12e44196e7d5da19d288f, type: 3}
-  m_Name: Wall_Top_Doorway_CenterLeft
+  m_Name: Wall_Bombable_Open_Right
   m_EditorClassIdentifier: 
-  m_Sprite: {fileID: 1281755613, guid: 0f74c49c188d02945b490b00172a5e5d, type: 3}
+  m_Sprite: {fileID: 1870726128, guid: 0f74c49c188d02945b490b00172a5e5d, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Transform:
     e00: 1
@@ -35,4 +35,4 @@ MonoBehaviour:
   m_Flags: 1
   m_ColliderType: 1
   RotateWithRoom: 1
-  TileType: 10004
+  TileType: 10000

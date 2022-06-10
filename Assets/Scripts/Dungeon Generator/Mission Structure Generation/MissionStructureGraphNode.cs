@@ -6,6 +6,10 @@ using System.Threading.Tasks;
 using UnityEngine;
 
 using ProceduralDungeon.DungeonGeneration.DungeonGraphGeneration;
+using ProceduralDungeon.DungeonGeneration.MissionStructureGeneration;
+
+
+using GrammarSymbols = ProceduralDungeon.DungeonGeneration.MissionStructureGeneration.GenerativeGrammar.Symbols;
 using MSCNData = ProceduralDungeon.DungeonGeneration.MissionStructureGeneration.MissionStructureChildNodeData;
 
 
@@ -69,6 +73,17 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
                 }
 
             } // end foreach childData
+
+            return false;
+        }
+
+        public bool ContainsChildOfType(GrammarSymbols type)
+        {
+            foreach (MSCNData childNodeData in ChildNodesData)
+            {
+                if (childNodeData.ChildNode.GrammarSymbol == type)
+                    return true;
+            }
 
             return false;
         }

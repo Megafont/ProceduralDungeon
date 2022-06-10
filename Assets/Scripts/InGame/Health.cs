@@ -36,7 +36,7 @@ public class Health : MonoBehaviour
     public void DealDamage(float damageAmount)
     {
         _Health = Mathf.Max(0, _Health - damageAmount);
-        Debug.Log("Player Damaged: " + _Health);
+
         UpdateHealthBar();
 
         OnTakeDamage?.Invoke(this); // Fire the OnTakeDamage event.
@@ -48,7 +48,6 @@ public class Health : MonoBehaviour
     public void Heal(float healAmount)
     {
         _Health = Mathf.Min(_MaxHealth, _Health + healAmount);
-        Debug.Log("Player Healed: " + _Health);
 
         UpdateHealthBar();
 

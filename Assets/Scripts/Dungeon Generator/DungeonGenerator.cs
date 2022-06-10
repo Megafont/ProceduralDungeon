@@ -26,7 +26,7 @@ namespace ProceduralDungeon.DungeonGeneration
 {
     public static class DungeonGenerator
     {
-        private const float EXTRA_DOORS_ROOM_SPAWN_CHANCE = 0.25f; // The probability that each unused doorway will have a new room spawned next to it after the main dungeon generation is done.
+        private const float EXTRA_DOORS_ROOM_SPAWN_CHANCE = 0.3f; // The probability that each unused doorway will have a new room spawned next to it after the main dungeon generation is done.
         private const int LINEAR_DOOR_SCAN_LENGTH = 5; // How many tiles to scan in front of a door for room collisions and neighboring doors.
         private const int MAX_ROOM_BLUEPRINT_SELECTION_ATTEMPTS = 16; // Max. number of times to try choosing and placing a room blueprint before aborting.
         private const int MAX_ROOM_CONNECTION_ATTEMPTS = 16; // Max. number of times to try connecting a new room into one of the unconnected doors on the dungeon.
@@ -122,6 +122,13 @@ namespace ProceduralDungeon.DungeonGeneration
             _IsInitialized = true;
         }
 
+        public static DungeonGraphNode GetRoomDataFromTilePosition(Vector3Int tilePos)
+        {
+            return _RoomFromTileDict[tilePos];
+        }
+
+
+
         private static void ClearPreviousData()
         {
             _AllRooms.Clear();
@@ -211,17 +218,6 @@ namespace ProceduralDungeon.DungeonGeneration
 
             _DungeonTilemapManager.DungeonMap.ClearAllTileMaps();
 
-
-            // 3659200998 : Door into wall seeds
-            // 3659201262
-            // 3659201572 : Doors mismatched seed (two doors end up touching, but are not on the same floor as each other)
-            // 3659388979
-            // 3659392483
-            // 3659556263
-            // 3659563007
-            // 3659637319
-            // 3659734668
-            // 3659799015
 
             // Init the random number generators.
             InitRNG(3660483198);
@@ -622,6 +618,9 @@ namespace ProceduralDungeon.DungeonGeneration
                 case GrammarSymbols.T_Goal:
                     flags = RoomTypeFlags.CanBeGoal;
                     break;
+                case GrammarSymbols.T_Secret_Room:
+                    flags = RoomTypeFlags.CanBeSecretRoom;
+                    break;
                 case GrammarSymbols.T_Treasure_Key:
                     flags = RoomTypeFlags.CanHaveKey;
                     break;
@@ -660,7 +659,7 @@ namespace ProceduralDungeon.DungeonGeneration
                 else if (random <= EXTRA_DOORS_ROOM_SPAWN_CHANCE) // Should we spawn a new door?
                 {
                     // Create a mission structure node for the new room.
-                    MissionStructureGraphNode structureNode = new MissionStructureGraphNode(GrammarSymbols.T_Test_Combat);
+                    MissionStructureGraphNode structureNode = new MissionStructureGraphNode(GrammarSymbols.T_Secret_Room);
 
                     // Create a door object from the perspective of the new room by setting its parent room fields.
                     DungeonDoor newRoomDoor = new DungeonDoor();
@@ -691,6 +690,8 @@ namespace ProceduralDungeon.DungeonGeneration
                     // Place the room in the tilemaps.
                     DungeonConstructionUtils.PlaceRoomTiles(_DungeonTilemapManager, roomNode, _RoomFromTileDict);
 
+                    // Add the door that connects to the new room into the blocked doors list so the wall will get changed to a bomb wall when we seal up all blocked doors.
+                    MarkDoorAsUnavailable(newRoomDoor.OtherRoom_Node.Doorways[(int) newRoomDoor.OtherRoom_DoorIndex], true);
                 }
                 else
                 {
@@ -1004,6 +1005,7 @@ namespace ProceduralDungeon.DungeonGeneration
             doorToEdit.OtherRoom_Node = parentRoomNode;
             doorToEdit.OtherRoom_DoorIndex = parentRoomDoorIndex;
 
+
             // Remove each room's door from the available doors and unconnected doors lists since they are no longer unconnected.
             MarkDoorAsUnavailable(parentRoomNode.Doorways[(int)parentRoomDoorIndex], false);
             MarkDoorAsUnavailable(newRoomNode.Doorways[(int)newRoomDoorIndex], false);
@@ -1198,7 +1200,11 @@ namespace ProceduralDungeon.DungeonGeneration
             // I added this if statement, because it crashed when my test room set had no start rooms on the 2nd floor. So now it returns null in this case.
             if (list.Count == 0)
             {
-                throw new Exception($"DungeonGenerator.CreateRoom() - Failed to create a new room, because no room blueprint with {doorCount} doors was found on floor {roomLevel}!");
+                if (!filterByRoomType)
+                    throw new Exception($"DungeonGenerator.CreateRoom() - Failed to create a new room, because no room blueprint with {doorCount} doors was found on floor {roomLevel}!");
+                else
+                    throw new Exception($"DungeonGenerator.CreateRoom() - Failed to create a new room, because no room blueprint with {doorCount} doors was found on floor {roomLevel} with room type flags [{roomTypeFlags}]!");
+
                 //return null;
             }
             else

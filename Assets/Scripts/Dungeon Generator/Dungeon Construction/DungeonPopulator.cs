@@ -25,8 +25,10 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
         private static string _CurrentRoomSet;
         private static GameObject _ItemsParent;
         private static GameObject _ObjectsParent;
-
-        private static Dictionary<string, Dictionary<string, Sprite>> _SpritesDictionary;
+        private static GameObject _Objects_Chests_Parent;
+        private static GameObject _Objects_Doors_Parent;
+        private static GameObject _Objects_Doors_BombableWalls_Parent;
+        private static GameObject _Objects_Spikes_Parent;
 
         private static Dictionary<MissionStructureGraphNode, Object_Door> _LockedDoorsDictionary;
         private static Dictionary<MissionStructureGraphNode, Inventory> _KeyChestsDictionary;
@@ -39,6 +41,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
         private static GameObject _Prefab_Object_Chest;
         private static GameObject _Prefab_Object_ChestGoal;
         private static GameObject _Prefab_Object_Door;
+        private static GameObject _Prefab_Object_Door_BombableWall;
         private static GameObject _Prefab_Object_Spikes;
 
         private static GameObject _Prefab_Item_Key;
@@ -62,12 +65,15 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             _NextKeyID = 0;
 
 
-            _SpritesDictionary = new Dictionary<string, Dictionary<string, Sprite>>();
-
-
             // Find the parent game objects of spawned dungeon items/objects.
             _ItemsParent = GameObject.Find("SpawnedItems");
+
             _ObjectsParent = GameObject.Find("SpawnedObjects");
+            _Objects_Chests_Parent = _ObjectsParent.transform.Find("Chests").gameObject;
+            _Objects_Doors_Parent = _ObjectsParent.transform.Find("Doors").gameObject;
+            _Objects_Doors_BombableWalls_Parent = _ObjectsParent.transform.Find("Doors_BombableWalls").gameObject;
+            _Objects_Spikes_Parent = _ObjectsParent.transform.Find("Spikes").gameObject;
+
 
             // Clear out any previously spawned dungeon items/objects.
             ClearAnyPreviousSpawnedPrefabs();
@@ -101,6 +107,12 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
                             doorway = GetDoorFromParentRoomToThisRoom(roomNode);
 
                         SpawnObject_Door(doorway, DoorLockTypes.Lock_Goal);
+                        break;
+
+                    case GrammarSymbols.T_Secret_Room:
+                        doorway = GetDoorFromParentRoomToThisRoom(roomNode);
+
+                        SpawnObject_Door_BombableWall(doorway);
                         break;
 
                     case GrammarSymbols.T_Treasure_Key:
@@ -152,8 +164,10 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             DestroyAllChildGameObjects(_ItemsParent);
 
             // Destroy any previously spawned objects.
-            DestroyAllChildGameObjects(_ObjectsParent);
-
+            DestroyAllChildGameObjects(_Objects_Chests_Parent);
+            DestroyAllChildGameObjects(_Objects_Doors_Parent);
+            DestroyAllChildGameObjects(_Objects_Doors_BombableWalls_Parent);
+            DestroyAllChildGameObjects(_Objects_Spikes_Parent);
         }
 
         private static void LoadPrefabs()
@@ -172,6 +186,10 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
             if (_Prefab_Object_Door == null)
                 _Prefab_Object_Door = (GameObject)Resources.Load("Prefabs/Objects/Object_Door");
+
+            if (_Prefab_Object_Door_BombableWall == null)
+                _Prefab_Object_Door_BombableWall = (GameObject)Resources.Load("Prefabs/Objects/Object_Door_BombableWall");
+
 
             if (_Prefab_Object_Spikes == null)
                 _Prefab_Object_Spikes = (GameObject)Resources.Load("Prefabs/Objects/Object_Spikes");
@@ -210,32 +228,73 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
 
             // Spawn a door object and configure it.
-            GameObject door = GameObject.Instantiate(_Prefab_Object_Door, centerPoint, rotation, _ObjectsParent.transform);
+            GameObject door = GameObject.Instantiate(_Prefab_Object_Door, centerPoint, rotation, _Objects_Doors_Parent.transform);
             Object_Door doorComponent = door.GetComponent<Object_Door>();
 
-            
+
             // We use the other room node for non-goal locked doors, because these locked doors spawn in the room next to the lock room,
             // thus preventing access to the room.
-            if (lockType != DoorLockTypes.Lock_Goal)
+            // This is also true if this lock is blocking a mini boss room.
+            if (lockType != DoorLockTypes.Lock_Goal &&
+                doorToSpawn.OtherRoom_Node.MissionStructureNode.GrammarSymbol != GrammarSymbols.T_Boss_Mini)
+            {
                 _LockedDoorsDictionary.Add(doorToSpawn.OtherRoom_Node.MissionStructureNode, doorComponent);
+}
             else
+            {
                 _LockedDoorsDictionary.Add(doorToSpawn.ThisRoom_Node.MissionStructureNode, doorComponent);
+            }
             
 
 
             doorComponent.Key_ID = _NextKeyID;
             _NextKeyID++;
-            
+
+            doorComponent.Doorway = doorToSpawn; // Give the new object a reference to the doorway it represents.
             doorComponent.DoorState = DoorStates.Locked;
             doorComponent.LockType = lockType;
 
-            doorComponent.ClosedSprite = GetObjectSprite("Objects_Door_Closed", _CurrentRoomSet);
-            doorComponent.LockedSprite = GetObjectSprite("Objects_Door_Locked", _CurrentRoomSet);
-            doorComponent.LockedMultipartSprite = GetObjectSprite("Objects_Door_Locked_Multipart", _CurrentRoomSet);
-            doorComponent.LockedGoalSprite = GetObjectSprite("Objects_Door_Locked_Goal", _CurrentRoomSet);
+            RoomSets roomSet = doorToSpawn.ThisRoom_Node.RoomBlueprint.RoomSet;
+            doorComponent.ClosedSprite = SpriteLoader.GetObjectSprite("Objects_Door_Closed", roomSet);
+            doorComponent.LockedSprite = SpriteLoader.GetObjectSprite("Objects_Door_Locked", roomSet);
+            doorComponent.LockedMultipartSprite = SpriteLoader.GetObjectSprite("Objects_Door_Locked_Multipart", roomSet);
+            doorComponent.LockedGoalSprite = SpriteLoader.GetObjectSprite("Objects_Door_Locked_Goal", roomSet);
 
             doorComponent.ToggleState();
 
+        }
+
+        private static void SpawnObject_Door_BombableWall(DungeonDoor doorToSpawn)
+        {
+            Vector3 offset;
+            Quaternion rotation;
+            Directions doorDirection = doorToSpawn.ThisRoom_DoorAdjustedDirection;
+
+            if (doorDirection == Directions.North ||
+                doorDirection == Directions.South)
+            {
+                offset = doorDirection == Directions.North ? new Vector3(1.0f, 0.5f) :
+                                                             new Vector3(1.0f, 0.5f);
+                rotation = doorToSpawn.ThisRoom_DoorAdjustedDirection.DirectionToRotation(); // We don't flip the direction here like we do for east/west doors. This is because the door object faces south by default, so we don't need to flip the door to make it face north.
+            }
+            else
+            {
+                offset = doorDirection == Directions.East ? new Vector3(0.5f, 0.0f) :
+                                                            new Vector3(0.5f, 0.0f);
+                rotation = doorToSpawn.ThisRoom_DoorAdjustedDirection.FlipDirection().DirectionToRotation();
+            }
+
+
+            // Calculate the center point of the door.
+            Vector3 centerPoint = MiscellaneousUtils.GetUpperLeftMostTile(doorToSpawn.ThisRoom_DoorTile1WorldPosition, doorToSpawn.ThisRoom_DoorTile2WorldPosition);
+            centerPoint += offset;
+
+
+            // Spawn a door object and configure it.
+            GameObject door = GameObject.Instantiate(_Prefab_Object_Door_BombableWall, centerPoint, rotation, _Objects_Doors_BombableWalls_Parent.transform);
+
+            // Give the new object a reference to the doorway it represents.
+            door.GetComponent<Object_Door_BombableWall>().Doorway = doorToSpawn;
         }
 
         private static void SpawnObject_Spikes(Vector3Int position, DungeonGraphNode roomNode)
@@ -247,11 +306,15 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             GameObject spikes = GameObject.Instantiate(_Prefab_Object_Spikes, 
                                                        centerPoint + _ObjectOffsetVector, 
                                                        Quaternion.identity, 
-                                                       _ObjectsParent.transform);
+                                                       _Objects_Spikes_Parent.transform);
 
+
+            RoomSets roomSet = roomNode.RoomBlueprint.RoomSet;
             Object_Spikes spikesComponent = spikes.GetComponent<Object_Spikes>();
-            spikesComponent.GetComponent<SpriteRenderer>().sprite = GetObjectSprite("Objects_Spikes", _CurrentRoomSet);
+            spikesComponent.GetComponent<SpriteRenderer>().sprite = SpriteLoader.GetObjectSprite("Objects_Spikes", roomSet);
         }
+
+
 
         private static void SpawnItem_Key(DungeonGraphNode roomNode, NoiseRNG rng, KeyTypes keyType)
         {
@@ -277,7 +340,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
                 chestPrefab = _Prefab_Object_ChestGoal;
 
             // Spawn a chest containing a key.
-            GameObject chest = GameObject.Instantiate(chestPrefab, _ItemOffsetVector + keyPosWorld, Quaternion.identity, _ObjectsParent.transform);
+            GameObject chest = GameObject.Instantiate(chestPrefab, _ItemOffsetVector + keyPosWorld, Quaternion.identity, _Objects_Chests_Parent.transform);
             
             // Get the Inventory component and add it to our dictionary to track it for a later pass to setup the key/lock pairs.
             Inventory chestInventory = chest.GetComponent<Inventory>();
@@ -285,15 +348,16 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
             // Setup the chest's sprite properties.
             Object_Chest objChest = chest.GetComponent<Object_Chest>();
+            RoomSets roomSet = roomNode.RoomBlueprint.RoomSet;
             if (keyType != KeyTypes.Key_Goal)
             {
-                objChest.ClosedSprite = GetObjectSprite("Objects_Chest_Closed", _CurrentRoomSet);
-                objChest.OpenSprite = GetObjectSprite("Objects_Chest_Open", _CurrentRoomSet);
+                objChest.ClosedSprite = SpriteLoader.GetObjectSprite("Objects_Chest_Closed", roomSet);
+                objChest.OpenSprite = SpriteLoader.GetObjectSprite("Objects_Chest_Open", roomSet);
             }
             else
             {
-                objChest.ClosedSprite = GetObjectSprite("Objects_ChestGoal_Closed", _CurrentRoomSet);
-                objChest.OpenSprite = GetObjectSprite("Objects_ChestGoal_Open", _CurrentRoomSet);
+                objChest.ClosedSprite = SpriteLoader.GetObjectSprite("Objects_ChestGoal_Closed", roomSet);
+                objChest.OpenSprite = SpriteLoader.GetObjectSprite("Objects_ChestGoal_Open", roomSet);
             }
 
             objChest.GetComponent<SpriteRenderer>().sprite = objChest.ClosedSprite;
@@ -314,13 +378,14 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
                         if (lockedDoor == null)
                             continue;
 
-                        lockedDoor.MultipartKeyCount++;
-
                         KeyTypes keyType = KeyTypes.Key;
                         if (lockedDoor.LockType == DoorLockTypes.Lock)
                             keyType = KeyTypes.Key;
                         else if (lockedDoor.LockType == DoorLockTypes.Lock_Multipart)
+                        {
                             keyType = KeyTypes.Key_Multipart;
+                            lockedDoor.MultipartKeyCount++;
+                        }
                         else if (lockedDoor.LockType == DoorLockTypes.Lock_Goal)
                             keyType = KeyTypes.Key_Goal;
 
@@ -408,44 +473,6 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
                 GameObject.DestroyImmediate(child.gameObject);
             }
 
-        }
-
-        private static Sprite GetItemSprite(string spriteName, string roomSet)
-        {
-            return GetSprite(spriteName, roomSet, "Items");
-        }
-
-        private static Sprite GetObjectSprite(string spriteName, string roomSet)
-        {
-            return GetSprite(spriteName, roomSet, "Objects");
-        }
-
-        private static Sprite GetSprite(string spriteName, string roomSet, string type)
-        {
-            Sprite sprite;
-            Dictionary<string, Sprite> dict;
-            
-
-            _SpritesDictionary.TryGetValue(roomSet, out dict);
-            if (dict != null)
-            {
-                dict.TryGetValue(spriteName, out sprite);
-
-                if (sprite != null)
-                    return sprite;
-            }
-            else
-            {
-                dict = new Dictionary<string, Sprite>();
-                _SpritesDictionary.Add(roomSet, dict);
-            }
-
-
-            string spritesPath = ScriptableRoomUtilities.GetRoomSetSpritesPath(roomSet);
-            sprite = Resources.Load<Sprite>($"{spritesPath}/{type}/{spriteName}");
-            dict.Add(spriteName, sprite);
-
-            return sprite;
         }
 
 

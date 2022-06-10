@@ -70,6 +70,7 @@ namespace ProceduralDungeon.RoomCreator
 
             newRoom.RoomLevel = _RoomLevel;
             newRoom.RoomName = _RoomName;
+            newRoom.RoomSet = _RoomSet;
             newRoom.RoomTypeFlags = _RoomTypeFlags;
 
 
@@ -119,6 +120,7 @@ namespace ProceduralDungeon.RoomCreator
             {
                 _RoomLevel = loadedRoom.RoomLevel;
                 _RoomName = System.IO.Path.GetFileNameWithoutExtension(filePath);
+                _RoomSet = loadedRoom.RoomSet;
                 _RoomTypeFlags = loadedRoom.RoomTypeFlags;
                 return LoadRoomReturnCodes.Success;
             }

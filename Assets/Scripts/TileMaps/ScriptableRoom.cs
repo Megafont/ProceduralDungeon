@@ -35,6 +35,7 @@ namespace ProceduralDungeon.TileMaps
 
         public string RoomName;
         public RoomLevels RoomLevel = RoomLevels.Level_1stFloor;
+        public RoomSets RoomSet = RoomSets.Test;
         public RoomTypeFlags RoomTypeFlags = 0;
 
 
