@@ -70,14 +70,14 @@ namespace ProceduralDungeon.InGame.Items
         public static ItemTypes KeyTypeFromItemType(KeyTypes keyType)
         {
             if (keyType == KeyTypes.Key)
-                return ItemTypes.Key;
+                return ItemTypes.Item_Key;
             if (keyType == KeyTypes.Key_Multipart)
-                return ItemTypes.Key_Multipart;
+                return ItemTypes.Item_Key_Part;
             if (keyType == KeyTypes.Key_Goal)
-                return ItemTypes.Key_Goal;
+                return ItemTypes.Item_Key_Goal;
 
             // This should never run, but is just here to stop the compiler complaining that not all paths return a value.
-            return ItemTypes.Unknown;
+            return ItemTypes.Item_Unknown;
         }
 
 

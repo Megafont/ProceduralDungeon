@@ -37,7 +37,7 @@ namespace ProceduralDungeon.InGame
 
             _MyInventory = GetComponent<Inventory>();
             
-            _MyInventory.InsertItem(new ItemData() { ItemType = ItemTypes.Bomb, ItemCount = 10, GroupID = 0 });
+            _MyInventory.InsertItem(new ItemData() { ItemType = ItemTypes.Item_Bomb, ItemCount = 10, GroupID = 0 });
 
             if (_Prefab_Item_Bomb == null)
                 _Prefab_Item_Bomb = (GameObject)Resources.Load("Prefabs/Items/Item_Bomb");
@@ -69,7 +69,7 @@ namespace ProceduralDungeon.InGame
         void OnAction1()
         {
             // Check if the player has a bomb.
-            if (!_MyInventory.ContainsItem(ItemTypes.Bomb, 1))
+            if (!_MyInventory.ContainsItem(ItemTypes.Item_Bomb, 1))
                 return;
 
             LayerMask layerMask = (1 << LayerMask.NameToLayer("Walls")) |
@@ -79,7 +79,7 @@ namespace ProceduralDungeon.InGame
             RaycastHit2D hit = Physics2D.Raycast(transform.position, _LastMoveDirection, 1.0f, layerMask);
             if (hit.collider == null)
             {
-                _MyInventory.RemoveItem(ItemTypes.Bomb, 1);
+                _MyInventory.RemoveItem(ItemTypes.Item_Bomb, 1);
 
                 GameObject litBomb = Instantiate(_Prefab_Item_Bomb, 
                                                  transform.position + _LastMoveDirection, 

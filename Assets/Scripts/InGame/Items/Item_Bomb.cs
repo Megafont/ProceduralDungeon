@@ -5,6 +5,7 @@ using UnityEngine;
 
 using ProceduralDungeon.DungeonGeneration;
 using ProceduralDungeon.DungeonGeneration.DungeonGraphGeneration;
+using ProceduralDungeon.InGame.Objects;
 using ProceduralDungeon.TileMaps;
 
 
@@ -139,7 +140,7 @@ namespace ProceduralDungeon.InGame.Items
                     Health health = collider.gameObject.GetComponent<Health>();
 
                     if (health != null)
-                        health.DealDamage(_ExplosionDamage);
+                        health.DealDamage(_ExplosionDamage, DamageTypes.BombBlast);
                 }
                 else if (collider.gameObject.tag == "Door_BombableWall")
                 {

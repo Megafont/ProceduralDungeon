@@ -255,10 +255,10 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             doorComponent.LockType = lockType;
 
             RoomSets roomSet = doorToSpawn.ThisRoom_Node.RoomBlueprint.RoomSet;
-            doorComponent.ClosedSprite = SpriteLoader.GetObjectSprite("Objects_Door_Closed", roomSet);
-            doorComponent.LockedSprite = SpriteLoader.GetObjectSprite("Objects_Door_Locked", roomSet);
-            doorComponent.LockedMultipartSprite = SpriteLoader.GetObjectSprite("Objects_Door_Locked_Multipart", roomSet);
-            doorComponent.LockedGoalSprite = SpriteLoader.GetObjectSprite("Objects_Door_Locked_Goal", roomSet);
+            doorComponent.ClosedSprite = SpriteLoader.GetObjectSprite("Object_Door_Closed", roomSet);
+            doorComponent.LockedSprite = SpriteLoader.GetObjectSprite("Object_Door_Locked", roomSet);
+            doorComponent.LockedMultipartSprite = SpriteLoader.GetObjectSprite("Object_Door_Locked_Multipart", roomSet);
+            doorComponent.LockedGoalSprite = SpriteLoader.GetObjectSprite("Object_Door_Locked_Goal", roomSet);
 
             doorComponent.ToggleState();
 
@@ -311,7 +311,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
             RoomSets roomSet = roomNode.RoomBlueprint.RoomSet;
             Object_Spikes spikesComponent = spikes.GetComponent<Object_Spikes>();
-            spikesComponent.GetComponent<SpriteRenderer>().sprite = SpriteLoader.GetObjectSprite("Objects_Spikes", roomSet);
+            spikesComponent.GetComponent<SpriteRenderer>().sprite = SpriteLoader.GetObjectSprite("Object_Spikes", roomSet);
         }
 
 
@@ -351,16 +351,17 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             RoomSets roomSet = roomNode.RoomBlueprint.RoomSet;
             if (keyType != KeyTypes.Key_Goal)
             {
-                objChest.ClosedSprite = SpriteLoader.GetObjectSprite("Objects_Chest_Closed", roomSet);
-                objChest.OpenSprite = SpriteLoader.GetObjectSprite("Objects_Chest_Open", roomSet);
+                objChest.ClosedSprite = SpriteLoader.GetObjectSprite("Object_Chest_Closed", roomSet);
+                objChest.OpenSprite = SpriteLoader.GetObjectSprite("Object_Chest_Open", roomSet);
             }
             else
             {
-                objChest.ClosedSprite = SpriteLoader.GetObjectSprite("Objects_ChestGoal_Closed", roomSet);
-                objChest.OpenSprite = SpriteLoader.GetObjectSprite("Objects_ChestGoal_Open", roomSet);
+                objChest.ClosedSprite = SpriteLoader.GetObjectSprite("Object_ChestGoal_Closed", roomSet);
+                objChest.OpenSprite = SpriteLoader.GetObjectSprite("Object_ChestGoal_Open", roomSet);
             }
 
             objChest.GetComponent<SpriteRenderer>().sprite = objChest.ClosedSprite;
+            objChest.ParentRoom = roomNode;
 
         }
 

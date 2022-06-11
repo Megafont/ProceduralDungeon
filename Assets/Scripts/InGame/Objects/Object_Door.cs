@@ -73,17 +73,17 @@ namespace ProceduralDungeon.InGame.Objects
                 bool unlocked = false;
 
                 if (LockType == DoorLockTypes.Lock && 
-                    inventory.RemoveItem(ItemTypes.Key, 1, (int) Key_ID))
+                    inventory.RemoveItem(ItemTypes.Item_Key, 1, (int) Key_ID))
                 {
                     unlocked = true;
                 }
                 else if (LockType == DoorLockTypes.Lock_Multipart && 
-                         inventory.RemoveItem(ItemTypes.Key_Multipart, MultipartKeyCount, (int) Key_ID))
+                         inventory.RemoveItem(ItemTypes.Item_Key_Part, MultipartKeyCount, (int) Key_ID))
                 {
                     unlocked = true;
                 }
                 else if (LockType == DoorLockTypes.Lock_Goal &&
-                         inventory.RemoveItem(ItemTypes.Key_Goal, 1, (int) Key_ID))
+                         inventory.RemoveItem(ItemTypes.Item_Key_Goal, 1, (int) Key_ID))
                 {
                     unlocked = true;
                 }

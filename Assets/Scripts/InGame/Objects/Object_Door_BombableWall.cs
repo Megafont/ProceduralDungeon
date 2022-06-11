@@ -8,33 +8,38 @@ using ProceduralDungeon.DungeonGeneration.DungeonGraphGeneration;
 using ProceduralDungeon.InGame;
 
 
-
-public class Object_Door_BombableWall : MonoBehaviour
+namespace ProceduralDungeon.InGame.Objects
 {
-    [SerializeField]
-    public DungeonDoor Doorway; // The doorway this entity represents.
 
-
-    private DungeonTilemapManager _TilemapManager;
-
-
-
-    // Start is called before the first frame update
-    void Start()
+    public class Object_Door_BombableWall : MonoBehaviour
     {
-        GameObject obj = GameObject.Find("Dungeon Manager");
-        _TilemapManager = obj.GetComponent<DungeonTilemapManager>();
-    }
+        [SerializeField]
+        public DungeonDoor Doorway; // The doorway this entity represents.
+
+
+        private DungeonTilemapManager _TilemapManager;
 
 
 
-    public void OpenBombWall()
-    {
-        DungeonConstructionUtils.PlaceBombableWallDoor(_TilemapManager, Doorway, true);
+        // Start is called before the first frame update
+        void Start()
+        {
+            GameObject obj = GameObject.Find("Dungeon Manager");
+            _TilemapManager = obj.GetComponent<DungeonTilemapManager>();
+        }
 
-        // Disable the box collider of this wall that we used to detect a bomb explosion colliding with it.
-        // Otherwise it will block the player.
-        GetComponent<BoxCollider2D>().enabled = false;
+
+
+        public void OpenBombWall()
+        {
+            DungeonConstructionUtils.PlaceBombableWallDoor(_TilemapManager, Doorway, true);
+
+            // Disable the box collider of this wall that we used to detect a bomb explosion colliding with it.
+            // Otherwise it will block the player.
+            GetComponent<BoxCollider2D>().enabled = false;
+        }
+
+
     }
 
 }

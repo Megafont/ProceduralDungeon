@@ -73,9 +73,9 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 1243288589
-  m_SortingLayer: 4
+  m_SortingLayer: 6
   m_SortingOrder: 0
-  m_Sprite: {fileID: -1472476886, guid: 9f50e390321b4fd4d89c8c9e4e043a55, type: 3}
+  m_Sprite: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -83,7 +83,7 @@ SpriteRenderer:
   m_Size: {x: 1, y: 1}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!60 &1982398101005276385
@@ -133,6 +133,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   KeyID: 0
   KeyType: 0
-  KeySprite: {fileID: -1472476886, guid: 9f50e390321b4fd4d89c8c9e4e043a55, type: 3}
-  KeyMultipartSprite: {fileID: -1472476886, guid: c12ed2116b3561e4b9fea3452bef9fe4, type: 3}
-  KeyGoalSprite: {fileID: -1472476886, guid: 80ac8100d05440040be4a2721b435a95, type: 3}
+  KeySprite: {fileID: 0}
+  KeyMultipartSprite: {fileID: 0}
+  KeyGoalSprite: {fileID: 0}

@@ -56,12 +56,17 @@ namespace ProceduralDungeon.InGame
                 _SpritesDictionary.Add(roomSetName, dict);
             }
 
-
             string spritesPath = ScriptableRoomUtilities.GetRoomSetSpritesPath(roomSetName);
             sprite = Resources.Load<Sprite>($"{spritesPath}/{type}/{spriteName}");
-            dict.Add(spriteName, sprite);
+
+            if (dict.ContainsKey(spriteName))
+                dict[spriteName] = sprite;
+            else
+                dict.Add(spriteName, sprite);
+
 
             return sprite;
+
         }
 
         private static string GetRoomSetName(RoomSets roomSet)

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 using UnityEngine;
@@ -9,13 +10,13 @@ namespace ProceduralDungeon.InGame
 {
     public enum ItemTypes
     {
-        Unknown = -1,
+        Item_Unknown = -1,
 
-        Bomb,
+        Item_Bomb,
 
-        Key,
-        Key_Multipart,
-        Key_Goal,
+        Item_Key,
+        Item_Key_Part,
+        Item_Key_Goal,
     }
 
 
@@ -104,6 +105,28 @@ namespace ProceduralDungeon.InGame
                 return itemData.ItemCount;
         }
 
+        /// <summary>
+        /// Returns the number of item data entries in the inventory's dictionary that stores its contents.
+        /// </summary>
+        public int GetItemDataEntryCount()
+        {
+            return _Items.Count;
+        }
+
+        /// <summary>
+        /// Gets a specific item data entry from the dictionary that holds the contents of the inventory.
+        /// </summary>
+        /// <param name="index">The index of the item data entry to get.</param>
+        /// <returns>The item data entry if found.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">When the index is out of range.</exception>
+        public ItemData GetItemDataEntry(uint index)
+        {
+            if (index > _Items.Count - 1)
+                throw new ArgumentOutOfRangeException();
+
+            return _Items[(int) index];
+        }
+
         public void InsertItem(ItemData itemData)
         {
             ItemData currentData = GetItemData(itemData.ItemType, itemData.ItemCount, itemData.GroupID);
@@ -125,12 +148,12 @@ namespace ProceduralDungeon.InGame
         {
             foreach (ItemData itemData in inventory._Items)
             {
-                DEBUG_PrintItem(itemData);
+                //DEBUG_PrintItem(itemData);
                 InsertItem(itemData);
             }
             
 
-            DEBUG_PrintInventory();
+            //DEBUG_PrintInventory();
         }
 
         /// <summary>

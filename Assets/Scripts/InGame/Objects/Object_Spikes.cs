@@ -27,11 +27,6 @@ namespace ProceduralDungeon.InGame.Objects
             _PlayerHealth = player.GetComponent<Health>();
         }
 
-        // Update is called once per frame
-        void Update()
-        {
-
-        }
 
         void OnTriggerEnter2D(Collider2D collision)
         {
@@ -47,7 +42,7 @@ namespace ProceduralDungeon.InGame.Objects
         {
             if (collision.tag == "Player" && _TimeSinceLastDamage == 0 || _TimeSinceLastDamage >= _DamageDelay)
             {
-                _PlayerHealth.DealDamage(_DamageAmount);
+                _PlayerHealth.DealDamage(_DamageAmount, DamageTypes.Spikes);
                 _TimeSinceLastDamage = 0;
             }
 
