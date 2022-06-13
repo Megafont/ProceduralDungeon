@@ -156,6 +156,30 @@ namespace ProceduralDungeon.InGame
             //DEBUG_PrintInventory();
         }
 
+        public void InsertItems(ItemData[] items)
+        {
+            foreach (ItemData itemData in items)
+            {
+                //DEBUG_PrintItem(itemData);
+                InsertItem(itemData);
+            }
+
+
+            //DEBUG_PrintInventory();
+        }
+
+        public void InsertItems(List<ItemData> items)
+        {
+            foreach (ItemData itemData in items)
+            {
+                //DEBUG_PrintItem(itemData);
+                InsertItem(itemData);
+            }
+
+
+            //DEBUG_PrintInventory();
+        }
+
         /// <summary>
         /// Checks if the inventory contains a given item of some amount.
         /// </summary>

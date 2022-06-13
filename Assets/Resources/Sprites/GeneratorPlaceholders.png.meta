@@ -280,7 +280,7 @@ TextureImporter:
         width: 16
         height: 16
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -288,6 +288,27 @@ TextureImporter:
       bones: []
       spriteID: 3f48e84185f3570409c615102dae0481
       internalID: 1352249957
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Placeholders_Items_RandomTreasure
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 192
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1883567f4716a4840af4fbc957848289
+      internalID: 818637492
       vertices: []
       indices: 
       edges: []
@@ -312,6 +333,7 @@ TextureImporter:
       Placeholders_Objects_Doors_2ndFloor: 116298976
       Placeholders_Items_Key_Goal: -528717469
       Placeholders_Items_Key: 1536171610
+      Placeholders_Items_RandomTreasure: 818637492
   spritePackingTag: 
   pSDRemoveMatte: 0
   pSDShowRemoveMatteOption: 0

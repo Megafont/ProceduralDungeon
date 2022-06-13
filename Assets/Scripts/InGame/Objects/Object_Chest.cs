@@ -11,6 +11,15 @@ using ProceduralDungeon.InGame.UI;
 
 namespace ProceduralDungeon.InGame.Objects
 {
+    public enum ChestTypes
+    {
+        Key,
+        Key_Multipart,
+        Key_Goal,
+        RandomTreasure,
+    }
+
+
 
     [RequireComponent(typeof(Inventory))]
     public class Object_Chest : MonoBehaviour

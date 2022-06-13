@@ -29,30 +29,33 @@ namespace ProceduralDungeon.DungeonGeneration
             }
         }
 
-        /// <summary>
-        /// This function is used to adjust a rotation direction by adding another one to it.
-        /// For example, it is used to adjust the direction of a door to take into account the rotation direction of the parent room.
-        /// </summary>
-        /// <param name="direction1">The first rotation direction.</param>
-        /// <param name="direction2">The second rotation direction.</param>
-        /// <returns>The result of adding the two rotation directions together.</returns>
-        public static Directions AddRotationDirectionsTogether(Directions direction1, Directions direction2)
-        {
-            int result = (int)direction1 + (int)direction2;
-
-            if (result > (int)Directions.West)
-                result -= (int)Directions.West + 1;
-
-            return (Directions)result;
-        }
-
         public static void CopyTilesListToDictionary(List<SavedTile> srcTileList, Dictionary<Vector3Int, SavedTile> dstTileDict)
         {
             foreach (SavedTile sTile in srcTileList)
-            {
                 dstTileDict.Add(sTile.Position, sTile);
-            } // end foreach
 
+
+        }
+
+        /// <summary>
+        /// This simply utility function corrects an object rotation direction to rectify the fact that many objects like
+        /// chests and doors are facing south when they are not rotated. In other words, the face south when their rotation
+        /// direction is north. This means they end up facing the wrong way when rotated 90 degrees, for example.
+        /// </summary>
+        /// <param name="original">The object's previous rotation direction.</param>
+        /// <param name="newDirection">The object's new rotation direction.</param>
+        /// <returns>The corrected rotation direction.</returns>
+        public static Directions CorrectObjectRotationDirection(Directions original, Directions newDirection)
+        {
+            Directions result = newDirection;
+
+            if ((original == Directions.North || original == Directions.South) &&
+                (newDirection == Directions.East || newDirection == Directions.West))
+            {
+                result = newDirection.FlipDirection();
+            }
+
+            return result;
         }
 
         public static Vector3Int GetUpperLeftMostTile(Vector3Int tile1Position, Vector3Int tile2Position)
@@ -62,6 +65,8 @@ namespace ProceduralDungeon.DungeonGeneration
             else
                 return tile2Position;
         }
+
+
 
     }
 

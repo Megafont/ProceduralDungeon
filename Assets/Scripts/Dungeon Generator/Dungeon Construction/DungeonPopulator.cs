@@ -113,6 +113,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
                         doorway = GetDoorFromParentRoomToThisRoom(roomNode);
 
                         SpawnObject_Door_BombableWall(doorway);
+                        SpawnObject_Chest(roomNode, rng, ChestTypes.RandomTreasure, new ItemData[] { new ItemData() { ItemType = ItemTypes.Item_Bomb, ItemCount = (uint)rng.RollRandomIntInRange(0, 3) } } );
                         break;
 
                     case GrammarSymbols.T_Treasure_Key:
@@ -201,6 +202,103 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
                 _Prefab_Item_Key = (GameObject)Resources.Load("Prefabs/Items/Item_Key");
         }
 
+        
+        /// <summary>
+        /// Spawns a chest at a randomly chosen placeholder tile the type of which is determined by the specified chest type.
+        /// </summary>
+        /// <param name="roomNode">The DungeonGraphNode of the room that contains the chest.</param>
+        /// <param name="rng">The random number generator to use.</param>
+        /// <param name="chestType">The type of chest to spawn.</param>
+        /// <param name="chestContents">The items to place inside the chest.</param>
+        /// <returns>A reference to the spawned chest GameObject.</returns>
+        /// <exception cref="System.Exception">When the parent room does not have any placeholder tiles of the type corresponding to the type of chest that is supposed to be spawned.</exception>
+        private static GameObject SpawnObject_Chest(DungeonGraphNode roomNode, NoiseRNG rng, ChestTypes chestType, ItemData[] chestContents)
+        {
+            // Select placeholders list.
+            List<SavedTile> placeholdersList = null;
+            if (chestType == ChestTypes.RandomTreasure)
+                placeholdersList = roomNode.RoomBlueprint.Chest_RandomTreasure_Placeholders;
+
+            // Randomly select a chest placeholder position.
+            int index = rng.RollRandomIntInRange(0, placeholdersList.Count - 1);
+
+
+            // Check for error before we get the local room coordinates of the selected chest spawn point.
+            if (placeholdersList.Count < 1)
+                throw new System.Exception($"DungeonPopulator.SpawnChest() - The room \"{roomNode.RoomBlueprint.RoomName}\" at {roomNode.RoomCenterPoint} does not contain any chest spawn points for chest type \"{chestType}\"!");
+
+            // Get the chests's local position within the parent room, and its rotation.
+            Vector3Int chestPosLocal = roomNode.RoomBlueprint.Chest_RandomTreasure_Placeholders[index].Position;
+            Quaternion chestRotation = roomNode.RoomBlueprint.Chest_RandomTreasure_Placeholders[index].Rotation;
+
+            // Calculate the world coordinates of the key position.
+            Vector3Int chestPosWorld = DungeonConstructionUtils.AdjustTileCoordsForRoomPositionAndRotation(chestPosLocal, roomNode.RoomPosition, roomNode.RoomDirection);
+
+
+            // Calculate the final rotation of the chest based on the room rotation.
+            Directions chestDirection = Directions.North;
+            chestDirection = chestDirection.DirectionFromRotation(chestRotation);            
+
+            Directions chestFinalDirection = chestDirection.AddRotationDirection(roomNode.RoomDirection);
+            chestFinalDirection = MiscellaneousUtils.CorrectObjectRotationDirection(chestDirection, chestFinalDirection);
+
+            Quaternion chestFinalRotation = chestFinalDirection.DirectionToRotation();
+
+
+            //Debug.LogError($"SPAWN CHEST:    Direction: {chestDirection}    FinalDirection: {chestFinalDirection}    Rotation: {chestRotation.eulerAngles}    FinalRotation: {chestFinalRotation.eulerAngles}    RoomPosition: {roomNode.RoomPosition}    RoomDirection: {roomNode.RoomDirection}");
+
+
+            return SpawnObject_Chest(roomNode, chestType, chestContents, chestPosWorld, chestFinalRotation);
+        }
+
+        /// <summary>
+        /// Spawns a chest of the specified type, at the specified position with the specified rotation and contents.
+        /// </summary>
+        /// <param name="roomNode">The DungeonGraphNode of the room that contains the chest.</param>
+        /// <param name="chestType">The type of chest to spawn.</param>
+        /// <param name="chestContents">The items to place inside the chest.</param>
+        /// <param name="position">The position to spawn the chest at.</param>
+        /// <param name="rotation">The rotation direction of the spawned chest.</param>
+        /// <returns>A reference to the spawned chest GameObject.</returns>
+        private static GameObject SpawnObject_Chest(DungeonGraphNode roomNode, ChestTypes chestType, ItemData[] chestContents, Vector3Int position, Quaternion rotation)
+        {
+            // Select chest type.
+            GameObject chestPrefab = null;
+            if (chestType == ChestTypes.Key || chestType == ChestTypes.Key_Multipart || chestType == ChestTypes.RandomTreasure)
+                chestPrefab = _Prefab_Object_Chest;
+            else if (chestType == ChestTypes.Key_Goal)
+                chestPrefab = _Prefab_Object_ChestGoal;
+
+            
+            GameObject chest = GameObject.Instantiate(chestPrefab, _ItemOffsetVector + position, rotation, _Objects_Chests_Parent.transform);
+
+
+            // Fill the chest with the specified items.
+            Inventory inventory = chest.GetComponent<Inventory>();
+            inventory.InsertItems(chestContents);
+
+
+            // Setup the chest's sprite properties.
+            Object_Chest objChest = chest.GetComponent<Object_Chest>();
+            RoomSets roomSet = roomNode.RoomBlueprint.RoomSet;
+            if (chestType == ChestTypes.Key || chestType == ChestTypes.Key_Multipart || chestType == ChestTypes.RandomTreasure)
+            {
+                objChest.ClosedSprite = SpriteLoader.GetObjectSprite("Object_Chest_Closed", roomSet);
+                objChest.OpenSprite = SpriteLoader.GetObjectSprite("Object_Chest_Open", roomSet);
+            }
+            else
+            {
+                objChest.ClosedSprite = SpriteLoader.GetObjectSprite("Object_ChestGoal_Closed", roomSet);
+                objChest.OpenSprite = SpriteLoader.GetObjectSprite("Object_ChestGoal_Open", roomSet);
+            }
+
+            objChest.GetComponent<SpriteRenderer>().sprite = objChest.ClosedSprite;
+            objChest.ParentRoom = roomNode;
+
+
+            return chest;
+        }
+
         private static void SpawnObject_Door(DungeonDoor doorToSpawn, DoorLockTypes lockType)
         {
             Vector3 offset;
@@ -212,14 +310,17 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             {
                 offset = doorDirection == Directions.North ? new Vector3(1.0f, 0.0f) : 
                                                              new Vector3(1.0f, 1.0f);
-                rotation = doorToSpawn.ThisRoom_DoorAdjustedDirection.DirectionToRotation(); // We don't flip the direction here like we do for east/west doors. This is because the door object faces south by default, so we don't need to flip the door to make it face north.
             }
             else
             {
                 offset = doorDirection == Directions.East ? new Vector3(0.0f, 0.0f) :
                                                             new Vector3(1.0f, 0.0f);
-                rotation = doorToSpawn.ThisRoom_DoorAdjustedDirection.FlipDirection().DirectionToRotation();
             }
+
+
+            Directions correctedDirection = MiscellaneousUtils.CorrectObjectRotationDirection(doorToSpawn.ThisRoom_Node.RoomBlueprint.DoorsList[(int)doorToSpawn.ThisRoom_DoorIndex].DoorDirection, 
+                                                                                              doorToSpawn.ThisRoom_DoorAdjustedDirection);
+            rotation = correctedDirection.DirectionToRotation();
 
 
             // Calculate the center point of the door.
@@ -275,14 +376,17 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             {
                 offset = doorDirection == Directions.North ? new Vector3(1.0f, 0.5f) :
                                                              new Vector3(1.0f, 0.5f);
-                rotation = doorToSpawn.ThisRoom_DoorAdjustedDirection.DirectionToRotation(); // We don't flip the direction here like we do for east/west doors. This is because the door object faces south by default, so we don't need to flip the door to make it face north.
             }
             else
             {
                 offset = doorDirection == Directions.East ? new Vector3(0.5f, 0.0f) :
                                                             new Vector3(0.5f, 0.0f);
-                rotation = doorToSpawn.ThisRoom_DoorAdjustedDirection.FlipDirection().DirectionToRotation();
             }
+
+
+            Directions correctedDirection = MiscellaneousUtils.CorrectObjectRotationDirection(doorToSpawn.ThisRoom_Node.RoomBlueprint.DoorsList[(int)doorToSpawn.ThisRoom_DoorIndex].DoorDirection,
+                                                                                              doorToSpawn.ThisRoom_DoorAdjustedDirection);
+            rotation = correctedDirection.DirectionToRotation();
 
 
             // Calculate the center point of the door.
@@ -319,49 +423,48 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
         private static void SpawnItem_Key(DungeonGraphNode roomNode, NoiseRNG rng, KeyTypes keyType)
         {
             // Randomly select a key placeholder position.
-            int index = rng.RollRandomIntInRange(0, roomNode.RoomBlueprint.KeyPositions.Count - 1);
+            int index = rng.RollRandomIntInRange(0, roomNode.RoomBlueprint.Key_Placeholders.Count - 1);
 
-            // Get the local room coordinates of the selected key spawn point.
-            if (roomNode.RoomBlueprint.KeyPositions.Count < 1)
+            // Check for error before we get the local room coordinates of the selected key spawn point.
+            if (roomNode.RoomBlueprint.Key_Placeholders.Count < 1)
                 throw new System.Exception($"DungeonPopulator.SpawnKey() - The room \"{roomNode.RoomBlueprint.RoomName}\" at {roomNode.RoomCenterPoint} does not contain any key spawn points!");
 
-            // Get the key's local position within the parent room.
-            Vector3Int keyPosLocal = roomNode.RoomBlueprint.KeyPositions[index];
+
+            // Get the key's local position within the parent room, and its rotation.
+            Vector3Int keyPosLocal = Vector3Int.zero;
+            Quaternion keyRotation = Quaternion.identity;
+            ChestTypes chestType = ChestTypes.RandomTreasure;
+            if (keyType == KeyTypes.Key)
+            {
+                chestType = ChestTypes.Key;
+                keyPosLocal = roomNode.RoomBlueprint.Key_Placeholders[index].Position;
+                keyRotation = roomNode.RoomBlueprint.Key_Placeholders[index].Rotation;
+            }
+            else if (keyType == KeyTypes.Key_Multipart)
+            {
+                chestType = ChestTypes.Key_Multipart;
+                keyPosLocal = roomNode.RoomBlueprint.Key_Multipart_Placeholders[index].Position;
+                keyRotation = roomNode.RoomBlueprint.Key_Multipart_Placeholders[index].Rotation;
+            }
+            else if (keyType == KeyTypes.Key_Goal)
+            {
+                chestType = ChestTypes.Key_Goal;
+                keyPosLocal = roomNode.RoomBlueprint.Key_Goal_Placeholders[index].Position;
+                keyRotation = roomNode.RoomBlueprint.Key_Goal_Placeholders[index].Rotation;
+            }
+
 
             // Calculate the world coordinates of the key position.
             Vector3Int keyPosWorld = DungeonConstructionUtils.AdjustTileCoordsForRoomPositionAndRotation(keyPosLocal, roomNode.RoomPosition, roomNode.RoomDirection);
 
 
-            // Select chest type.
-            GameObject chestPrefab;
-            if (keyType != KeyTypes.Key_Goal)
-                chestPrefab = _Prefab_Object_Chest;
-            else
-                chestPrefab = _Prefab_Object_ChestGoal;
-
             // Spawn a chest containing a key.
-            GameObject chest = GameObject.Instantiate(chestPrefab, _ItemOffsetVector + keyPosWorld, Quaternion.identity, _Objects_Chests_Parent.transform);
-            
+            GameObject chest = SpawnObject_Chest(roomNode, chestType, new ItemData[0], keyPosWorld, keyRotation);
+
+           
             // Get the Inventory component and add it to our dictionary to track it for a later pass to setup the key/lock pairs.
             Inventory chestInventory = chest.GetComponent<Inventory>();
             _KeyChestsDictionary.Add(roomNode.MissionStructureNode, chestInventory);
-
-            // Setup the chest's sprite properties.
-            Object_Chest objChest = chest.GetComponent<Object_Chest>();
-            RoomSets roomSet = roomNode.RoomBlueprint.RoomSet;
-            if (keyType != KeyTypes.Key_Goal)
-            {
-                objChest.ClosedSprite = SpriteLoader.GetObjectSprite("Object_Chest_Closed", roomSet);
-                objChest.OpenSprite = SpriteLoader.GetObjectSprite("Object_Chest_Open", roomSet);
-            }
-            else
-            {
-                objChest.ClosedSprite = SpriteLoader.GetObjectSprite("Object_ChestGoal_Closed", roomSet);
-                objChest.OpenSprite = SpriteLoader.GetObjectSprite("Object_ChestGoal_Open", roomSet);
-            }
-
-            objChest.GetComponent<SpriteRenderer>().sprite = objChest.ClosedSprite;
-            objChest.ParentRoom = roomNode;
 
         }
 

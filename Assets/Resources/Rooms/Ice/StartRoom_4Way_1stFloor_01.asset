@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c7f7091023b912242974db90c6b93e86, type: 3}
-  m_Name: StartRoom-4Way-1stFloor
+  m_Name: StartRoom_4Way_1stFloor_01
   m_EditorClassIdentifier: 
   FloorTiles:
   - Position: {x: -1, y: -5, z: 0}

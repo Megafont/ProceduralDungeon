@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c7f7091023b912242974db90c6b93e86, type: 3}
-  m_Name: Dead End-Basement
+  m_Name: DeadEnd_Basement
   m_EditorClassIdentifier: 
   FloorTiles:
   - Position: {x: -5, y: -4, z: 0}

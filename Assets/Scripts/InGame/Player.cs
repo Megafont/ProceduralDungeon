@@ -37,7 +37,7 @@ namespace ProceduralDungeon.InGame
 
             _MyInventory = GetComponent<Inventory>();
             
-            _MyInventory.InsertItem(new ItemData() { ItemType = ItemTypes.Item_Bomb, ItemCount = 10, GroupID = 0 });
+            _MyInventory.InsertItem(new ItemData() { ItemType = ItemTypes.Item_Bomb, ItemCount = 3, GroupID = 0 });
 
             if (_Prefab_Item_Bomb == null)
                 _Prefab_Item_Bomb = (GameObject)Resources.Load("Prefabs/Items/Item_Bomb");

@@ -137,7 +137,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonGraphGeneration
         {
             DoorData parentRoomDoor = parentRoom.RoomBlueprint.DoorsList[doorIndex];
 
-            Directions result = MiscellaneousUtils.AddRotationDirectionsTogether(parentRoomDoor.DoorDirection, parentRoom.RoomDirection);
+            Directions result = parentRoomDoor.DoorDirection.AddRotationDirection(parentRoom.RoomDirection);
 
             return result;
         }

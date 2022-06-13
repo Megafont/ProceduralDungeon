@@ -25,10 +25,13 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
         public Dictionary<Vector3Int, SavedTile> Placeholders_Item_Tiles;
         public Dictionary<Vector3Int, SavedTile> Placeholders_Enemy_Tiles;
 
-        // Positions of key placeholders.
-        public List<Vector3Int> KeyPositions;
-        public List<Vector3Int> KeyMultipartPositions;
-        public List<Vector3Int> KeyGoalPositions;
+        // Chest placeholders.
+        public List<SavedTile> Chest_RandomTreasure_Placeholders;
+
+        // Key placeholders.
+        public List<SavedTile> Key_Placeholders;
+        public List<SavedTile> Key_Multipart_Placeholders;
+        public List<SavedTile> Key_Goal_Placeholders;
 
 
         public string RoomName;
@@ -61,9 +64,11 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             MiscellaneousUtils.CopyTilesListToDictionary(loadedRoom.Placeholders_Item_Tiles, Placeholders_Item_Tiles);
             MiscellaneousUtils.CopyTilesListToDictionary(loadedRoom.Placeholders_Enemy_Tiles, Placeholders_Enemy_Tiles);
 
-            KeyPositions = new List<Vector3Int>();
-            KeyMultipartPositions = new List<Vector3Int>();
-            KeyGoalPositions = new List<Vector3Int>();
+            Chest_RandomTreasure_Placeholders = new List<SavedTile>();
+
+            Key_Placeholders = new List<SavedTile>();
+            Key_Multipart_Placeholders = new List<SavedTile>();
+            Key_Goal_Placeholders = new List<SavedTile>();
 
 
             RoomName = loadedRoom.RoomName;
@@ -82,12 +87,18 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
                 SavedTile sTile = pair.Value;
                 Vector3Int tilePosition = pair.Key;
 
-                if (sTile.Tile.TileType == DungeonTileTypes.Placeholders_Items_Key)
-                    KeyPositions.Add(tilePosition);
+
+                // Fill in the placeholders lists.
+                if (sTile.Tile.TileType == DungeonTileTypes.Placeholders_Items_RandomTreasure)
+                    Chest_RandomTreasure_Placeholders.Add(sTile);
+
+                else if (sTile.Tile.TileType == DungeonTileTypes.Placeholders_Items_Key)
+                    Key_Placeholders.Add(sTile);
                 else if (sTile.Tile.TileType == DungeonTileTypes.Placeholders_Items_Key_Multipart)
-                    KeyMultipartPositions.Add(tilePosition);
+                    Key_Multipart_Placeholders.Add(sTile);
                 else if (sTile.Tile.TileType == DungeonTileTypes.Placeholders_Items_Key_Goal)
-                    KeyGoalPositions.Add(tilePosition);
+                    Key_Goal_Placeholders.Add(sTile);
+
 
             } // end foreach sTile
 
