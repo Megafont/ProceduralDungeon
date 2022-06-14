@@ -31,13 +31,13 @@ namespace ProceduralDungeon.InGame
 
 
 
-    public class Inventory : MonoBehaviour
+    public class InventoryOld : MonoBehaviour
     {
         private List<ItemData> _Items;
 
 
 
-        public Inventory()
+        public InventoryOld()
         {
             _Items = new List<ItemData>();
         }
@@ -144,7 +144,7 @@ namespace ProceduralDungeon.InGame
 
         }
 
-        public void InsertItems(Inventory inventory)
+        public void InsertItems(InventoryOld inventory)
         {
             foreach (ItemData itemData in inventory._Items)
             {

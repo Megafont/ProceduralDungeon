@@ -31,7 +31,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
         private static GameObject _Objects_Spikes_Parent;
 
         private static Dictionary<MissionStructureGraphNode, Object_Door> _LockedDoorsDictionary;
-        private static Dictionary<MissionStructureGraphNode, Inventory> _KeyChestsDictionary;
+        private static Dictionary<MissionStructureGraphNode, InventoryOld> _KeyChestsDictionary;
         private static uint _NextKeyID;
 
 
@@ -61,7 +61,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
 
             _LockedDoorsDictionary = new Dictionary<MissionStructureGraphNode, Object_Door>();
-            _KeyChestsDictionary = new Dictionary<MissionStructureGraphNode, Inventory>();
+            _KeyChestsDictionary = new Dictionary<MissionStructureGraphNode, InventoryOld>();
             _NextKeyID = 0;
 
 
@@ -274,7 +274,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
 
             // Fill the chest with the specified items.
-            Inventory inventory = chest.GetComponent<Inventory>();
+            InventoryOld inventory = chest.GetComponent<InventoryOld>();
             inventory.InsertItems(chestContents);
 
 
@@ -463,14 +463,14 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
            
             // Get the Inventory component and add it to our dictionary to track it for a later pass to setup the key/lock pairs.
-            Inventory chestInventory = chest.GetComponent<Inventory>();
+            InventoryOld chestInventory = chest.GetComponent<InventoryOld>();
             _KeyChestsDictionary.Add(roomNode.MissionStructureNode, chestInventory);
 
         }
 
         private static void FinalizeLockedDoors()
         {
-            foreach (KeyValuePair<MissionStructureGraphNode, Inventory> pair in _KeyChestsDictionary)
+            foreach (KeyValuePair<MissionStructureGraphNode, InventoryOld> pair in _KeyChestsDictionary)
             {
                 foreach (MissionStructureChildNodeData childNodeData in pair.Key.ChildNodesData)
                 {

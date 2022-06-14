@@ -5,16 +5,18 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 using ProceduralDungeon.InGame.Items;
+using ProceduralDungeon.InGame.Inventory;
 
 
 namespace ProceduralDungeon.InGame
 {
 
     [RequireComponent(typeof(Health))]
-    [RequireComponent(typeof(Inventory))]
     [RequireComponent(typeof(PlayerInput))]
     public class Player : MonoBehaviour
     {
+        public InventoryObject Inventory;
+
         [SerializeField] 
         private float _MoveSpeed = 10f;
 
@@ -25,7 +27,7 @@ namespace ProceduralDungeon.InGame
         private Vector2 _MoveInput;
         private Vector2 _Velocity;
 
-        private Inventory _MyInventory;
+        private InventoryOld _MyInventory;
         private GameObject _Prefab_Item_Bomb;
 
 
@@ -35,7 +37,7 @@ namespace ProceduralDungeon.InGame
         {
             _MyRigidBody2D = GetComponent<Rigidbody2D>();
 
-            _MyInventory = GetComponent<Inventory>();
+            _MyInventory = GetComponent<InventoryOld>();
             
             _MyInventory.InsertItem(new ItemData() { ItemType = ItemTypes.Item_Bomb, ItemCount = 3, GroupID = 0 });
 
@@ -48,12 +50,22 @@ namespace ProceduralDungeon.InGame
         void Update()
         {
             Run();
+
+            if (Input.GetKeyUp(KeyCode.Space))
+                Inventory.Save();
+            if (Input.GetKeyUp(KeyCode.KeypadEnter))
+                Inventory.Load();
         }
 
         void FixedUpdate()
         {
             // This had jerky movement originally. Turns out you need to enable Interpolation on the Rigidbody2D component.
             _MyRigidBody2D.MovePosition(_MyRigidBody2D.position + _Velocity * Time.fixedDeltaTime);
+        }
+
+        private void OnApplicationQuit()
+        {
+            Inventory.Contents.Items.Clear();
         }
 
 

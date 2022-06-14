@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 
 
+using GrammarSymbols = ProceduralDungeon.DungeonGeneration.MissionStructureGeneration.GenerativeGrammar.Symbols;
 using MSCNData = ProceduralDungeon.DungeonGeneration.MissionStructureGeneration.MissionStructureChildNodeData;
 
 
@@ -21,7 +22,7 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
 
         private static List<Vector3> _CirclePoints;
 
-        private static Dictionary<GenerativeGrammar.Symbols, Color32> _Colors;
+        private static Dictionary<GrammarSymbols, Color32> _Colors;
 
 
 
@@ -92,7 +93,7 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
 
                 DrawText(nodePos + _NodeTextOffset,
                          color,
-                         "Node:  " + Enum.GetName(typeof(GenerativeGrammar.Symbols), node.GrammarSymbol));
+                         "Node:  " + Enum.GetName(typeof(GrammarSymbols), node.GrammarSymbol));
 
                 if (SHOW_LOCK_COUNT)
                 {
@@ -236,7 +237,7 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
         }
 
 
-        private static Color32 GetColor(GenerativeGrammar.Symbols symbol)
+        private static Color32 GetColor(GrammarSymbols symbol)
         {
             Color32 color = Color.white;
 
@@ -253,26 +254,26 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
 
         private static void InitColors()
         {
-            _Colors = new Dictionary<GenerativeGrammar.Symbols, Color32>();
+            _Colors = new Dictionary<GrammarSymbols, Color32>();
 
-            _Colors.Add(GenerativeGrammar.Symbols.T_Entrance, Color.green);
-            _Colors.Add(GenerativeGrammar.Symbols.T_Goal, Color.green);
-            _Colors.Add(GenerativeGrammar.Symbols.T_Boss_Main, Color.red);
-            _Colors.Add(GenerativeGrammar.Symbols.T_Boss_Mini, new Color32(179, 0, 0, 255));
-            _Colors.Add(GenerativeGrammar.Symbols.T_Lock, new Color32(0, 180, 32, 255));
-            _Colors.Add(GenerativeGrammar.Symbols.T_Lock_Goal, new Color32(102, 0, 0, 255));
-            _Colors.Add(GenerativeGrammar.Symbols.T_Lock_Multi, new Color32(0, 180, 90, 255));
-            _Colors.Add(GenerativeGrammar.Symbols.T_Treasure_Bonus, Color.yellow);
-            _Colors.Add(GenerativeGrammar.Symbols.T_Treasure_Key_Goal, Color.cyan);
-            _Colors.Add(GenerativeGrammar.Symbols.T_Treasure_Key, new Color32(0, 193, 244, 255));
-            _Colors.Add(GenerativeGrammar.Symbols.T_Treasure_Key_Multipart, new Color32(0, 153, 204, 255));
-            _Colors.Add(GenerativeGrammar.Symbols.T_Treasure_MainDungeonItem, Color.blue);
-            _Colors.Add(GenerativeGrammar.Symbols.T_Test, new Color32(255, 0, 255, 255));
-            _Colors.Add(GenerativeGrammar.Symbols.T_Test_Combat, new Color32(255, 0, 135, 255));
-            _Colors.Add(GenerativeGrammar.Symbols.T_Test_MainDungeonItem, new Color32(0, 0, 180, 255));
-            _Colors.Add(GenerativeGrammar.Symbols.T_Test_PreviousItem, new Color32(255, 0, 255, 255));
-            _Colors.Add(GenerativeGrammar.Symbols.T_Test_Secret, new Color32(159, 128, 255, 255));
-
+            _Colors.Add(GrammarSymbols.T_Entrance, Color.green);
+            _Colors.Add(GrammarSymbols.T_Goal, Color.green);
+            _Colors.Add(GrammarSymbols.T_Boss_Main, Color.red);
+            _Colors.Add(GrammarSymbols.T_Boss_Mini, new Color32(179, 0, 0, 255));
+            _Colors.Add(GrammarSymbols.T_Lock, new Color32(0, 180, 32, 255));
+            _Colors.Add(GrammarSymbols.T_Lock_Goal, new Color32(102, 0, 0, 255));
+            _Colors.Add(GrammarSymbols.T_Lock_Multi, new Color32(0, 180, 90, 255));
+            _Colors.Add(GrammarSymbols.T_Treasure_Bonus, Color.yellow);
+            _Colors.Add(GrammarSymbols.T_Treasure_Key_Goal, Color.cyan);
+            _Colors.Add(GrammarSymbols.T_Treasure_Key, new Color32(0, 193, 244, 255));
+            _Colors.Add(GrammarSymbols.T_Treasure_Key_Multipart, new Color32(0, 153, 204, 255));
+            _Colors.Add(GrammarSymbols.T_Treasure_MainDungeonItem, Color.blue);
+            _Colors.Add(GrammarSymbols.T_Test, new Color32(255, 0, 255, 255));
+            _Colors.Add(GrammarSymbols.T_Test_Combat, new Color32(255, 0, 135, 255));
+            _Colors.Add(GrammarSymbols.T_Test_MainDungeonItem, new Color32(0, 0, 180, 255));
+            _Colors.Add(GrammarSymbols.T_Test_PreviousItem, new Color32(255, 0, 255, 255));
+            _Colors.Add(GrammarSymbols.T_Test_Secret, new Color32(159, 128, 255, 255));
+            _Colors.Add(GrammarSymbols.T_Secret_Room, Color.white);
         }
 
         private static void InitCirclePoints()

@@ -36,7 +36,7 @@ namespace ProceduralDungeon.InGame.Items
         {
             base.OnCollected();
 
-            _Player.GetComponent<Inventory>().InsertItem(new ItemData() { ItemType = KeyTypeFromItemType(KeyType), 
+            _Player.GetComponent<InventoryOld>().InsertItem(new ItemData() { ItemType = KeyTypeFromItemType(KeyType), 
                                                                           ItemCount = 1, 
                                                                           GroupID = (int) KeyID } );
 

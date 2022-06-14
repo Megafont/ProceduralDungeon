@@ -67,7 +67,7 @@ namespace ProceduralDungeon.InGame.Objects
         {
             if (collision.collider.tag == "Player")
             {
-                Inventory inventory = _Player.GetComponent<Inventory>();
+                InventoryOld inventory = _Player.GetComponent<InventoryOld>();
 
 
                 bool unlocked = false;

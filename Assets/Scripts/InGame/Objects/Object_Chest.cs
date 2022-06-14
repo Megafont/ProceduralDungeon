@@ -21,7 +21,7 @@ namespace ProceduralDungeon.InGame.Objects
 
 
 
-    [RequireComponent(typeof(Inventory))]
+    [RequireComponent(typeof(InventoryOld))]
     public class Object_Chest : MonoBehaviour
     {
         [SerializeField]
@@ -40,7 +40,7 @@ namespace ProceduralDungeon.InGame.Objects
         private UI_CollectedItemPopup _Prefab_UI_CollectedItemPopup;
 
 
-        private Inventory _Inventory;
+        private InventoryOld _Inventory;
         private SpriteRenderer _SpriteRenderer;
 
         private static GameObject _UI_Objects_Parent;
@@ -49,7 +49,7 @@ namespace ProceduralDungeon.InGame.Objects
 
 
 
-        public Inventory Inventory { get { return Inventory; } }
+        public InventoryOld Inventory { get { return Inventory; } }
 
 
 
@@ -68,7 +68,7 @@ namespace ProceduralDungeon.InGame.Objects
 
             _SpriteRenderer.sprite = ClosedSprite;
 
-            _Inventory = GetComponent<Inventory>();
+            _Inventory = GetComponent<InventoryOld>();
 
 
             if (_Prefab_UI_CollectedItemPopup == null)
@@ -85,7 +85,7 @@ namespace ProceduralDungeon.InGame.Objects
             {
                 _SpriteRenderer.sprite = OpenSprite;
 
-                Inventory playerInventory = _Player.GetComponent<Inventory>();
+                InventoryOld playerInventory = _Player.GetComponent<InventoryOld>();
 
                 playerInventory.InsertItems(_Inventory);
 
