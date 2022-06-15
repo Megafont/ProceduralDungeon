@@ -28,6 +28,8 @@ namespace ProceduralDungeon.InGame
         private Vector2 _Velocity;
 
         private InventoryOld _MyInventory;
+
+        Item _BombItem;
         private GameObject _Prefab_Item_Bomb;
 
 
@@ -37,9 +39,12 @@ namespace ProceduralDungeon.InGame
         {
             _MyRigidBody2D = GetComponent<Rigidbody2D>();
 
-            _MyInventory = GetComponent<InventoryOld>();
-            
+            _MyInventory = GetComponent<InventoryOld>();            
             _MyInventory.InsertItem(new ItemData() { ItemType = ItemTypes.Item_Bomb, ItemCount = 3, GroupID = 0 });
+
+            //Create a bomb item.
+            _BombItem = new Item(Inventory.ItemDatabase.LookupByName("Bomb"));
+            Inventory.Data.AddItem(_BombItem, 3);
 
             if (_Prefab_Item_Bomb == null)
                 _Prefab_Item_Bomb = (GameObject)Resources.Load("Prefabs/Items/Item_Bomb");
@@ -65,7 +70,7 @@ namespace ProceduralDungeon.InGame
 
         private void OnApplicationQuit()
         {
-            Inventory.Contents.Items.Clear();
+            Inventory.Data.Items.Clear();
         }
 
 
@@ -81,17 +86,24 @@ namespace ProceduralDungeon.InGame
         void OnAction1()
         {
             // Check if the player has a bomb.
-            if (!_MyInventory.ContainsItem(ItemTypes.Item_Bomb, 1))
+            //if (!_MyInventory.ContainsItem(ItemTypes.Item_Bomb, 1))
+            //    return;
+
+            Item bombItem;
+            if (!Inventory.Data.FindItem("Bomb", 1, out bombItem))
                 return;
 
             LayerMask layerMask = (1 << LayerMask.NameToLayer("Walls")) |
                                   (1 << LayerMask.NameToLayer("Objects"));
 
+
             // The player has a bomb, so check if there is empty space in front of him.
             RaycastHit2D hit = Physics2D.Raycast(transform.position, _LastMoveDirection, 1.0f, layerMask);
             if (hit.collider == null)
             {
-                _MyInventory.RemoveItem(ItemTypes.Item_Bomb, 1);
+                //_MyInventory.RemoveItem(ItemTypes.Item_Bomb, 1);
+                Inventory.Data.ConsumeItem("Bomb", 1);
+
 
                 GameObject litBomb = Instantiate(_Prefab_Item_Bomb, 
                                                  transform.position + _LastMoveDirection, 

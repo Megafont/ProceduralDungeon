@@ -24,14 +24,18 @@ namespace ProceduralDungeon.InGame.UI
         public uint DisplayColumnCount = 5;
 
 
-        Dictionary<InventorySlot, GameObject> _ItemsDisplayed = new Dictionary<InventorySlot, GameObject>();
-
+        Dictionary<InventorySlot, GameObject> _ItemsDisplayed;
+        List<GameObject> _ItemIconDisplayObjects;
         
+
 
         // Start is called before the first frame update
         void Start()
         {
-            CreateDisplay();
+            _ItemsDisplayed = new Dictionary<InventorySlot, GameObject>();
+            _ItemIconDisplayObjects = new List<GameObject>();
+
+            UpdateDisplay();
         }
 
         // Update is called once per frame
@@ -44,90 +48,99 @@ namespace ProceduralDungeon.InGame.UI
 
         public void UpdateDisplay()
         {
-            InventoryData contents = InventoryToDisplay.Contents;
+            InventoryData contents = InventoryToDisplay.Data;
 
-            for (int i = 0; i < contents.Items.Count; i++)
+            int itemCount = contents.Items.Count;
+            int iconCount = _ItemIconDisplayObjects.Count;
+
+            int i = 0;
+            while (true)
             {
-                InventorySlot slot = InventoryToDisplay.Contents.Items[i];
+                if (i >= iconCount && i >= itemCount)
+                    break;
 
-                if (_ItemsDisplayed.ContainsKey(contents.Items[i]))
+
+                if (i < itemCount)
                 {
-                    _ItemsDisplayed[InventoryToDisplay.Contents.Items[i]].GetComponentInChildren<TextMeshProUGUI>().text = contents.Items[i].ItemCount.ToString("n0");
-                }
+                    InventorySlot slot = InventoryToDisplay.Data.Items[i];
+
+                    if (i < iconCount)
+                        UpdateItemIcon(_ItemIconDisplayObjects[i], i);
+                    else
+                        CreateItemIcon(slot, i);
+                }               
                 else
                 {
-                    GameObject iconPrefab = CreateItemIcon(slot, i);
-
-                    /*
-                    GameObject obj = Instantiate(InventoryPrefab, Vector3.zero, Quaternion.identity, transform);
-                    obj.transform.GetChild(0).GetComponentInChildren<Image>().sprite = InventoryToDisplay.ItemDatabase.ItemLookup[slot.Item.ID].Icon;
-                    obj.GetComponent<RectTransform>().localPosition = GetPosition(i);
-                    obj.GetComponentInChildren<TextMeshProUGUI>().text = slot.ItemCount.ToString("n0");
-                    */
-
-                    _ItemsDisplayed.Add(contents.Items[i], iconPrefab);
+                    UpdateItemIcon(_ItemIconDisplayObjects[i], i);
                 }
-            }
+
+                i++;
+
+            } // end while
 
         }
 
-        public void CreateDisplay()
-        {
-            InventoryData contents = InventoryToDisplay.Contents;
 
-            for (int i = 0; i < contents.Items.Count; i++)
-            {
-                InventorySlot slot = InventoryToDisplay.Contents.Items[i];
-
-                GameObject iconPrefab = CreateItemIcon(slot, i);
-                /*
-                GameObject obj = Instantiate(InventoryPrefab, Vector3.zero, Quaternion.identity, transform);
-                obj.transform.GetChild(0).GetComponentInChildren<Image>().sprite = InventoryToDisplay.ItemDatabase.ItemLookup[slot.Item.ID].Icon;
-                obj.GetComponent<RectTransform>().localPosition = GetPosition(i);
-                obj.GetComponentInChildren<TextMeshProUGUI>().text = slot.ItemCount.ToString("n0");
-                */
-
-                _ItemsDisplayed.Add(slot, iconPrefab);
-            }
-        }
 
         private GameObject CreateItemIcon(InventorySlot slot, int itemIndex)
         {
             GameObject obj = Instantiate(InventoryPrefab, Vector3.zero, Quaternion.identity, transform);
+            _ItemIconDisplayObjects.Add(obj);
 
-
-            // Set the background sprite's size.
-            Image background = obj.GetComponent<Image>();
-            background.rectTransform.sizeDelta = new Vector2(ItemSizeX, ItemSizeY);
-
-            // Setup the item's icon.
-            Image icon = obj.transform.GetChild(0).GetComponentInChildren<Image>();
-            icon.rectTransform.sizeDelta = new Vector2(ItemSizeX, ItemSizeY);
-            icon.sprite = InventoryToDisplay.ItemDatabase.ItemLookup[slot.Item.ID].Icon;
-
-            // Set the position of the item icon in the inventory panel.
-            obj.GetComponent<RectTransform>().localPosition = GetPosition(itemIndex);
-
-            // Set the item count text and make its text field occupy the lower-right corner of the image (half the width and height of the item icon).
-            TextMeshProUGUI tmpText = obj.GetComponentInChildren<TextMeshProUGUI>();
-            tmpText.rectTransform.localPosition = new Vector2(ItemSizeX * 0.25f, -ItemSizeY * 0.25f);
-            tmpText.rectTransform.sizeDelta = new Vector2(ItemSizeX * 0.5f, ItemSizeY * 0.5f);
-            tmpText.text = slot.ItemCount.ToString("n0");
-            
+            UpdateItemIcon(obj, itemIndex);
 
             return obj;
         }
 
-
-        public Vector3 GetPosition(int itemIndex)
+        private void UpdateItemIcon(GameObject itemIcon, int iconIndex)
         {
-            int posX = (int) TopLeftItemPositionX + (int) (ItemSizeX + SpaceBetweenItemsX) * (int) (itemIndex % DisplayColumnCount);
-            int posY = (int) TopleftItemPositionY + (int) (ItemSizeY + SpaceBetweenItemsY) * (int) (itemIndex / DisplayColumnCount);
-            
+            InventorySlot itemSlot = null;
+            if (iconIndex >= InventoryToDisplay.Data.Items.Count)
+            {
+                // This UI icon is currently unused, so just hide it until we need it again.
+                _ItemIconDisplayObjects[iconIndex].SetActive(false);
+            }
+            else
+            {
+                _ItemIconDisplayObjects[iconIndex].SetActive(true);
+
+                itemSlot = InventoryToDisplay.Data.Items[iconIndex];
+
+
+                // Set the position of the item icon in the inventory panel.
+                itemIcon.GetComponent<RectTransform>().localPosition = GetPosition(iconIndex);
+
+
+                // Set the background sprite's size.
+                Image background = itemIcon.GetComponent<Image>();
+                background.rectTransform.sizeDelta = new Vector2(ItemSizeX, ItemSizeY);
+
+
+                // Setup the item's icon.
+                Image icon = itemIcon.transform.GetChild(0).GetComponentInChildren<Image>();
+                icon.rectTransform.sizeDelta = new Vector2(ItemSizeX, ItemSizeY);
+                icon.sprite = InventoryToDisplay.ItemDatabase.LookupByID(itemSlot.Item.ID).Icon;
+
+
+                // Set the item count text and make its text field occupy the lower-right corner of the image (half the width and height of the item icon).
+                TextMeshProUGUI tmpText = itemIcon.GetComponentInChildren<TextMeshProUGUI>();
+                tmpText.rectTransform.localPosition = new Vector2(ItemSizeX * 0.25f, -ItemSizeY * 0.25f);
+                tmpText.rectTransform.sizeDelta = new Vector2(ItemSizeX * 0.5f, ItemSizeY * 0.5f);
+                tmpText.text = itemSlot.ItemCount.ToString("n0");
+
+            }
+        }
+
+        private Vector3 GetPosition(int itemIndex)
+        {
+            int posX = TopLeftItemPositionX + (int)(ItemSizeX + SpaceBetweenItemsX) * (int)(itemIndex % DisplayColumnCount);
+            int posY = TopleftItemPositionY + (int)(ItemSizeY + SpaceBetweenItemsY) * (int)-(itemIndex / DisplayColumnCount); // The minus in this line makes it so each row appears below the previous. Otherwise it will stack item rows upward and go off the top of the panel.
+
             return new Vector3(posX, posY, 0f);
 
         }
-        
+
+
     }
 
 

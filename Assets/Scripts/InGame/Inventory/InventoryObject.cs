@@ -16,38 +16,19 @@ namespace ProceduralDungeon.InGame.Inventory
     {
         public string ItemSavePath;
         public ItemDatabaseObject ItemDatabase;
-
-        public InventoryData Contents;
-
+        public InventoryData Data;
 
 
-        public void AddItem(Item item, uint amountToAdd)
+
+        /// <summary>
+        /// NOTE: I changed this method since the Awake method on ScriptableObjects does not work the same as the one on Monobehaviors. It gets called when
+        ///       a scene containing this ScriptableObject is loaded. I was having a problem with ItemDatabase being null, and changing this method
+        ///       from Awake() to OnEnable() seems to have fixed it.
+        /// </summary>
+        public void OnEnable()
         {
-            // If an item has buffs, we always create a new item in the inventory.
-            // This simply makes it so that items with buffs are not stackable.
-            if (item.Buffs.Length > 0)
-            {
-                Contents.Items.Add(new InventorySlot(item.ID, item, amountToAdd));
-                return;
-            }
-
-
-            // The item does not have buffs, so see if there is already a stack of it
-            // in the inventory.
-            for (int i = 0; i < Contents.Items.Count; i++)
-            {
-                if (Contents.Items[i].Item.ID == item.ID)
-                {
-                    Contents.Items[i].AddItems(amountToAdd);
-                    return;
-                }
-
-            } // end for i
-
-
-            // The item was not already in the inventory, so create a new slot.
-            Contents.Items.Add(new InventorySlot(item.ID, item, amountToAdd));
-
+            Data = new InventoryData();
+            Data.SetItemDatabase(ItemDatabase);
         }
 
         public void CheckSavePath()
@@ -73,7 +54,7 @@ namespace ProceduralDungeon.InGame.Inventory
             IFormatter formatter = new BinaryFormatter();
             Stream stream = new FileStream(string.Concat(Application.persistentDataPath, ItemSavePath), FileMode.Create, FileAccess.Write);
             
-            formatter.Serialize(stream, Contents);
+            formatter.Serialize(stream, Data);
             
             stream.Close();
             
@@ -95,9 +76,12 @@ namespace ProceduralDungeon.InGame.Inventory
                 IFormatter formatter = new BinaryFormatter();
                 Stream stream = new FileStream(string.Concat(Application.persistentDataPath, ItemSavePath), FileMode.Open, FileAccess.Read);
                 
-                Contents = (InventoryData)formatter.Deserialize(stream);
-                
+                Data = (InventoryData)formatter.Deserialize(stream);
+                Data.SetItemDatabase(ItemDatabase);
+
                 stream.Close();
+
+                AssignInstanceIDs();
             }
         }
 
@@ -105,9 +89,21 @@ namespace ProceduralDungeon.InGame.Inventory
         public void Clear()
         {
             //Contents = new Inventory();
-            Contents.Items.Clear();
+            Data.Items.Clear();
         }
 
+
+        private void AssignInstanceIDs()
+        {
+            foreach (InventorySlot slot in Data.Items)
+            {
+                if (slot.Item.Buffs.Length > 0)
+                    slot.Item.InstanceID = ItemDatabase.GetNextAvailableInstanceID(slot.Item.ID);
+                else
+                    slot.Item.InstanceID = 0;
+            }
+
+        }
 
 
         /* NOTE: These methods were part of the commented out Json saving/loading code above.

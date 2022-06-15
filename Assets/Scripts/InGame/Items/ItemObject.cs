@@ -30,7 +30,8 @@ namespace ProceduralDungeon.InGame.Items
     /// </summary>
     public abstract class ItemObject : ScriptableObject
     {
-        public int ID;
+        public uint ID;
+        public uint InstanceID; // This is a unique ID for items with buffs so you can tell them apart since the ID field will be the same for all instances of an item.
         public Sprite Icon;
         public ItemTypes2 Type;
 

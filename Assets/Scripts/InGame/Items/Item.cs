@@ -1,5 +1,7 @@
 ﻿using System;
 
+using UnityEngine;
+
 
 namespace ProceduralDungeon.InGame.Items
 {
@@ -7,8 +9,13 @@ namespace ProceduralDungeon.InGame.Items
     public class Item
     {
         public string Name;
-        public int ID;
+        public uint ID;
+
+        //[HideInInspector]
+        public uint InstanceID; // This is a unique ID for items with buffs so you can tell them apart since the ID field will be the same for all instances of an item.
+
         public ItemBuff[] Buffs;
+
 
 
 
@@ -16,6 +23,8 @@ namespace ProceduralDungeon.InGame.Items
         {
             Name = item.name;
             ID = item.ID;
+            InstanceID = item.InstanceID;
+
 
             Buffs = new ItemBuff[item.Buffs.Length];
             for (int i = 0; i < Buffs.Length; i++)
@@ -23,7 +32,9 @@ namespace ProceduralDungeon.InGame.Items
                 Buffs[i] = new ItemBuff(item.Buffs[i].MinValue, item.Buffs[i].MaxValue);
                 Buffs[i].Attribute = item.Buffs[i].Attribute;
             }
+
         }
+
     }
 
 }

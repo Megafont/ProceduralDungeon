@@ -15,7 +15,7 @@ namespace ProceduralDungeon.InGame.Items
         {
             if (other.tag == "Player")
             {
-                other.gameObject.GetComponent<Player>().Inventory.AddItem(new Item(Item), 1);
+                other.gameObject.GetComponent<Player>().Inventory.Data.AddItem(new Item(Item), 1);
                 Destroy(gameObject);
             }
         }
