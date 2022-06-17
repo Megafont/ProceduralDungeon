@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 4355691095482185128}
   - component: {fileID: 4355691095482185131}
   - component: {fileID: 4355691095482185129}
-  m_Layer: 8
+  m_Layer: 5
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -182,7 +182,7 @@ SortingGroup:
   m_GameObject: {fileID: 4355691095482185133}
   m_Enabled: 1
   m_SortingLayerID: 1243288589
-  m_SortingLayer: 6
+  m_SortingLayer: 2
   m_SortingOrder: 100
 --- !u!1 &4355691095603478513
 GameObject:
@@ -195,7 +195,7 @@ GameObject:
   - component: {fileID: 4355691095603478527}
   - component: {fileID: 4355691095603478526}
   - component: {fileID: 4365011549764909835}
-  m_Layer: 8
+  m_Layer: 5
   m_Name: UI_CollectedItemPopup
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -256,8 +256,8 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 1243288589
-  m_SortingLayer: 6
+  m_SortingLayerID: -1529159061
+  m_SortingLayer: 7
   m_SortingOrder: 100
   m_Sprite: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -306,8 +306,8 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  MaxMoveSpeed: 2.5
   FadeStartDelay: 1
   FadeOutTime: 1
-  TMP_TextComponent: {fileID: 4355691095482185131}
   ItemType: 0
+  MaxMoveSpeed: 2.5
+  TMP_TextComponent: {fileID: 4355691095482185131}

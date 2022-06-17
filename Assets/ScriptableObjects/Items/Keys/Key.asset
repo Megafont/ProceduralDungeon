@@ -9,12 +9,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 151bcda8d41daea4791a463556aef7e3, type: 3}
-  m_Name: Garlic Pasta
+  m_Script: {fileID: 11500000, guid: 44cf7f9e360cf2343937f800212a51fe, type: 3}
+  m_Name: Key
   m_EditorClassIdentifier: 
-  ID: 3
+  ID: 0
   InstanceID: 0
-  Icon: {fileID: -1472476886, guid: bacc6969a775de24e9da3197d2cc0bcb, type: 3}
-  Type: 0
-  Description: A delicious pasta dish that raises your spirits.
+  Icon: {fileID: -1472476886, guid: b7ddb6922b441ce46b2c50c8289b0eaf, type: 3}
+  Type: 3
+  Description: An ordinary key that opens a locked door.
   Buffs: []
+  KeyType: 0
+  KeyID: 0

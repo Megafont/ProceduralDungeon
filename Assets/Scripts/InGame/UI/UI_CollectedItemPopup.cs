@@ -6,7 +6,10 @@ using UnityEngine;
 
 using TMPro;
 
+using ProceduralDungeon.InGame.Inventory;
+using ProceduralDungeon.InGame.Items;
 using ProceduralDungeon.TileMaps;
+using ProceduralDungeon.Utilities;
 
 
 namespace ProceduralDungeon.InGame.UI
@@ -24,9 +27,6 @@ namespace ProceduralDungeon.InGame.UI
         [SerializeField]
         [Range(0f, 5f)]
         float FadeOutTime = 1.0f;
-
-        [SerializeField]
-        public ItemTypes ItemType;
 
         [SerializeField]
         [Range(0f, 5f)]
@@ -86,13 +86,13 @@ namespace ProceduralDungeon.InGame.UI
 
 
 
-        public void SetItemType(ItemData itemData, RoomSets roomSet)
+        public void SetItem(InventorySlot slot, RoomSets roomSet)
         {
-            string itemName = Enum.GetName(typeof(ItemTypes), itemData.ItemType);
+            string itemName = slot.Item.Name;
 
-            _SpriteRenderer.sprite = SpriteLoader.GetItemSprite(itemName, roomSet);
-            TMP_TextComponent.text = FormatItemName(itemName, itemData.ItemCount);
-            TMP_TextComponent.color = GetTextColor(itemData.ItemType);
+            _SpriteRenderer.sprite = SpriteManager.GetItemSprite(itemName, roomSet);
+            TMP_TextComponent.text = FormatItemName(itemName, slot.ItemCount);
+            TMP_TextComponent.color = GetTextColor(itemName);
             
         }
 
@@ -108,27 +108,27 @@ namespace ProceduralDungeon.InGame.UI
 
         private string FormatItemName(string itemName, uint count)
         {
-            string result = count + "x " + itemName.Substring(5, itemName.Length - 5);
+            string result = count + "x " + itemName;
             result = result.Replace('_', ' ');
 
             return result;
         }
 
-        private Color32 GetTextColor(ItemTypes itemType)
+        private Color32 GetTextColor(string itemName)
         {
             Color32 color = Color.white;
 
 
-            switch (itemType)
+            switch (itemName)
             {
-                case ItemTypes.Item_Bomb:
+                case "Bomb":
                     color = new Color(0, 0, 200, 255); break;
 
-                case ItemTypes.Item_Key:
+                case "Key":
                     color = new Color(200, 255, 0, 255); break;
-                case ItemTypes.Item_Key_Part:
+                case "Key Part":
                     color = new Color(0, 255, 255, 255); break;
-                case ItemTypes.Item_Key_Goal:
+                case "Goal Key":
                     color = new Color(255, 0, 0, 255); break;
 }
 

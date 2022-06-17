@@ -7,12 +7,13 @@ using ProceduralDungeon.DungeonGeneration;
 using ProceduralDungeon.DungeonGeneration.DungeonGraphGeneration;
 using ProceduralDungeon.InGame.Objects;
 using ProceduralDungeon.TileMaps;
+using ProceduralDungeon.Utilities;
 
 
 namespace ProceduralDungeon.InGame.Items
 {
 
-    public class Item_Bomb : MonoBehaviour
+    public class Object_Bomb : MonoBehaviour
     {
         public enum BombStates
         {
@@ -56,7 +57,7 @@ namespace ProceduralDungeon.InGame.Items
 
 
             DungeonGraphNode roomNode = DungeonGenerator.GetRoomDataFromTilePosition(new Vector3Int((int) transform.position.x, (int) transform.position.y, (int) transform.position.z));
-            GetComponent<SpriteRenderer>().sprite = SpriteLoader.GetItemSprite("Item_Bomb", roomNode.RoomBlueprint.RoomSet);
+            GetComponent<SpriteRenderer>().sprite = SpriteManager.GetItemSprite("Item_Bomb", roomNode.RoomBlueprint.RoomSet);
         }
 
         // Update is called once per frame

@@ -4,6 +4,9 @@ using System.Collections.Generic;
 
 using UnityEngine;
 
+using ProceduralDungeon.DungeonGeneration;
+using ProceduralDungeon.InGame.Items.Definitions;
+
 
 namespace ProceduralDungeon.InGame.Items
 {
@@ -27,7 +30,7 @@ namespace ProceduralDungeon.InGame.Items
 
         public void GenerateValue()
         {
-            AttributeValue = UnityEngine.Random.Range(MinValue, MaxValue);
+            AttributeValue = DungeonGenerator.DungeonGenRNG.RollRandomIntInRange(MinValue, MaxValue);
         }
 
 

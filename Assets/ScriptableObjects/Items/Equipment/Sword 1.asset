@@ -10,14 +10,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 54b9f12744183af4294fbd541a829e23, type: 3}
-  m_Name: Sword 2
+  m_Name: Sword 1
   m_EditorClassIdentifier: 
-  ID: 4
-  Icon: {fileID: -1472476886, guid: ea1c08d91afa6894ea78d60e6d619d3c, type: 3}
-  Type: 1
+  ID: 5
+  InstanceID: 0
+  Icon: {fileID: -1472476886, guid: fd1249da2b4341243a33e5cfd1457dcf, type: 3}
+  Type: 2
   Description: A deadly early game sword.
   Buffs:
-  - Attribute: 2
+  - Attribute: 1
     AttributeValue: 0
-    MinValue: 10
-    MaxValue: 40
+    MinValue: 1
+    MaxValue: 30

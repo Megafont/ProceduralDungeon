@@ -4,8 +4,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+using ProceduralDungeon.DungeonGeneration;
 using ProceduralDungeon.InGame.Items;
 using ProceduralDungeon.InGame.Inventory;
+using ProceduralDungeon.Utilities;
 
 
 namespace ProceduralDungeon.InGame
@@ -27,10 +29,8 @@ namespace ProceduralDungeon.InGame
         private Vector2 _MoveInput;
         private Vector2 _Velocity;
 
-        private InventoryOld _MyInventory;
 
-        Item _BombItem;
-        private GameObject _Prefab_Item_Bomb;
+        ItemData _BombItem;
 
 
 
@@ -39,15 +39,10 @@ namespace ProceduralDungeon.InGame
         {
             _MyRigidBody2D = GetComponent<Rigidbody2D>();
 
-            _MyInventory = GetComponent<InventoryOld>();            
-            _MyInventory.InsertItem(new ItemData() { ItemType = ItemTypes.Item_Bomb, ItemCount = 3, GroupID = 0 });
 
             //Create a bomb item.
-            _BombItem = new Item(Inventory.ItemDatabase.LookupByName("Bomb"));
+            _BombItem = new ItemData(Inventory.ItemDatabase.LookupByName("Bomb"));
             Inventory.Data.AddItem(_BombItem, 3);
-
-            if (_Prefab_Item_Bomb == null)
-                _Prefab_Item_Bomb = (GameObject)Resources.Load("Prefabs/Items/Item_Bomb");
         }
 
 
@@ -85,11 +80,7 @@ namespace ProceduralDungeon.InGame
 
         void OnAction1()
         {
-            // Check if the player has a bomb.
-            //if (!_MyInventory.ContainsItem(ItemTypes.Item_Bomb, 1))
-            //    return;
-
-            Item bombItem;
+            ItemData bombItem;
             if (!Inventory.Data.FindItem("Bomb", 1, out bombItem))
                 return;
 
@@ -105,11 +96,11 @@ namespace ProceduralDungeon.InGame
                 Inventory.Data.ConsumeItem("Bomb", 1);
 
 
-                GameObject litBomb = Instantiate(_Prefab_Item_Bomb, 
-                                                 transform.position + _LastMoveDirection, 
+                GameObject litBomb = Instantiate(PrefabManager.GetObjectPrefab("Object_Bomb", DungeonGenerator.DungeonTilemapManager.RoomSet),
+                                                 transform.position + _LastMoveDirection,
                                                  Quaternion.identity);
 
-                litBomb.GetComponent<Item_Bomb>().LightFuse();
+                litBomb.GetComponent<Object_Bomb>().LightFuse();
             }
 
         }

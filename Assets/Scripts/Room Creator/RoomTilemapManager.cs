@@ -49,11 +49,11 @@ namespace ProceduralDungeon.RoomCreator
 
         void Awake()
         {
-            Assert.IsNotNull(_FloorsMap, "RoomTilemapManager: The floors map field is null!");
-            Assert.IsNotNull(_WallsMap, "RoomTilemapManager: The walls map field is null!");
-            Assert.IsNotNull(_Placeholders_Objects_Map, "RoomTilemapManager: The object placeholders map field is null!");
-            Assert.IsNotNull(_Placeholders_Items_Map, "RoomTilemapManager: The item placeholders map field is null!");
-            Assert.IsNotNull(_Placeholders_Enemies_Map, "RoomTilemapManager: The enemy palceholders map field is null!");
+            Assert.IsNotNull(_FloorsMap, "RoomTilemapManager.Awake() - The floors map field is null!");
+            Assert.IsNotNull(_WallsMap, "RoomTilemapManager.Awake() - The walls map field is null!");
+            Assert.IsNotNull(_Placeholders_Objects_Map, "RoomTilemapManager.Awake() - The object placeholders map field is null!");
+            Assert.IsNotNull(_Placeholders_Items_Map, "RoomTilemapManager.Awake() - The item placeholders map field is null!");
+            Assert.IsNotNull(_Placeholders_Enemies_Map, "RoomTilemapManager.Awake() - The enemy palceholders map field is null!");
         }
 
 

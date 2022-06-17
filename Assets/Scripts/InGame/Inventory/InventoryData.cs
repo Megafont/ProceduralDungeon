@@ -26,7 +26,7 @@ namespace ProceduralDungeon.InGame.Inventory
 
 
 
-        public void AddItem(Item item, uint amountToAdd)
+        public void AddItem(ItemData item, uint amountToAdd)
         {
             // If an item has buffs, we always create a new item in the inventory.
             // This simply makes it so that items with buffs are not stackable.
@@ -56,6 +56,36 @@ namespace ProceduralDungeon.InGame.Inventory
             // The item was not already in the inventory, so create a new slot.
             Items.Add(new InventorySlot(item, amountToAdd));
 
+        }
+
+        public void AddItems(InventoryObject otherInventory)
+        {
+            if (otherInventory == null)
+            {
+                Debug.LogWarning("InventoryData.AddItems() - No items were added to this inventory because the passed in InventoryObject is null!");
+                return;
+            }
+
+
+            foreach (InventorySlot slot in otherInventory.Data.Items)
+            {
+                AddItem(slot.Item, slot.ItemCount);
+            }
+        }
+
+        public void AddItems(InventoryData data)
+        {
+            if (data == null)
+            {
+                Debug.LogWarning("InventoryData.AddItems() - No items were added to this inventory because the passed in InventoryData object is null!");
+                return;
+            }
+
+
+            foreach (InventorySlot slot in data.Items)
+            {
+                AddItem(slot.Item, slot.ItemCount);
+            }
         }
 
         public bool ConsumeItem(uint id, uint amount, uint instanceID = 0)
@@ -97,13 +127,42 @@ namespace ProceduralDungeon.InGame.Inventory
         }
 
         /// <summary>
+        /// Finds a key in this inventory with the specified ID.
+        /// </summary>
+        /// <param name="keyType">The type of key to look for.</param>
+        /// <param name="keyID">The ID of the key to look for.</param>
+        /// <param name="keyPartsRequired">If the key type is multi_part, then this parameter specifies how many parts the player must have.</param>
+        /// <returns>True if the key was found and removed from the inventory, or false otherwise.</returns>
+        public bool ConsumeKey(KeyTypes keyType, uint keyID, uint keyPartsRequired = 0)
+        {
+            foreach (InventorySlot slot in Items)
+            {
+                if (slot.Item is ItemData_Key)
+                {
+                    ItemData_Key key = (ItemData_Key) slot.Item;
+
+                    if (key.KeyType == keyType && key.KeyID == keyID && slot.ItemCount >= keyPartsRequired)
+                    {
+                        Items.Remove(slot);
+                        return true;
+                    }
+                }
+
+            } // end foreach slot
+
+
+            return false;
+
+        }
+
+        /// <summary>
         /// Finds an item in the inventory with the specified ID and an item count that is greater than or equal to amount.
         /// </summary>
         /// <param name="id">The ID of the item to search for.</param>
         /// <param name="amount">The minimum amount of that item to check for.</param>
         /// <param name="item">This out parameter returns the first matching item found, or null if no matching item is found.</param>
         /// <returns>True if the item exists in this inventory and its item count is greater than or equal to amount.</returns>
-        public bool FindItem(uint id, uint amount, out Item item)
+        public bool FindItem(uint id, uint amount, out ItemData item)
         {
             item = null;
 
@@ -125,7 +184,7 @@ namespace ProceduralDungeon.InGame.Inventory
         /// <param name="amount">The minimum amount of that item to check for.</param>
         /// <param name="item">This out parameter returns the first matching item found, or null if no matching item is found.</param>
         /// <returns>True if the item exists in this inventory and its item count is greater than or equal to amount.</returns>
-        public bool FindItem(string name, uint amount, out Item item)
+        public bool FindItem(string name, uint amount, out ItemData item)
         {
             item = null;
 
@@ -224,7 +283,7 @@ namespace ProceduralDungeon.InGame.Inventory
             return false;
         }
 
-        private bool SearchForItem(Item item, uint amount, out InventorySlot itemSlot)
+        private bool SearchForItem(ItemData item, uint amount, out InventorySlot itemSlot)
         {
             itemSlot = null;
 

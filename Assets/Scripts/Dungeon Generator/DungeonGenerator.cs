@@ -15,6 +15,7 @@ using ProceduralDungeon.DungeonGeneration.DungeonConstruction.PlaceholderUtiliti
 using ProceduralDungeon.DungeonGeneration.DungeonGraphGeneration;
 using ProceduralDungeon.DungeonGeneration.MissionStructureGeneration;
 using ProceduralDungeon.InGame;
+using ProceduralDungeon.InGame.Items;
 using ProceduralDungeon.TileMaps;
 
 
@@ -38,6 +39,7 @@ namespace ProceduralDungeon.DungeonGeneration
         private static DungeonGraph _DungeonGraph; // Holds the layout information of the dungeon used to build it with tiles.
         private static MissionStructureGraph _MissionStructureGraph; // Holds the mission structure information of the dungeon, such as locations of things like keys, locks, or bosses.
 
+        private static ItemDatabaseObject _ItemDatabase;
 
         private static Dictionary<MissionStructureGraphNode, DungeonGraphNode> _ParentDictionary;
 
@@ -71,25 +73,27 @@ namespace ProceduralDungeon.DungeonGeneration
 
 
 
+        public static NoiseRNG DungeonGenRNG { get { return _RNG_DungeonGen; } }
         public static DungeonGraph DungeonGraph { get { return _DungeonGraph; } }
+        public static DungeonTilemapManager DungeonTilemapManager { get { return _DungeonTilemapManager; } }
         public static bool IsGeneratingDungeon { get { return _IsGeneratingDungeon; } }
         public static bool IsInitialized { get { return _IsInitialized; } }
+        public static ItemDatabaseObject ItemDatabase { get { return _ItemDatabase; } }
         public static MissionStructureGraph MissionStructureGraph { get { return _MissionStructureGraph; } }
 
 
 
         public static void Init(DungeonTilemapManager manager)
         {
-            if (manager == null)
-            {
-                Debug.LogError("DungeonGenerator.Init() - Cannot initialize the dungeon generator, because the passed in DungeonGenerator is null!");
-                return;
-            }
+            Assert.IsNotNull(manager, "DungeonGenerator.Init() - Cannot initialize the dungeon generator, because the passed in DungeonGenerator is null!");
 
 
             if (!_IsInitialized)
             {
                 _IsInitialized = false;
+
+                _ItemDatabase = manager.ItemDatabase;
+
 
                 // Move these lists into a theme object later that holds all rooms from a certain set?
                 // This would be necessary if I make this generator able to incorporate multiple themes into one dungeon (like cave and brick rooms or something);
@@ -174,9 +178,9 @@ namespace ProceduralDungeon.DungeonGeneration
 
         private static void LoadRoomsData()
         {
-            string roomSet = _DungeonTilemapManager.RoomSet;
+            string roomSet = Enum.GetName(typeof(RoomSets), _DungeonTilemapManager.RoomSet);
 
-            foreach (string file in Directory.GetFiles(ScriptableRoomUtilities.GetRoomSetPath(_DungeonTilemapManager.RoomSet)))
+            foreach (string file in Directory.GetFiles(ScriptableRoomUtilities.GetRoomSetPath(roomSet)))
             {
                 // If the file does not have the .asset file extension, then skip it. This prevents us from trying to load in the .meta files for each asset as if they were assets themselves.
                 if (!file.EndsWith(".asset"))
@@ -239,7 +243,9 @@ namespace ProceduralDungeon.DungeonGeneration
 
             _DungeonTilemapManager.DungeonMap.CompressBoundsOfAllTileMaps();
 
-            DungeonPopulator.PopulateDungeon(_DungeonGraph, _RNG_DungeonGen, _DungeonTilemapManager.RoomSet);
+            DungeonPopulator.PopulateDungeon(_DungeonGraph, 
+                                             _RNG_DungeonGen,
+                                             Enum.GetName(typeof(RoomSets), _DungeonTilemapManager.RoomSet));
 
             _IsGeneratingDungeon = false;
 

@@ -7,15 +7,15 @@ using UnityEngine;
 using ProceduralDungeon.TileMaps;
 
 
-namespace ProceduralDungeon.InGame
+namespace ProceduralDungeon.Utilities
 {
-    public static class SpriteLoader
+    public static class SpriteManager
     {
         private static Dictionary<string, Dictionary<string, Sprite>> _SpritesDictionary;
 
 
 
-        static SpriteLoader()
+        static SpriteManager()
         {
             _SpritesDictionary = new Dictionary<string, Dictionary<string, Sprite>>();
         }

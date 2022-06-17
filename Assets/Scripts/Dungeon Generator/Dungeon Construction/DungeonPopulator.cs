@@ -10,8 +10,11 @@ using ProceduralDungeon.DungeonGeneration.DungeonGraphGeneration;
 using ProceduralDungeon.DungeonGeneration.MissionStructureGeneration;
 using ProceduralDungeon.InGame;
 using ProceduralDungeon.InGame.Items;
+using ProceduralDungeon.InGame.Items.Definitions;
+using ProceduralDungeon.InGame.Inventory;
 using ProceduralDungeon.InGame.Objects;
 using ProceduralDungeon.TileMaps;
+using ProceduralDungeon.Utilities;
 
 
 using GrammarSymbols = ProceduralDungeon.DungeonGeneration.MissionStructureGeneration.GenerativeGrammar.Symbols;
@@ -22,7 +25,6 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
     public static class DungeonPopulator
     {
-        private static string _CurrentRoomSet;
         private static GameObject _ItemsParent;
         private static GameObject _ObjectsParent;
         private static GameObject _Objects_Chests_Parent;
@@ -31,20 +33,12 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
         private static GameObject _Objects_Spikes_Parent;
 
         private static Dictionary<MissionStructureGraphNode, Object_Door> _LockedDoorsDictionary;
-        private static Dictionary<MissionStructureGraphNode, InventoryOld> _KeyChestsDictionary;
+        private static Dictionary<MissionStructureGraphNode, InventoryObject> _KeyChestsDictionary;
         private static uint _NextKeyID;
 
 
         private static Vector3 _ObjectOffsetVector = new Vector3(0.5f, 0.5f);
         private static Vector3 _ItemOffsetVector = new Vector3(0.5f, 0.5f);
-
-        private static GameObject _Prefab_Object_Chest;
-        private static GameObject _Prefab_Object_ChestGoal;
-        private static GameObject _Prefab_Object_Door;
-        private static GameObject _Prefab_Object_Door_BombableWall;
-        private static GameObject _Prefab_Object_Spikes;
-
-        private static GameObject _Prefab_Item_Key;
 
 
 
@@ -54,14 +48,8 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             Assert.IsNotNull(rng, "DungeonPopulator.PopulateDungeon() - The passed in random number generator is null!");
 
 
-            _CurrentRoomSet = roomSet;
-
-
-            LoadPrefabs();
-
-
             _LockedDoorsDictionary = new Dictionary<MissionStructureGraphNode, Object_Door>();
-            _KeyChestsDictionary = new Dictionary<MissionStructureGraphNode, InventoryOld>();
+            _KeyChestsDictionary = new Dictionary<MissionStructureGraphNode, InventoryObject>();
             _NextKeyID = 0;
 
 
@@ -113,7 +101,11 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
                         doorway = GetDoorFromParentRoomToThisRoom(roomNode);
 
                         SpawnObject_Door_BombableWall(doorway);
-                        SpawnObject_Chest(roomNode, rng, ChestTypes.RandomTreasure, new ItemData[] { new ItemData() { ItemType = ItemTypes.Item_Bomb, ItemCount = (uint)rng.RollRandomIntInRange(0, 3) } } );
+
+                        InventoryData items = new InventoryData();
+                        items.AddItem(new ItemData(DungeonGenerator.ItemDatabase.LookupByName("Bomb")), (uint) rng.RollRandomIntInRange(1, 3));
+
+                        SpawnObject_Chest(roomNode, rng, ChestTypes.RandomTreasure, items);
                         break;
 
                     case GrammarSymbols.T_Treasure_Key:
@@ -170,39 +162,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             DestroyAllChildGameObjects(_Objects_Doors_BombableWalls_Parent);
             DestroyAllChildGameObjects(_Objects_Spikes_Parent);
         }
-
-        private static void LoadPrefabs()
-        {
-            LoadObjectPrefabs();
-            LoadItemPrefabs();
-        }
-
-        private static void LoadObjectPrefabs()
-        {
-            if (_Prefab_Object_Chest == null)
-                _Prefab_Object_Chest = (GameObject)Resources.Load("Prefabs/Objects/Object_Chest");
-
-            if (_Prefab_Object_ChestGoal == null)
-                _Prefab_Object_ChestGoal = (GameObject)Resources.Load("Prefabs/Objects/Object_ChestGoal");
-
-            if (_Prefab_Object_Door == null)
-                _Prefab_Object_Door = (GameObject)Resources.Load("Prefabs/Objects/Object_Door");
-
-            if (_Prefab_Object_Door_BombableWall == null)
-                _Prefab_Object_Door_BombableWall = (GameObject)Resources.Load("Prefabs/Objects/Object_Door_BombableWall");
-
-
-            if (_Prefab_Object_Spikes == null)
-                _Prefab_Object_Spikes = (GameObject)Resources.Load("Prefabs/Objects/Object_Spikes");
-        }
-
-        private static void LoadItemPrefabs()
-        {
-            if (_Prefab_Item_Key == null)
-                _Prefab_Item_Key = (GameObject)Resources.Load("Prefabs/Items/Item_Key");
-        }
-
-        
+      
         /// <summary>
         /// Spawns a chest at a randomly chosen placeholder tile the type of which is determined by the specified chest type.
         /// </summary>
@@ -212,7 +172,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
         /// <param name="chestContents">The items to place inside the chest.</param>
         /// <returns>A reference to the spawned chest GameObject.</returns>
         /// <exception cref="System.Exception">When the parent room does not have any placeholder tiles of the type corresponding to the type of chest that is supposed to be spawned.</exception>
-        private static GameObject SpawnObject_Chest(DungeonGraphNode roomNode, NoiseRNG rng, ChestTypes chestType, ItemData[] chestContents)
+        private static GameObject SpawnObject_Chest(DungeonGraphNode roomNode, NoiseRNG rng, ChestTypes chestType, InventoryData chestContents)
         {
             // Select placeholders list.
             List<SavedTile> placeholdersList = null;
@@ -260,22 +220,26 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
         /// <param name="position">The position to spawn the chest at.</param>
         /// <param name="rotation">The rotation direction of the spawned chest.</param>
         /// <returns>A reference to the spawned chest GameObject.</returns>
-        private static GameObject SpawnObject_Chest(DungeonGraphNode roomNode, ChestTypes chestType, ItemData[] chestContents, Vector3Int position, Quaternion rotation)
+        private static GameObject SpawnObject_Chest(DungeonGraphNode roomNode, ChestTypes chestType, InventoryData chestContents, Vector3Int position, Quaternion rotation)
         {
             // Select chest type.
             GameObject chestPrefab = null;
             if (chestType == ChestTypes.Key || chestType == ChestTypes.Key_Multipart || chestType == ChestTypes.RandomTreasure)
-                chestPrefab = _Prefab_Object_Chest;
+                chestPrefab = PrefabManager.GetObjectPrefab("Object_Chest", roomNode.RoomBlueprint.RoomSet);
             else if (chestType == ChestTypes.Key_Goal)
-                chestPrefab = _Prefab_Object_ChestGoal;
+                chestPrefab = PrefabManager.GetObjectPrefab("Object_ChestGoal", roomNode.RoomBlueprint.RoomSet);
 
             
-            GameObject chest = GameObject.Instantiate(chestPrefab, _ItemOffsetVector + position, rotation, _Objects_Chests_Parent.transform);
+            GameObject chest = GameObject.Instantiate(chestPrefab, 
+                                                      _ItemOffsetVector + position,
+                                                      rotation,
+                                                      _Objects_Chests_Parent.transform);
 
 
             // Fill the chest with the specified items.
-            InventoryOld inventory = chest.GetComponent<InventoryOld>();
-            inventory.InsertItems(chestContents);
+            InventoryObject inventory = chest.GetComponent<Object_Chest>().Inventory;
+            if (inventory != null)
+                inventory.Data.AddItems(chestContents);
 
 
             // Setup the chest's sprite properties.
@@ -283,13 +247,13 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             RoomSets roomSet = roomNode.RoomBlueprint.RoomSet;
             if (chestType == ChestTypes.Key || chestType == ChestTypes.Key_Multipart || chestType == ChestTypes.RandomTreasure)
             {
-                objChest.ClosedSprite = SpriteLoader.GetObjectSprite("Object_Chest_Closed", roomSet);
-                objChest.OpenSprite = SpriteLoader.GetObjectSprite("Object_Chest_Open", roomSet);
+                objChest.ClosedSprite = SpriteManager.GetObjectSprite("Object_Chest_Closed", roomSet);
+                objChest.OpenSprite = SpriteManager.GetObjectSprite("Object_Chest_Open", roomSet);
             }
             else
             {
-                objChest.ClosedSprite = SpriteLoader.GetObjectSprite("Object_ChestGoal_Closed", roomSet);
-                objChest.OpenSprite = SpriteLoader.GetObjectSprite("Object_ChestGoal_Open", roomSet);
+                objChest.ClosedSprite = SpriteManager.GetObjectSprite("Object_ChestGoal_Closed", roomSet);
+                objChest.OpenSprite = SpriteManager.GetObjectSprite("Object_ChestGoal_Open", roomSet);
             }
 
             objChest.GetComponent<SpriteRenderer>().sprite = objChest.ClosedSprite;
@@ -329,7 +293,11 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
 
             // Spawn a door object and configure it.
-            GameObject door = GameObject.Instantiate(_Prefab_Object_Door, centerPoint, rotation, _Objects_Doors_Parent.transform);
+            GameObject door = GameObject.Instantiate(PrefabManager.GetObjectPrefab("Object_Door", doorToSpawn.ThisRoom_Node.RoomBlueprint.RoomSet), 
+                                                     centerPoint, 
+                                                     rotation,
+                                                     _Objects_Doors_Parent.transform);
+
             Object_Door doorComponent = door.GetComponent<Object_Door>();
 
 
@@ -356,10 +324,10 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             doorComponent.LockType = lockType;
 
             RoomSets roomSet = doorToSpawn.ThisRoom_Node.RoomBlueprint.RoomSet;
-            doorComponent.ClosedSprite = SpriteLoader.GetObjectSprite("Object_Door_Closed", roomSet);
-            doorComponent.LockedSprite = SpriteLoader.GetObjectSprite("Object_Door_Locked", roomSet);
-            doorComponent.LockedMultipartSprite = SpriteLoader.GetObjectSprite("Object_Door_Locked_Multipart", roomSet);
-            doorComponent.LockedGoalSprite = SpriteLoader.GetObjectSprite("Object_Door_Locked_Goal", roomSet);
+            doorComponent.ClosedSprite = SpriteManager.GetObjectSprite("Object_Door_Closed", roomSet);
+            doorComponent.LockedSprite = SpriteManager.GetObjectSprite("Object_Door_Locked", roomSet);
+            doorComponent.LockedMultipartSprite = SpriteManager.GetObjectSprite("Object_Door_Locked_Multipart", roomSet);
+            doorComponent.LockedGoalSprite = SpriteManager.GetObjectSprite("Object_Door_Locked_Goal", roomSet);
 
             doorComponent.ToggleState();
 
@@ -395,7 +363,11 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
 
             // Spawn a door object and configure it.
-            GameObject door = GameObject.Instantiate(_Prefab_Object_Door_BombableWall, centerPoint, rotation, _Objects_Doors_BombableWalls_Parent.transform);
+            GameObject door = GameObject.Instantiate(PrefabManager.GetObjectPrefab("Object_Door_Bombablewall", doorToSpawn.ThisRoom_Node.RoomBlueprint.RoomSet),
+                                                     centerPoint, 
+                                                     rotation, 
+                                                     _Objects_Doors_BombableWalls_Parent.transform);
+
 
             // Give the new object a reference to the doorway it represents.
             door.GetComponent<Object_Door_BombableWall>().Doorway = doorToSpawn;
@@ -406,8 +378,9 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             // Calculate the position of the spikes.
             Vector3 centerPoint = DungeonConstructionUtils.AdjustTileCoordsForRoomPositionAndRotation(position, roomNode.RoomPosition, roomNode.RoomDirection);
 
+
             // Spawn a spikes object and configure it.
-            GameObject spikes = GameObject.Instantiate(_Prefab_Object_Spikes, 
+            GameObject spikes = GameObject.Instantiate(PrefabManager.GetObjectPrefab("Object_Spikes", roomNode.RoomBlueprint.RoomSet), 
                                                        centerPoint + _ObjectOffsetVector, 
                                                        Quaternion.identity, 
                                                        _Objects_Spikes_Parent.transform);
@@ -415,7 +388,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
             RoomSets roomSet = roomNode.RoomBlueprint.RoomSet;
             Object_Spikes spikesComponent = spikes.GetComponent<Object_Spikes>();
-            spikesComponent.GetComponent<SpriteRenderer>().sprite = SpriteLoader.GetObjectSprite("Object_Spikes", roomSet);
+            spikesComponent.GetComponent<SpriteRenderer>().sprite = SpriteManager.GetObjectSprite("Object_Spikes", roomSet);
         }
 
 
@@ -459,21 +432,30 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
 
             // Spawn a chest containing a key.
-            GameObject chest = SpawnObject_Chest(roomNode, chestType, new ItemData[0], keyPosWorld, keyRotation);
+            GameObject chest = SpawnObject_Chest(roomNode, chestType, null, keyPosWorld, keyRotation);
 
            
             // Get the Inventory component and add it to our dictionary to track it for a later pass to setup the key/lock pairs.
-            InventoryOld chestInventory = chest.GetComponent<InventoryOld>();
+            InventoryObject chestInventory = chest.GetComponent<Object_Chest>().Inventory;
             _KeyChestsDictionary.Add(roomNode.MissionStructureNode, chestInventory);
 
         }
 
         private static void FinalizeLockedDoors()
         {
-            foreach (KeyValuePair<MissionStructureGraphNode, InventoryOld> pair in _KeyChestsDictionary)
+            // If Unity is not in play mode, then just return as the code below will cause a null reference exception then anyway.
+            if (!Application.isPlaying)
+                return;
+
+
+            foreach (KeyValuePair<MissionStructureGraphNode, InventoryObject> pair in _KeyChestsDictionary)
             {
                 foreach (MissionStructureChildNodeData childNodeData in pair.Key.ChildNodesData)
                 {
+                    // Get the chest inventory.
+                    InventoryObject chestInventory = pair.Value;
+
+                    // Determine which type of key to put in the chest.
                     GrammarSymbols symbol = childNodeData.ChildNode.GrammarSymbol;
                     if (symbol == GrammarSymbols.T_Lock || symbol == GrammarSymbols.T_Lock_Multi || symbol == GrammarSymbols.T_Lock_Goal)
                     {
@@ -482,25 +464,34 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
                         if (lockedDoor == null)
                             continue;
 
-                        KeyTypes keyType = KeyTypes.Key;
+                        ItemDefinition_Key keyType = null;
                         if (lockedDoor.LockType == DoorLockTypes.Lock)
-                            keyType = KeyTypes.Key;
+                        {
+                            keyType = (ItemDefinition_Key)chestInventory.ItemDatabase.LookupByName("Key");
+                        }
                         else if (lockedDoor.LockType == DoorLockTypes.Lock_Multipart)
                         {
-                            keyType = KeyTypes.Key_Multipart;
+                            keyType = (ItemDefinition_Key)chestInventory.ItemDatabase.LookupByName("Key Part");
+
                             lockedDoor.MultipartKeyCount++;
                         }
                         else if (lockedDoor.LockType == DoorLockTypes.Lock_Goal)
-                            keyType = KeyTypes.Key_Goal;
+                        {
+                            keyType = (ItemDefinition_Key)chestInventory.ItemDatabase.LookupByName("Goal Key");
+                        }
 
+
+                        // Create a key item.
+                        ItemData_Key key = new ItemData_Key(keyType);
+                        key.KeyID = lockedDoor.Key_ID;
 
                         // Insert an appropriate key into the chest's inventory.
-                        pair.Value.InsertItem(new ItemData() { ItemType = Item_Key.KeyTypeFromItemType(keyType), ItemCount = 1, GroupID = (int)lockedDoor.Key_ID });
+                        chestInventory.Data.AddItem(key, 1);
 
 
                         break;
 
-                    } // end if child node is lock room
+                    } // end if child node is a lock room
 
 
                 } // end foreach childNodeData

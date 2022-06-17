@@ -10,13 +10,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c6b17bc613b08c04d85846048a2f13b0, type: 3}
-  m_Name: ItemsDatabase
+  m_Name: ItemDatabase
   m_EditorClassIdentifier: 
   Items:
   - {fileID: 11400000, guid: d92fd7e3a32a1a84390af271caca084a, type: 2}
   - {fileID: 11400000, guid: 28660e9f404db2641886e3e8d05e90da, type: 2}
   - {fileID: 11400000, guid: a6049ae5c00e6bf48b4c1d01badbd8b9, type: 2}
+  - {fileID: 11400000, guid: 99e8b79bf776a21449663da4a36879d6, type: 2}
+  - {fileID: 11400000, guid: c385f910fde57ad45a2ba8114f6f1505, type: 2}
+  - {fileID: 11400000, guid: a6a6c6b0e10ded443bac53ca13afdcd3, type: 2}
   - {fileID: 11400000, guid: 4b0311e48e433af4392df7ddbade7071, type: 2}
+  - {fileID: 11400000, guid: de79cfb1f96ad1f4b89ed84be2595942, type: 2}
   - {fileID: 11400000, guid: fa8cb14272871694391f5d9999830c92, type: 2}
   - {fileID: 11400000, guid: 96e4daf95f4325548b9568b8c19758f7, type: 2}
-  - {fileID: 11400000, guid: de79cfb1f96ad1f4b89ed84be2595942, type: 2}

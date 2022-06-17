@@ -2,11 +2,13 @@
 
 using UnityEngine;
 
+using ProceduralDungeon.InGame.Items.Definitions;
+
 
 namespace ProceduralDungeon.InGame.Items
 {
     [Serializable]
-    public class Item
+    public class ItemData
     {
         public string Name;
         public uint ID;
@@ -18,13 +20,16 @@ namespace ProceduralDungeon.InGame.Items
 
 
 
-
-        public Item(ItemObject item)
+        /// <summary>
+        /// This class represents an instance of an item in an inventory.
+        /// </summary>
+        /// <param name="item"></param>
+        public ItemData(ItemDefinition item)
         {
             Name = item.name;
             ID = item.ID;
-            InstanceID = item.InstanceID;
 
+            InstanceID = item.InstanceID;
 
             Buffs = new ItemBuff[item.Buffs.Length];
             for (int i = 0; i < Buffs.Length; i++)
@@ -36,5 +41,6 @@ namespace ProceduralDungeon.InGame.Items
         }
 
     }
+
 
 }

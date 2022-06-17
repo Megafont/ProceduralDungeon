@@ -5,13 +5,15 @@ using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 
 using UnityEngine;
+using UnityEngine.Assertions;
 
+using ProceduralDungeon.DungeonGeneration;
 using ProceduralDungeon.InGame.Items;
 
 
 namespace ProceduralDungeon.InGame.Inventory
 {
-    [CreateAssetMenu(fileName = "New Inventory", menuName = "Inventory System/Inventory")]
+    [CreateAssetMenu(fileName = "New Inventory", menuName = "Inventory System/Inventory Object")]
     public class InventoryObject : ScriptableObject
     {
         public string ItemSavePath;
@@ -27,14 +29,24 @@ namespace ProceduralDungeon.InGame.Inventory
         /// </summary>
         public void OnEnable()
         {
-            Data = new InventoryData();
+            if (Data == null)
+            {
+                Data = new InventoryData();
+            }
+
+            if (ItemDatabase == null)
+                ItemDatabase = DungeonGenerator.ItemDatabase;
+
             Data.SetItemDatabase(ItemDatabase);
         }
 
         public void CheckSavePath()
         {
-            if (!Directory.Exists(string.Concat(Application.persistentDataPath, @"\Inventories")))
-                Directory.CreateDirectory(string.Concat(Application.persistentDataPath, @"\Inventories"));
+            Assert.IsFalse(string.IsNullOrWhiteSpace(ItemSavePath), "InventoryObject.CheckSavePath() - The ItemSavePath field on this inventory is not set!");
+
+            string path = string.Concat(Application.persistentDataPath, ItemSavePath);            
+            if (!Directory.Exists(Path.GetDirectoryName(path)))
+                Directory.CreateDirectory(path);
         }
 
         [ContextMenu("Save Inventory")]

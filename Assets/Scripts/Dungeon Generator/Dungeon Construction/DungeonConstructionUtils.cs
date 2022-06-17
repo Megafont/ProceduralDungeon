@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -190,7 +191,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
         /// <param name="roomFromTileDict">The dungeon generator's tracking dictionary that associates tiles with the rooms they belong to.</param>
         public static void PlaceRoomTiles(DungeonTilemapManager tilemapManager, DungeonGraphNode roomNode, Dictionary<Vector3Int, DungeonGraphNode> roomFromTileDict)
         {
-            _CurrentRoomSet = tilemapManager.RoomSet;
+            _CurrentRoomSet = Enum.GetName(typeof(RoomSets), tilemapManager.RoomSet);
 
             _MinX = _MinY = float.MaxValue;
             _MaxX = _MaxY = float.MinValue;
@@ -477,7 +478,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
         public static void SealOffBlockedDoors(DungeonTilemapManager tilemapManager, List<DungeonDoor> blockedDoors, NoiseRNG rng)
         {
-            _CurrentRoomSet = tilemapManager.RoomSet;
+            _CurrentRoomSet = Enum.GetName(typeof(RoomSets), tilemapManager.RoomSet);
 
             List<BasicDungeonTile> doorwayReplacement_Wall_Tiles = GetDoorwayReplacementWallTiles();
             List<BasicDungeonTile> doorwayReplacement_WallTop_Tiles = GetDoorwayReplacementWallTopTiles();

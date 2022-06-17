@@ -9,6 +9,7 @@ using UnityEngine.Tilemaps;
 using ProceduralDungeon.DungeonGeneration;
 using ProceduralDungeon.DungeonGeneration.DungeonConstruction;
 using ProceduralDungeon.DungeonGeneration.MissionStructureGeneration;
+using ProceduralDungeon.InGame.Items;
 using ProceduralDungeon.TileMaps;
 
 
@@ -32,11 +33,14 @@ namespace ProceduralDungeon.InGame
         [SerializeField] private GameObject _Player;
 
         [SerializeField] private RoomSets _RoomSet; // Determines which folder a room will be saved/loaded to/from.
+        [SerializeField] private ItemDatabaseObject _ItemDatabase;
+
 
 
         public GameObject Player { get { return _Player; } }
-        public string RoomSet { get { return Enum.GetName(typeof(RoomSets), _RoomSet); } }
-        
+        public RoomSets RoomSet { get { return _RoomSet; } }
+
+        public ItemDatabaseObject ItemDatabase { get { return _ItemDatabase;  } }
 
         private DungeonMap _DungeonMap;
 
@@ -44,11 +48,15 @@ namespace ProceduralDungeon.InGame
 
         void Awake()
         {
-            Assert.IsNotNull(_FloorsMap, "DungeonManager: The floors map field is null!");
-            Assert.IsNotNull(_WallsMap, "DungeonManager: The walls map field is null!");
-            Assert.IsNotNull(_Placeholders_Objects_Map, "DungeonManager: The object placeholders map field is null!");
-            Assert.IsNotNull(_Placeholders_Items_Map, "DungeonManager: The item placeholders map field is null!");
-            Assert.IsNotNull(_Placeholders_Enemies_Map, "DungeonManager: The enemy placeholders map field is null!");
+            Assert.IsNotNull(_FloorsMap, "DungeonTilemapManager.Awake() - The floors map field is null!");
+            Assert.IsNotNull(_WallsMap, "DungeonTilemapManager.Awake() - The walls map field is null!");
+            Assert.IsNotNull(_Placeholders_Objects_Map, "DungeonTilemapManager.Awake() - The object placeholders map field is null!");
+            Assert.IsNotNull(_Placeholders_Items_Map, "DungeonTilemapManager.Awake() - The item placeholders map field is null!");
+            Assert.IsNotNull(_Placeholders_Enemies_Map, "DungeonTilemapManager.Awake() - The enemy placeholders map field is null!");
+
+            Assert.IsNotNull(_ItemDatabase, "DungeonTilemapManager.Awake() - The ItemDatabaseObject is null!");
+
+            DungeonGenerator.Init(this);
         }
 
 
@@ -56,7 +64,6 @@ namespace ProceduralDungeon.InGame
         // Start is called before the first frame update
         void Start()
         {
-            DungeonGenerator.Init(this);
             DungeonGenerator.GenerateDungeon();
 
         }

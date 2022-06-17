@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -7,6 +8,7 @@ using UnityEngine;
 
 using ProceduralDungeon.DungeonGeneration;
 using ProceduralDungeon.InGame;
+using ProceduralDungeon.InGame.Items;
 using ProceduralDungeon.RoomCreator;
 using ProceduralDungeon.TileMaps;
 
@@ -25,6 +27,7 @@ namespace ProceduralDungeon.EditorScripts
         SerializedProperty _Placeholders_Items_Map;
         SerializedProperty _Placeholders_Enemies_Map;
 
+        SerializedProperty _ItemDatabase;
         SerializedProperty _Player;
         SerializedProperty _RoomSet;
 
@@ -41,6 +44,7 @@ namespace ProceduralDungeon.EditorScripts
             _Placeholders_Items_Map = serializedObject.FindProperty("_Placeholders_Items_Map");
             _Placeholders_Enemies_Map = serializedObject.FindProperty("_Placeholders_Enemies_Map");
 
+            _ItemDatabase = serializedObject.FindProperty("_ItemDatabase");
             _Player = serializedObject.FindProperty("_Player");
             _RoomSet = serializedObject.FindProperty("_RoomSet");
         }
@@ -73,6 +77,7 @@ namespace ProceduralDungeon.EditorScripts
 
             EditorGUILayout.LabelField("Dungeon Generation Settings", EditorStyles.boldLabel);
 
+            EditorGUILayout.PropertyField(_ItemDatabase);
             EditorGUILayout.PropertyField(_Player);
             EditorGUILayout.PropertyField(_RoomSet);
 

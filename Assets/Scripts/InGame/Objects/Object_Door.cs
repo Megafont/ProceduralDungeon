@@ -5,6 +5,7 @@ using UnityEngine;
 
 using ProceduralDungeon.DungeonGeneration.DungeonGraphGeneration;
 using ProceduralDungeon.InGame.Items;
+using ProceduralDungeon.InGame.Inventory;
 
 
 namespace ProceduralDungeon.InGame.Objects
@@ -67,23 +68,23 @@ namespace ProceduralDungeon.InGame.Objects
         {
             if (collision.collider.tag == "Player")
             {
-                InventoryOld inventory = _Player.GetComponent<InventoryOld>();
+                InventoryObject inventory = _Player.GetComponent<Player>().Inventory;
 
 
                 bool unlocked = false;
 
-                if (LockType == DoorLockTypes.Lock && 
-                    inventory.RemoveItem(ItemTypes.Item_Key, 1, (int) Key_ID))
+                if (LockType == DoorLockTypes.Lock && inventory.Data.ConsumeKey(KeyTypes.Key, Key_ID))
+                    //RemoveItem(ItemTypes.Item_Key, 1, (int) Key_ID))
                 {
                     unlocked = true;
                 }
-                else if (LockType == DoorLockTypes.Lock_Multipart && 
-                         inventory.RemoveItem(ItemTypes.Item_Key_Part, MultipartKeyCount, (int) Key_ID))
+                else if (LockType == DoorLockTypes.Lock_Multipart && inventory.Data.ConsumeKey(KeyTypes.Key_Multipart, Key_ID, MultipartKeyCount))
+                         //inventory.RemoveItem(ItemTypes.Item_Key_Part, MultipartKeyCount, (int) Key_ID))
                 {
                     unlocked = true;
                 }
-                else if (LockType == DoorLockTypes.Lock_Goal &&
-                         inventory.RemoveItem(ItemTypes.Item_Key_Goal, 1, (int) Key_ID))
+                else if (LockType == DoorLockTypes.Lock_Goal && inventory.Data.ConsumeKey(KeyTypes.Key_Goal, Key_ID))
+                    //inventory.RemoveItem(ItemTypes.Item_Key_Goal, 1, (int) Key_ID))
                 {
                     unlocked = true;
                 }

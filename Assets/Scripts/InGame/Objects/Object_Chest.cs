@@ -4,9 +4,12 @@ using System.Collections.Generic;
 
 using UnityEngine;
 
+using ProceduralDungeon.DungeonGeneration;
 using ProceduralDungeon.DungeonGeneration.DungeonGraphGeneration;
 using ProceduralDungeon.InGame;
+using ProceduralDungeon.InGame.Inventory;
 using ProceduralDungeon.InGame.UI;
+using ProceduralDungeon.Utilities;
 
 
 namespace ProceduralDungeon.InGame.Objects
@@ -21,7 +24,6 @@ namespace ProceduralDungeon.InGame.Objects
 
 
 
-    [RequireComponent(typeof(InventoryOld))]
     public class Object_Chest : MonoBehaviour
     {
         [SerializeField]
@@ -33,28 +35,30 @@ namespace ProceduralDungeon.InGame.Objects
         [Range(0f, 5f)]
         public float CollectedItemPopupDelay = 0.8f;
 
+        [SerializeField]
+        private InventoryObject _Inventory;
+
+
 
         public DungeonGraphNode ParentRoom;
 
 
-        private UI_CollectedItemPopup _Prefab_UI_CollectedItemPopup;
-
-
-        private InventoryOld _Inventory;
         private SpriteRenderer _SpriteRenderer;
 
         private static GameObject _UI_Objects_Parent;
-
         private static GameObject _Player;
 
 
 
-        public InventoryOld Inventory { get { return Inventory; } }
+        public InventoryObject Inventory { get { return _Inventory; } } 
 
 
 
-        private void Start()
+        private void Awake()
         {
+            if (_Inventory == null)
+                _Inventory = ScriptableObject.CreateInstance<InventoryObject>();
+
             if (_Player == null)
                 _Player = GameObject.FindGameObjectWithTag("Player");
 
@@ -68,14 +72,7 @@ namespace ProceduralDungeon.InGame.Objects
 
             _SpriteRenderer.sprite = ClosedSprite;
 
-            _Inventory = GetComponent<InventoryOld>();
-
-
-            if (_Prefab_UI_CollectedItemPopup == null)
-            {
-                GameObject prefab = (GameObject)Resources.Load("Prefabs/UI/UI_CollectedItemPopup");
-                _Prefab_UI_CollectedItemPopup = prefab.GetComponent<UI_CollectedItemPopup>();
-            }
+            _Inventory = ScriptableObject.CreateInstance<InventoryObject>();
 
         }
 
@@ -85,9 +82,9 @@ namespace ProceduralDungeon.InGame.Objects
             {
                 _SpriteRenderer.sprite = OpenSprite;
 
-                InventoryOld playerInventory = _Player.GetComponent<InventoryOld>();
+                InventoryObject playerInventory = _Player.GetComponent<Player>().Inventory;
 
-                playerInventory.InsertItems(_Inventory);
+                playerInventory.Data.AddItems(_Inventory);
 
                 StartCoroutine(ShowCollectedItemPopups());
             }
@@ -95,16 +92,16 @@ namespace ProceduralDungeon.InGame.Objects
 
         private IEnumerator ShowCollectedItemPopups()
         {
-            for (int i = 0; i < _Inventory.GetItemDataEntryCount(); i++)
+            for (int i = 0; i < _Inventory.Data.Items.Count; i++)
             {
-                ItemData itemData = _Inventory.GetItemDataEntry((uint) i);
+                InventorySlot slot = _Inventory.Data.Items[i];
 
-                UI_CollectedItemPopup popup = Instantiate(_Prefab_UI_CollectedItemPopup, 
-                                                          transform.position + Vector3.up * 0.2f, 
-                                                          Quaternion.identity, 
-                                                          _UI_Objects_Parent.transform);
+                GameObject popup = Instantiate(PrefabManager.GetUIPrefab("UI_CollectedItemPopup", ParentRoom.RoomBlueprint.RoomSet),
+                                               transform.position + Vector3.up * 0.2f,
+                                               Quaternion.identity,
+                                               _UI_Objects_Parent.transform); ;
 
-                popup.SetItemType(itemData, ParentRoom.RoomBlueprint.RoomSet);
+                popup.GetComponent<UI_CollectedItemPopup>().SetItem(slot, ParentRoom.RoomBlueprint.RoomSet);
 
                 yield return new WaitForSeconds(CollectedItemPopupDelay);
 

@@ -13,11 +13,11 @@ namespace ProceduralDungeon.InGame.Inventory
     public class InventorySlot
     {
         public uint ItemCount;
-        public Item Item;
+        public ItemData Item;
 
 
 
-        public InventorySlot(Item item, uint count)
+        public InventorySlot(ItemData item, uint count)
         {
             Item = item;
             ItemCount = count;

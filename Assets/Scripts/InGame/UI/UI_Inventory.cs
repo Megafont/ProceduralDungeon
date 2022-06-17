@@ -94,7 +94,7 @@ namespace ProceduralDungeon.InGame.UI
 
         private void UpdateItemIcon(GameObject itemIcon, int iconIndex)
         {
-            InventorySlot itemSlot = null;
+            InventorySlot itemSlot;
             if (iconIndex >= InventoryToDisplay.Data.Items.Count)
             {
                 // This UI icon is currently unused, so just hide it until we need it again.
@@ -108,7 +108,7 @@ namespace ProceduralDungeon.InGame.UI
 
 
                 // Set the position of the item icon in the inventory panel.
-                itemIcon.GetComponent<RectTransform>().localPosition = GetPosition(iconIndex);
+                itemIcon.GetComponent<RectTransform>().localPosition = GetIconPosition(iconIndex);
 
 
                 // Set the background sprite's size.
@@ -131,7 +131,7 @@ namespace ProceduralDungeon.InGame.UI
             }
         }
 
-        private Vector3 GetPosition(int itemIndex)
+        private Vector3 GetIconPosition(int itemIndex)
         {
             int posX = TopLeftItemPositionX + (int)(ItemSizeX + SpaceBetweenItemsX) * (int)(itemIndex % DisplayColumnCount);
             int posY = TopleftItemPositionY + (int)(ItemSizeY + SpaceBetweenItemsY) * (int)-(itemIndex / DisplayColumnCount); // The minus in this line makes it so each row appears below the previous. Otherwise it will stack item rows upward and go off the top of the panel.
