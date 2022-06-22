@@ -23,33 +23,12 @@ namespace ProceduralDungeon.Utilities
         }
 
 
-
-        public static GameObject GetItemPrefab(string prefabName, RoomSets roomSet)
-        {
-            return GetPrefab(prefabName,
-                             GetRoomSetName(roomSet),
-                             "Items");
-        }
-
-        public static GameObject GetObjectPrefab(string prefabName, RoomSets roomSet)
-        {
-            return GetPrefab(prefabName,
-                             GetRoomSetName(roomSet),
-                             "Objects");
-        }
-
-        public static GameObject GetUIPrefab(string prefabName, RoomSets roomSet)
-        {
-            return GetPrefab(prefabName,
-                             GetRoomSetName(roomSet),
-                             "UI");
-        }
-
-        private static GameObject GetPrefab(string prefabName, string roomSetName, string type)
+        public static GameObject GetPrefab(string prefabName, RoomSets roomSet)
         {
             GameObject prefab;
             Dictionary<string, GameObject> dict;
 
+            string roomSetName = ManagerUtils.GetRoomSetName(roomSet);
 
             _PrefabsDictionary.TryGetValue(roomSetName, out dict);
             if (dict != null)
@@ -65,6 +44,7 @@ namespace ProceduralDungeon.Utilities
                 _PrefabsDictionary.Add(roomSetName, dict);
             }
 
+            string type = ManagerUtils.GetResourceTypeFromName(prefabName);
             prefab = Resources.Load<GameObject>($"{PREFABS_PATH}/{type}/{prefabName}");
 
             if (dict.ContainsKey(prefabName))
@@ -75,11 +55,6 @@ namespace ProceduralDungeon.Utilities
 
             return prefab;
 
-        }
-
-        private static string GetRoomSetName(RoomSets roomSet)
-        {
-            return Enum.GetName(typeof(RoomSets), roomSet);
         }
 
 

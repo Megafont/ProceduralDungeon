@@ -53,10 +53,6 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonGraphGeneration
                 return false;
 
 
-            DungeonGraphNode doorToCheckRoom = doorToCheck.ThisRoom_Node;
-            DoorData doorToCheckData = doorToCheckRoom.RoomBlueprint.DoorsList[(int)doorToCheck.ThisRoom_DoorIndex];
-
-
             foreach (DungeonDoor door in doorsList)
             {
                 if (door.ThisRoom_DoorTile1WorldPosition == doorToCheck.ThisRoom_DoorTile1WorldPosition &&
@@ -80,7 +76,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonGraphGeneration
             get
             {
                 return (Directions)(_ThisRoom_DoorAdjustedDirection != null ? _ThisRoom_DoorAdjustedDirection :
-                                                                              _ThisRoom_DoorAdjustedDirection = CalculateAdjustedDoorPosition(ThisRoom_Node, (int)ThisRoom_DoorIndex));
+                                                                              _ThisRoom_DoorAdjustedDirection = CalculateAdjustedDoorDirection(ThisRoom_Node, (int)ThisRoom_DoorIndex));
             }
         }
 
@@ -109,7 +105,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonGraphGeneration
             get
             {
                 return (Directions)(_OtherRoom_DoorAdjustedDirection != null ? _OtherRoom_DoorAdjustedDirection :
-                                                                               _OtherRoom_DoorAdjustedDirection = CalculateAdjustedDoorPosition(OtherRoom_Node, (int)OtherRoom_DoorIndex));
+                                                                               _OtherRoom_DoorAdjustedDirection = CalculateAdjustedDoorDirection(OtherRoom_Node, (int)OtherRoom_DoorIndex));
             }
         }
 
@@ -133,11 +129,11 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonGraphGeneration
 
 
 
-        private static Directions CalculateAdjustedDoorPosition(DungeonGraphNode parentRoom, int doorIndex)
+        private static Directions CalculateAdjustedDoorDirection(DungeonGraphNode parentRoom, int doorIndex)
         {
             DoorData parentRoomDoor = parentRoom.RoomBlueprint.DoorsList[doorIndex];
 
-            Directions result = parentRoomDoor.DoorDirection.AddRotationDirection(parentRoom.RoomDirection);
+            Directions result = parentRoomDoor.DoorDirection.AddRotationDirection(parentRoom.RoomFinalDirection);
 
             return result;
         }
@@ -147,9 +143,9 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonGraphGeneration
             DoorData parentRoomDoor = parentRoom.RoomBlueprint.DoorsList[doorIndex];
 
             if (calculateForTile1)
-                return DungeonConstructionUtils.AdjustTileCoordsForRoomPositionAndRotation(parentRoomDoor.Tile1Position, parentRoom.RoomPosition, parentRoom.RoomDirection);
+                return DungeonConstructionUtils.AdjustTileCoordsForRoomPositionAndRotation(parentRoomDoor.Tile1Position, parentRoom.RoomPosition, parentRoom.RoomFinalDirection);
             else
-                return DungeonConstructionUtils.AdjustTileCoordsForRoomPositionAndRotation(parentRoomDoor.Tile2Position, parentRoom.RoomPosition, parentRoom.RoomDirection);
+                return DungeonConstructionUtils.AdjustTileCoordsForRoomPositionAndRotation(parentRoomDoor.Tile2Position, parentRoom.RoomPosition, parentRoom.RoomFinalDirection);
 
         }
 

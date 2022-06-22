@@ -96,7 +96,7 @@ namespace ProceduralDungeon.InGame.Objects
             {
                 InventorySlot slot = _Inventory.Data.Items[i];
 
-                GameObject popup = Instantiate(PrefabManager.GetUIPrefab("UI_CollectedItemPopup", ParentRoom.RoomBlueprint.RoomSet),
+                GameObject popup = Instantiate(PrefabManager.GetPrefab("UI_CollectedItemPopup", ParentRoom.RoomBlueprint.RoomSet),
                                                transform.position + Vector3.up * 0.2f,
                                                Quaternion.identity,
                                                _UI_Objects_Parent.transform); ;

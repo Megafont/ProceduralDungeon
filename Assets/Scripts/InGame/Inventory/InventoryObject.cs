@@ -40,15 +40,6 @@ namespace ProceduralDungeon.InGame.Inventory
             Data.SetItemDatabase(ItemDatabase);
         }
 
-        public void CheckSavePath()
-        {
-            Assert.IsFalse(string.IsNullOrWhiteSpace(ItemSavePath), "InventoryObject.CheckSavePath() - The ItemSavePath field on this inventory is not set!");
-
-            string path = string.Concat(Application.persistentDataPath, ItemSavePath);            
-            if (!Directory.Exists(Path.GetDirectoryName(path)))
-                Directory.CreateDirectory(path);
-        }
-
         [ContextMenu("Save Inventory")]
         public void Save()
         {
@@ -104,6 +95,16 @@ namespace ProceduralDungeon.InGame.Inventory
             Data.Items.Clear();
         }
 
+
+
+        private void CheckSavePath()
+        {
+            Assert.IsFalse(string.IsNullOrWhiteSpace(ItemSavePath), "InventoryObject.CheckSavePath() - The ItemSavePath field on this inventory is not set!");
+
+            string path = string.Concat(Application.persistentDataPath, ItemSavePath);
+            if (!Directory.Exists(Path.GetDirectoryName(path)))
+                Directory.CreateDirectory(path);
+        }
 
         private void AssignInstanceIDs()
         {

@@ -10,12 +10,12 @@ GameObject:
   m_Component:
   - component: {fileID: 1550005775283951834}
   - component: {fileID: 1550005775283951845}
+  - component: {fileID: 2246434406776675185}
   - component: {fileID: 1550005775283951833}
   - component: {fileID: 1550005775283951838}
   - component: {fileID: 1550005775283951832}
   - component: {fileID: 1550005775283951835}
   - component: {fileID: 2188745022869868613}
-  - component: {fileID: 1004034527780061962}
   m_Layer: 8
   m_Name: Player
   m_TagString: Player
@@ -90,6 +90,26 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!95 &2246434406776675185
+Animator:
+  serializedVersion: 4
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1550005775283951847}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 47039bd229ecd444293348694857a70a, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorControllerStateOnDisable: 0
 --- !u!50 &1550005775283951833
 Rigidbody2D:
   serializedVersion: 4
@@ -173,7 +193,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: be25a294f39c09048aeb01d071a92434, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  MoveSpeed: 10
+  Inventory: {fileID: 0}
+  _MoveSpeed: 10
 --- !u!114 &2188745022869868613
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -188,15 +209,3 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   HealthBar: {fileID: 0}
   _MaxHealth: 100
---- !u!114 &1004034527780061962
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1550005775283951847}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 60101cea1c86dff489363344f7723f12, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 

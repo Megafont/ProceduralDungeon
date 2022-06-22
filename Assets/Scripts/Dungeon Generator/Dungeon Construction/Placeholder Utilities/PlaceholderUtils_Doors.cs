@@ -233,8 +233,6 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction.PlaceholderUti
 
             foreach (SavedTile sTile in doorPlaceholderTiles)
             {
-                DungeonTileTypes type = sTile.Tile.TileType;
-
                 // Check that we didn't already visit this tile.
                 if (visitedDoorTiles.Contains(sTile.Position))
                     continue;

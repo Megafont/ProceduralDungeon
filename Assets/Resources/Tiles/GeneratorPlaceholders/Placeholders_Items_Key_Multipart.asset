@@ -34,5 +34,5 @@ MonoBehaviour:
   m_InstancedGameObject: {fileID: 0}
   m_Flags: 1
   m_ColliderType: 1
-  RotateWithRoom: 0
+  RotateWithRoom: 1
   TileType: 120001

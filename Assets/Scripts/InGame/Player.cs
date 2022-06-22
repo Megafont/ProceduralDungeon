@@ -25,10 +25,11 @@ namespace ProceduralDungeon.InGame
 
         private Vector3 _LastMoveDirection = Vector3.right;
 
+        private Animator _MyAnimator;
         private Rigidbody2D _MyRigidBody2D;
+
         private Vector2 _MoveInput;
         private Vector2 _Velocity;
-
 
         ItemData _BombItem;
 
@@ -37,6 +38,7 @@ namespace ProceduralDungeon.InGame
         // Start is called before the first frame update
         void Start()
         {
+            _MyAnimator = GetComponent<Animator>();
             _MyRigidBody2D = GetComponent<Rigidbody2D>();
 
 
@@ -50,6 +52,8 @@ namespace ProceduralDungeon.InGame
         void Update()
         {
             Run();
+            Animate();
+
 
             if (Input.GetKeyUp(KeyCode.Space))
                 Inventory.Save();
@@ -96,7 +100,7 @@ namespace ProceduralDungeon.InGame
                 Inventory.Data.ConsumeItem("Bomb", 1);
 
 
-                GameObject litBomb = Instantiate(PrefabManager.GetObjectPrefab("Object_Bomb", DungeonGenerator.DungeonTilemapManager.RoomSet),
+                GameObject litBomb = Instantiate(PrefabManager.GetPrefab("Object_Bomb", DungeonGenerator.DungeonTilemapManager.RoomSet),
                                                  transform.position + _LastMoveDirection,
                                                  Quaternion.identity);
 
@@ -116,6 +120,26 @@ namespace ProceduralDungeon.InGame
             //_MyRigidBody2D.velocity = moveDistance;
         }
 
+        void Animate()
+        {
+            bool isMoving;
+
+
+            if (_MoveInput.magnitude >= 0.1f || _MoveInput.magnitude <= -0.1f)
+                isMoving = true;
+            else
+                isMoving = false;
+
+
+            if (isMoving)
+            {
+                _MyAnimator.SetFloat("X Movement", _MoveInput.x);
+                _MyAnimator.SetFloat("Y Movement", _MoveInput.y);
+            }
+
+
+            _MyAnimator.SetBool("Is Moving", isMoving);
+        }
 
 
     }

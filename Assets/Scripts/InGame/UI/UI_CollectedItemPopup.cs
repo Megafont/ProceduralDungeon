@@ -90,7 +90,7 @@ namespace ProceduralDungeon.InGame.UI
         {
             string itemName = slot.Item.Name;
 
-            _SpriteRenderer.sprite = SpriteManager.GetItemSprite(itemName, roomSet);
+            _SpriteRenderer.sprite = SpriteManager.GetSprite(itemName, roomSet);
             TMP_TextComponent.text = FormatItemName(itemName, slot.ItemCount);
             TMP_TextComponent.color = GetTextColor(itemName);
             

@@ -57,7 +57,7 @@ namespace ProceduralDungeon.InGame.Items
 
 
             DungeonGraphNode roomNode = DungeonGenerator.GetRoomDataFromTilePosition(new Vector3Int((int) transform.position.x, (int) transform.position.y, (int) transform.position.z));
-            GetComponent<SpriteRenderer>().sprite = SpriteManager.GetItemSprite("Item_Bomb", roomNode.RoomBlueprint.RoomSet);
+            GetComponent<SpriteRenderer>().sprite = SpriteManager.GetSprite("Item_Bomb", roomNode.RoomBlueprint.RoomSet);
         }
 
         // Update is called once per frame

@@ -44,17 +44,19 @@ namespace ProceduralDungeon.DungeonGeneration
         /// </summary>
         /// <param name="original">The object's previous rotation direction.</param>
         /// <param name="newDirection">The object's new rotation direction.</param>
+        /// <param name="roomFinalDirection">The final rotation direction of the object's parent room after rotation.</param>
         /// <returns>The corrected rotation direction.</returns>
-        public static Directions CorrectObjectRotationDirection(Directions original, Directions newDirection)
+        public static Directions CorrectObjectRotationDirection(Directions original, Directions newDirection, Directions roomFinalDirection)
         {
             Directions result = newDirection;
 
-            if ((original == Directions.North || original == Directions.South) &&
-                (newDirection == Directions.East || newDirection == Directions.West))
+            
+            if (roomFinalDirection == Directions.East || roomFinalDirection == Directions.West)
             {
                 result = newDirection.FlipDirection();
             }
-
+            
+            
             return result;
         }
 

@@ -192,15 +192,15 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             Quaternion chestRotation = roomNode.RoomBlueprint.Chest_RandomTreasure_Placeholders[index].Rotation;
 
             // Calculate the world coordinates of the key position.
-            Vector3Int chestPosWorld = DungeonConstructionUtils.AdjustTileCoordsForRoomPositionAndRotation(chestPosLocal, roomNode.RoomPosition, roomNode.RoomDirection);
+            Vector3Int chestPosWorld = DungeonConstructionUtils.AdjustTileCoordsForRoomPositionAndRotation(chestPosLocal, roomNode.RoomPosition, roomNode.RoomFinalDirection);
 
 
             // Calculate the final rotation of the chest based on the room rotation.
             Directions chestDirection = Directions.North;
             chestDirection = chestDirection.DirectionFromRotation(chestRotation);            
 
-            Directions chestFinalDirection = chestDirection.AddRotationDirection(roomNode.RoomDirection);
-            chestFinalDirection = MiscellaneousUtils.CorrectObjectRotationDirection(chestDirection, chestFinalDirection);
+            Directions chestFinalDirection = chestDirection.AddRotationDirection(roomNode.RoomFinalDirection);
+            chestFinalDirection = MiscellaneousUtils.CorrectObjectRotationDirection(chestDirection, chestFinalDirection, roomNode.RoomFinalDirection);
 
             Quaternion chestFinalRotation = chestFinalDirection.DirectionToRotation();
 
@@ -225,9 +225,9 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             // Select chest type.
             GameObject chestPrefab = null;
             if (chestType == ChestTypes.Key || chestType == ChestTypes.Key_Multipart || chestType == ChestTypes.RandomTreasure)
-                chestPrefab = PrefabManager.GetObjectPrefab("Object_Chest", roomNode.RoomBlueprint.RoomSet);
+                chestPrefab = PrefabManager.GetPrefab("Object_Chest", roomNode.RoomBlueprint.RoomSet);
             else if (chestType == ChestTypes.Key_Goal)
-                chestPrefab = PrefabManager.GetObjectPrefab("Object_ChestGoal", roomNode.RoomBlueprint.RoomSet);
+                chestPrefab = PrefabManager.GetPrefab("Object_ChestGoal", roomNode.RoomBlueprint.RoomSet);
 
             
             GameObject chest = GameObject.Instantiate(chestPrefab, 
@@ -247,13 +247,13 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             RoomSets roomSet = roomNode.RoomBlueprint.RoomSet;
             if (chestType == ChestTypes.Key || chestType == ChestTypes.Key_Multipart || chestType == ChestTypes.RandomTreasure)
             {
-                objChest.ClosedSprite = SpriteManager.GetObjectSprite("Object_Chest_Closed", roomSet);
-                objChest.OpenSprite = SpriteManager.GetObjectSprite("Object_Chest_Open", roomSet);
+                objChest.ClosedSprite = SpriteManager.GetSprite("Object_Chest_Closed", roomSet);
+                objChest.OpenSprite = SpriteManager.GetSprite("Object_Chest_Open", roomSet);
             }
             else
             {
-                objChest.ClosedSprite = SpriteManager.GetObjectSprite("Object_ChestGoal_Closed", roomSet);
-                objChest.OpenSprite = SpriteManager.GetObjectSprite("Object_ChestGoal_Open", roomSet);
+                objChest.ClosedSprite = SpriteManager.GetSprite("Object_ChestGoal_Closed", roomSet);
+                objChest.OpenSprite = SpriteManager.GetSprite("Object_ChestGoal_Open", roomSet);
             }
 
             objChest.GetComponent<SpriteRenderer>().sprite = objChest.ClosedSprite;
@@ -267,24 +267,32 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
         {
             Vector3 offset;
             Quaternion rotation;
-            Directions doorDirection = doorToSpawn.ThisRoom_DoorAdjustedDirection;
+            
+            Directions doorDirection = doorToSpawn.ThisRoom_Node.RoomBlueprint.DoorsList[(int)doorToSpawn.ThisRoom_DoorIndex].DoorDirection;
+            Directions doorAdjustedDirection = doorToSpawn.ThisRoom_DoorAdjustedDirection;
 
-            if (doorDirection == Directions.North ||
-                doorDirection == Directions.South)
+            if (doorAdjustedDirection == Directions.North ||
+                doorAdjustedDirection == Directions.South)
             {
-                offset = doorDirection == Directions.North ? new Vector3(1.0f, 0.0f) : 
-                                                             new Vector3(1.0f, 1.0f);
+                offset = doorAdjustedDirection == Directions.North ? new Vector3(1.0f, 0.0f) :
+                                                                     new Vector3(1.0f, 1.0f);
             }
             else
             {
-                offset = doorDirection == Directions.East ? new Vector3(0.0f, 0.0f) :
-                                                            new Vector3(1.0f, 0.0f);
+                offset = doorAdjustedDirection == Directions.East ? new Vector3(0.0f, 0.0f) :
+                                                                    new Vector3(1.0f, 0.0f);
             }
 
 
-            Directions correctedDirection = MiscellaneousUtils.CorrectObjectRotationDirection(doorToSpawn.ThisRoom_Node.RoomBlueprint.DoorsList[(int)doorToSpawn.ThisRoom_DoorIndex].DoorDirection, 
-                                                                                              doorToSpawn.ThisRoom_DoorAdjustedDirection);
+            if (doorDirection == Directions.East || doorDirection == Directions.West)
+                doorAdjustedDirection = doorAdjustedDirection.FlipDirection();
+
+            Directions correctedDirection = MiscellaneousUtils.CorrectObjectRotationDirection(doorDirection, 
+                                                                                              doorAdjustedDirection,
+                                                                                              doorToSpawn.ThisRoom_Node.RoomFinalDirection);
             rotation = correctedDirection.DirectionToRotation();
+            
+            //Debug.LogError($"ORIG: {doorToSpawn.ThisRoom_Node.RoomBlueprint.DoorsList[(int) doorToSpawn.ThisRoom_DoorIndex].DoorDirection}    FINAL: {doorToSpawn.ThisRoom_DoorAdjustedDirection}    CORRECTED: {correctedDirection}");
 
 
             // Calculate the center point of the door.
@@ -293,7 +301,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
 
             // Spawn a door object and configure it.
-            GameObject door = GameObject.Instantiate(PrefabManager.GetObjectPrefab("Object_Door", doorToSpawn.ThisRoom_Node.RoomBlueprint.RoomSet), 
+            GameObject door = GameObject.Instantiate(PrefabManager.GetPrefab("Object_Door", doorToSpawn.ThisRoom_Node.RoomBlueprint.RoomSet), 
                                                      centerPoint, 
                                                      rotation,
                                                      _Objects_Doors_Parent.transform);
@@ -324,10 +332,10 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             doorComponent.LockType = lockType;
 
             RoomSets roomSet = doorToSpawn.ThisRoom_Node.RoomBlueprint.RoomSet;
-            doorComponent.ClosedSprite = SpriteManager.GetObjectSprite("Object_Door_Closed", roomSet);
-            doorComponent.LockedSprite = SpriteManager.GetObjectSprite("Object_Door_Locked", roomSet);
-            doorComponent.LockedMultipartSprite = SpriteManager.GetObjectSprite("Object_Door_Locked_Multipart", roomSet);
-            doorComponent.LockedGoalSprite = SpriteManager.GetObjectSprite("Object_Door_Locked_Goal", roomSet);
+            doorComponent.ClosedSprite = SpriteManager.GetSprite("Object_Door_Closed", roomSet);
+            doorComponent.LockedSprite = SpriteManager.GetSprite("Object_Door_Locked", roomSet);
+            doorComponent.LockedMultipartSprite = SpriteManager.GetSprite("Object_Door_Locked_Multipart", roomSet);
+            doorComponent.LockedGoalSprite = SpriteManager.GetSprite("Object_Door_Locked_Goal", roomSet);
 
             doorComponent.ToggleState();
 
@@ -337,23 +345,29 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
         {
             Vector3 offset;
             Quaternion rotation;
-            Directions doorDirection = doorToSpawn.ThisRoom_DoorAdjustedDirection;
 
-            if (doorDirection == Directions.North ||
-                doorDirection == Directions.South)
+            Directions doorDirection = doorToSpawn.ThisRoom_Node.RoomBlueprint.DoorsList[(int)doorToSpawn.ThisRoom_DoorIndex].DoorDirection;
+            Directions doorAdjustedDirection = doorToSpawn.ThisRoom_DoorAdjustedDirection;
+
+            if (doorAdjustedDirection == Directions.North ||
+                doorAdjustedDirection == Directions.South)
             {
-                offset = doorDirection == Directions.North ? new Vector3(1.0f, 0.5f) :
-                                                             new Vector3(1.0f, 0.5f);
+                offset = doorAdjustedDirection == Directions.North ? new Vector3(1.0f, 0.5f) :
+                                                                     new Vector3(1.0f, 0.5f);
             }
             else
             {
-                offset = doorDirection == Directions.East ? new Vector3(0.5f, 0.0f) :
-                                                            new Vector3(0.5f, 0.0f);
+                offset = doorAdjustedDirection == Directions.East ? new Vector3(0.5f, 0.0f) :
+                                                                    new Vector3(0.5f, 0.0f);
             }
 
 
-            Directions correctedDirection = MiscellaneousUtils.CorrectObjectRotationDirection(doorToSpawn.ThisRoom_Node.RoomBlueprint.DoorsList[(int)doorToSpawn.ThisRoom_DoorIndex].DoorDirection,
-                                                                                              doorToSpawn.ThisRoom_DoorAdjustedDirection);
+            if (doorDirection == Directions.East || doorDirection == Directions.West)
+                doorAdjustedDirection = doorAdjustedDirection.FlipDirection();
+
+            Directions correctedDirection = MiscellaneousUtils.CorrectObjectRotationDirection(doorDirection,
+                                                                                              doorAdjustedDirection,
+                                                                                              doorToSpawn.ThisRoom_Node.RoomFinalDirection);
             rotation = correctedDirection.DirectionToRotation();
 
 
@@ -363,7 +377,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
 
             // Spawn a door object and configure it.
-            GameObject door = GameObject.Instantiate(PrefabManager.GetObjectPrefab("Object_Door_Bombablewall", doorToSpawn.ThisRoom_Node.RoomBlueprint.RoomSet),
+            GameObject door = GameObject.Instantiate(PrefabManager.GetPrefab("Object_Door_Bombablewall", doorToSpawn.ThisRoom_Node.RoomBlueprint.RoomSet),
                                                      centerPoint, 
                                                      rotation, 
                                                      _Objects_Doors_BombableWalls_Parent.transform);
@@ -376,11 +390,11 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
         private static void SpawnObject_Spikes(Vector3Int position, DungeonGraphNode roomNode)
         {
             // Calculate the position of the spikes.
-            Vector3 centerPoint = DungeonConstructionUtils.AdjustTileCoordsForRoomPositionAndRotation(position, roomNode.RoomPosition, roomNode.RoomDirection);
+            Vector3 centerPoint = DungeonConstructionUtils.AdjustTileCoordsForRoomPositionAndRotation(position, roomNode.RoomPosition, roomNode.RoomFinalDirection);
 
 
             // Spawn a spikes object and configure it.
-            GameObject spikes = GameObject.Instantiate(PrefabManager.GetObjectPrefab("Object_Spikes", roomNode.RoomBlueprint.RoomSet), 
+            GameObject spikes = GameObject.Instantiate(PrefabManager.GetPrefab("Object_Spikes", roomNode.RoomBlueprint.RoomSet), 
                                                        centerPoint + _ObjectOffsetVector, 
                                                        Quaternion.identity, 
                                                        _Objects_Spikes_Parent.transform);
@@ -388,7 +402,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
             RoomSets roomSet = roomNode.RoomBlueprint.RoomSet;
             Object_Spikes spikesComponent = spikes.GetComponent<Object_Spikes>();
-            spikesComponent.GetComponent<SpriteRenderer>().sprite = SpriteManager.GetObjectSprite("Object_Spikes", roomSet);
+            spikesComponent.GetComponent<SpriteRenderer>().sprite = SpriteManager.GetSprite("Object_Spikes", roomSet);
         }
 
 
@@ -427,12 +441,22 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             }
 
 
+            // Calculate the final rotation of the chest based on the room rotation.
+            Directions keyDirection = Directions.North;
+            keyDirection = keyDirection.DirectionFromRotation(keyRotation);
+
+            Directions keyFinalDirection = keyDirection.AddRotationDirection(roomNode.RoomFinalDirection);
+            keyFinalDirection = MiscellaneousUtils.CorrectObjectRotationDirection(keyDirection, keyFinalDirection, roomNode.RoomFinalDirection);
+
+            Quaternion keyFinalRotation = keyFinalDirection.DirectionToRotation();
+
+
             // Calculate the world coordinates of the key position.
-            Vector3Int keyPosWorld = DungeonConstructionUtils.AdjustTileCoordsForRoomPositionAndRotation(keyPosLocal, roomNode.RoomPosition, roomNode.RoomDirection);
+            Vector3Int keyPosWorld = DungeonConstructionUtils.AdjustTileCoordsForRoomPositionAndRotation(keyPosLocal, roomNode.RoomPosition, roomNode.RoomFinalDirection);
 
 
             // Spawn a chest containing a key.
-            GameObject chest = SpawnObject_Chest(roomNode, chestType, null, keyPosWorld, keyRotation);
+            GameObject chest = SpawnObject_Chest(roomNode, chestType, null, keyPosWorld, keyFinalRotation);
 
            
             // Get the Inventory component and add it to our dictionary to track it for a later pass to setup the key/lock pairs.

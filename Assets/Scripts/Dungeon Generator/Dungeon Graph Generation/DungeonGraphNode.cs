@@ -32,7 +32,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonGraphGeneration
         public DungeonGraphNode Parent { get { return _Parent; } }
         public Vector3 RoomCenterPoint { get { return _RoomCenterPoint; } set { _RoomCenterPoint = value; } }
 
-        public Directions RoomDirection { get { return _RoomDirection; } }
+        public Directions RoomFinalDirection { get { return _RoomDirection; } }
         public Vector3Int RoomPosition { get { return _RoomPosition; } }
         public RoomData RoomBlueprint { get { return _RoomBlueprint; } }
 

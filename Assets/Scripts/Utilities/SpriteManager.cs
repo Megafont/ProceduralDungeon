@@ -22,25 +22,13 @@ namespace ProceduralDungeon.Utilities
 
 
 
-        public static Sprite GetItemSprite(string spriteName, RoomSets roomSet)
-        {
-            return GetSprite(spriteName, 
-                             GetRoomSetName(roomSet), 
-                             "Items");
-        }
-
-        public static Sprite GetObjectSprite(string spriteName, RoomSets roomSet)
-        {
-            return GetSprite(spriteName, 
-                             GetRoomSetName(roomSet), 
-                             "Objects");
-        }
-
-        private static Sprite GetSprite(string spriteName, string roomSetName, string type)
+        public static Sprite GetSprite(string spriteName, RoomSets roomSet)
         {
             Sprite sprite;
             Dictionary<string, Sprite> dict;
 
+
+            string roomSetName = ManagerUtils.GetRoomSetName(roomSet);
 
             _SpritesDictionary.TryGetValue(roomSetName, out dict);
             if (dict != null)
@@ -57,6 +45,7 @@ namespace ProceduralDungeon.Utilities
             }
 
             string spritesPath = ScriptableRoomUtilities.GetRoomSetSpritesPath(roomSetName);
+            string type = ManagerUtils.GetResourceTypeFromName(spriteName);
             sprite = Resources.Load<Sprite>($"{spritesPath}/{type}/{spriteName}");
 
             if (dict.ContainsKey(spriteName))
@@ -67,11 +56,6 @@ namespace ProceduralDungeon.Utilities
 
             return sprite;
 
-        }
-
-        private static string GetRoomSetName(RoomSets roomSet)
-        {
-            return Enum.GetName(typeof(RoomSets), roomSet);
         }
 
 

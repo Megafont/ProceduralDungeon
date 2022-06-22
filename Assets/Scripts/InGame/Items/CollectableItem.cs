@@ -39,7 +39,7 @@ namespace ProceduralDungeon.InGame.Items
                 GameObject obj = GameObject.Find("SpawnedObjects");
                 GameObject uiObjectsParent = obj.transform.Find("UI").gameObject;
 
-                GameObject popup = Instantiate(PrefabManager.GetUIPrefab("UI_CollectedItemPopup", roomSet),
+                GameObject popup = Instantiate(PrefabManager.GetPrefab("UI_CollectedItemPopup", roomSet),
                                                           transform.position + Vector3.up * 0.2f,
                                                           Quaternion.identity,
                                                           uiObjectsParent.transform);

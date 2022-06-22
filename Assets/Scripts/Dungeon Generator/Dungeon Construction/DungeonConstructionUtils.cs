@@ -87,13 +87,13 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             DoorData room2Door = room2Data.DoorsList[(int)room2DoorIndex];
 
             // Figure out the rotation of the new room based on the direction the door being connected needs to face to connect properly.
-            Directions room2Direction = DungeonConstructionUtils.CalculateRoomRotationFromDoorRotation(room2Door.DoorDirection, room2Door_TargetDirection);
+            Directions room2Direction = CalculateRoomRotationFromDoorRotation(room2Door.DoorDirection, room2Door_TargetDirection);
 
 
 
             // Get the coordinates of both tiles of the new room's door and adjust them to take into account the room's rotation direction.
-            Vector3Int room2Door_Tile1AdjustedLocalPos = DungeonConstructionUtils.AdjustTileCoordsForRoomPositionAndRotation(room2Door.Tile1Position, Vector3Int.zero, room2Direction); // We use Vector3Int.zero here since we just want to adjust the door position with no translation since we don't know the second room's position yet.
-            Vector3Int room2Door_Tile2AdjustedLocalPos = DungeonConstructionUtils.AdjustTileCoordsForRoomPositionAndRotation(room2Door.Tile2Position, Vector3Int.zero, room2Direction);
+            Vector3Int room2Door_Tile1AdjustedLocalPos = AdjustTileCoordsForRoomPositionAndRotation(room2Door.Tile1Position, Vector3Int.zero, room2Direction); // We use Vector3Int.zero here since we just want to adjust the door position with no translation since we don't know the second room's position yet.
+            Vector3Int room2Door_Tile2AdjustedLocalPos = AdjustTileCoordsForRoomPositionAndRotation(room2Door.Tile2Position, Vector3Int.zero, room2Direction);
 
             // Get the upper-left-most of the two adjusted tile positions.
             Vector3Int room2Door_UpperLeftTileAdjustedLocalPos = MiscellaneousUtils.GetUpperLeftMostTile(room2Door_Tile1AdjustedLocalPos, room2Door_Tile2AdjustedLocalPos);
@@ -160,7 +160,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             Vector3Int pos = Vector3Int.zero;
 
 
-            Directions roomDirection = roomNode.RoomDirection;
+            Directions roomDirection = roomNode.RoomFinalDirection;
             Vector3Int roomPosition = roomNode.RoomPosition;
 
             foreach (KeyValuePair<Vector3Int, SavedTile> pair in src)
@@ -255,7 +255,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             Vector3Int pos;
             Quaternion rot;
 
-            Directions roomDirection = roomNode.RoomDirection;
+            Directions roomDirection = roomNode.RoomFinalDirection;
             Vector3Int roomPosition = roomNode.RoomPosition;
 
             List<Vector3Int> wallTopCornerPositions = new List<Vector3Int>();
@@ -488,55 +488,6 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
             foreach (DungeonDoor door in blockedDoors)
             {
-                DungeonGraphNode parentRoom = door.ThisRoom_Node;
-
-
-                Tilemap wallsMap = tilemapManager.DungeonMap.WallsMap;
-
-                /*
-                // Place a wall tile at the first tile position.
-                Vector3Int upperLeftMost = MiscellaneousUtils.GetUpperLeftMostTile(door.ThisRoom_DoorTile1WorldPosition, door.ThisRoom_DoorTile2WorldPosition);
-
-                Vector3Int wallTopStartPos = Vector3Int.zero;
-                Vector3Int wallStartPos = Vector3Int.zero;
-                Vector3Int floorStartPos = Vector3Int.zero; // Used to remove the bottom protruding bits of the door frame.
-                Vector3Int fillDirection = Vector3Int.right;
-
-                if (door.ThisRoom_DoorAdjustedDirection == Directions.North)
-                {
-                    wallStartPos = upperLeftMost + Vector3Int.left;
-                    wallTopStartPos = upperLeftMost + Vector3Int.up + Vector3Int.left;
-                    floorStartPos = upperLeftMost + Vector3Int.down + Vector3Int.left;
-                    fillDirection = Vector3Int.right;
-                }
-                else if (door.ThisRoom_DoorAdjustedDirection == Directions.South)
-                {
-                    wallStartPos = upperLeftMost + Vector3Int.left;
-                    wallTopStartPos = upperLeftMost + Vector3Int.down + Vector3Int.left;
-                    floorStartPos = upperLeftMost + Vector3Int.up + Vector3Int.left;
-                    fillDirection = Vector3Int.right;
-                }
-                else if (door.ThisRoom_DoorAdjustedDirection == Directions.East)
-                {
-                    wallStartPos = upperLeftMost + Vector3Int.up;
-                    wallTopStartPos = upperLeftMost + Vector3Int.right + Vector3Int.up;
-                    floorStartPos = upperLeftMost + Vector3Int.left + Vector3Int.up;
-                    fillDirection = Vector3Int.down;
-                }
-                else if (door.ThisRoom_DoorAdjustedDirection == Directions.West)
-                {
-                    wallStartPos = upperLeftMost + Vector3Int.up;
-                    wallTopStartPos = upperLeftMost + Vector3Int.left + Vector3Int.up;
-                    floorStartPos = upperLeftMost + Vector3Int.right + Vector3Int.up;
-                    fillDirection = Vector3Int.down;
-                }
-
-
-                Directions direction = door.ThisRoom_DoorAdjustedDirection;
-                if (direction == Directions.East || direction == Directions.West)
-                    direction = direction.FlipDirection();
-                */
-
                 DoorwayTilesPlacementInfo tilesInfo = GetDoorTilesPlacementInfo(door);
 
                 bool isBombableWallDoor = false;
