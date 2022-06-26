@@ -29,13 +29,9 @@ namespace ProceduralDungeon.InGame.Inventory
         /// </summary>
         public void OnEnable()
         {
-            if (Data == null)
-            {
-                Data = new InventoryData();
-            }
-
-            if (ItemDatabase == null)
-                ItemDatabase = DungeonGenerator.ItemDatabase;
+            Data ??= new InventoryData();
+            
+            ItemDatabase ??= DungeonGenerator.ItemDatabase;
 
             Data.SetItemDatabase(ItemDatabase);
         }

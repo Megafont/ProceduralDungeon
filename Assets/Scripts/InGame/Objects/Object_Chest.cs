@@ -56,14 +56,11 @@ namespace ProceduralDungeon.InGame.Objects
 
         private void Awake()
         {
-            if (_Inventory == null)
-                _Inventory = ScriptableObject.CreateInstance<InventoryObject>();
+            _Inventory ??= ScriptableObject.CreateInstance<InventoryObject>();
 
-            if (_Player == null)
-                _Player = GameObject.FindGameObjectWithTag("Player");
+            _Player ??= GameObject.FindGameObjectWithTag("Player");
 
-            if (_SpriteRenderer == null)
-                _SpriteRenderer = GetComponent<SpriteRenderer>();
+            _SpriteRenderer ??= GetComponent<SpriteRenderer>();
 
 
             GameObject obj = GameObject.Find("SpawnedObjects");

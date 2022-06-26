@@ -301,7 +301,7 @@ TextureImporter:
         width: 16
         height: 16
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -309,6 +309,48 @@ TextureImporter:
       bones: []
       spriteID: 1883567f4716a4840af4fbc957848289
       internalID: 818637492
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Placeholders_Objects_IceBlock
+      rect:
+        serializedVersion: 2
+        x: 16
+        y: 160
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1ab1946c68d47ed47b0277e63e44dc09
+      internalID: -292079397
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Placeholders_Objects_Button
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 160
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 091ccfcfef30c4240a75e7a7a7059c32
+      internalID: -139206268
       vertices: []
       indices: 
       edges: []
@@ -330,9 +372,12 @@ TextureImporter:
       Placeholders_Objects_Doors_Basement: -518213313
       Placeholders_Entity_Player: -2023910191
       Placeholders_Items_Key_Multipart: 308713404
+      Placeholders_Objects_IceBlock: -292079397
+      Placeholders_Objects_Button: -139206268
       Placeholders_Objects_Doors_2ndFloor: 116298976
       Placeholders_Items_Key_Goal: -528717469
       Placeholders_Items_Key: 1536171610
+      Placeholders_Objects_StoneBlock: 656565814
       Placeholders_Items_RandomTreasure: 818637492
   spritePackingTag: 
   pSDRemoveMatte: 0

@@ -88,7 +88,9 @@ namespace ProceduralDungeon.TileMaps
         Placeholders_Objects_Doors_EntryOrExit = 100003,
 
         Placeholders_Objects_Spikes = 100020,
-
+        Placeholders_Objects_IceBlock = 100021,
+        Placeholders_Objects_StoneBlock = 100022,
+        Placeholders_Objects_Button = 100023,
 
         // Placeholder Tiles - Items
         Placeholders_Items_Key = 120000,

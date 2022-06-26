@@ -466,7 +466,7 @@ namespace ProceduralDungeon.DungeonGeneration
                 throw new Exception("DungeonGenerator.CreateRoom() - The parentRoom parameter is null! All dungeon rooms must have a parent except the starting room.");
 
 
-            DungeonGraphNode newRoomNode = null;
+            DungeonGraphNode newRoomNode;
             if (missionStructureNode == _MissionStructureGraph.StartNode)
             {
                 newRoomNode = CreateStartingRoom(2);
@@ -480,7 +480,7 @@ namespace ProceduralDungeon.DungeonGeneration
             if (!_IsFinalizingDoors)
             {
                 minDoorsNeeded = missionStructureNode.GetTightlyCoupledChildNodeCount() + 1;
-                minDoorsNeeded = Mathf.Max(minDoorsNeeded, 2);
+                minDoorsNeeded = Mathf.Max(minDoorsNeeded, 1);
 
                 greaterThanOrEqual = true;
             }
@@ -513,9 +513,9 @@ namespace ProceduralDungeon.DungeonGeneration
 
                 // Select a random room on the same level as that door.
                 RoomTypeFlags filterFlags = GetRoomTypeFlagsFromMissionStructureNode(missionStructureNode);
-                if (filterFlags == 0)
-                    newRoomData = SelectRandomRoomWithFilters((uint)minDoorsNeeded, greaterThanOrEqual, parentDoorLevel);
-                else
+//                if (filterFlags == 0)
+//                    newRoomData = SelectRandomRoomWithFilters((uint)minDoorsNeeded, greaterThanOrEqual, parentDoorLevel);
+//                else
                     newRoomData = SelectRandomRoomWithFilters((uint)minDoorsNeeded, greaterThanOrEqual, parentDoorLevel, true, filterFlags);
 
                 if (parentDoorLevel == RoomLevels.Level_AnyFloor)
@@ -531,7 +531,7 @@ namespace ProceduralDungeon.DungeonGeneration
                 newRoomNode = DungeonConstructionUtils.CreateNewRoomConnectedToPrevious(doorToConnectTo.OtherRoom_Node,
                                                                                         doorToConnectTo.OtherRoom_DoorIndex,
                                                                                         newRoomData,
-                                                                                        (uint)newRoomDoorIndex,
+                                                                                        newRoomDoorIndex,
                                                                                         missionStructureNode);
 
                 // Check for collisions.
@@ -539,7 +539,7 @@ namespace ProceduralDungeon.DungeonGeneration
                 {
                     // Update the doorToConnectTo object so the calling function will have access to this new information.
                     doorToConnectTo.ThisRoom_Node = newRoomNode;
-                    doorToConnectTo.ThisRoom_DoorIndex = (uint)newRoomDoorIndex;
+                    doorToConnectTo.ThisRoom_DoorIndex = newRoomDoorIndex;
 
                     break; // We found and fitted a new room into the dungeon successfully, so break out of this loop.
                 }
@@ -627,6 +627,9 @@ namespace ProceduralDungeon.DungeonGeneration
                 case GrammarSymbols.T_Secret_Room:
                     flags = RoomTypeFlags.CanBeSecretRoom;
                     break;
+                case GrammarSymbols.T_Test_Secret:
+                    flags = RoomTypeFlags.PuzzleRoom;
+                    break;
                 case GrammarSymbols.T_Treasure_Key:
                     flags = RoomTypeFlags.CanHaveKey;
                     break;
@@ -638,6 +641,10 @@ namespace ProceduralDungeon.DungeonGeneration
                     break;
                 case GrammarSymbols.T_Treasure_Bonus:
                     flags = RoomTypeFlags.CanHaveTreasure;
+                    break;
+
+                default:
+                    flags = RoomTypeFlags.GenericRoom;
                     break;
             }
 
@@ -1168,8 +1175,11 @@ namespace ProceduralDungeon.DungeonGeneration
                     bool roomTypeFlagsFilterPassed = false;
                     if (!filterByRoomType)
                         roomTypeFlagsFilterPassed = true;
-                    else if (Flags.HasAllFlags(roomFlags, newRoomFlags))
+                    else if ((newRoomFlags == 0 && roomFlags == 0) || // Are we looking for a room with no flags?
+                             (newRoomFlags > 0 && Flags.HasAllFlags(roomFlags, newRoomFlags))) // If we are looking for a room with flags, ones with no flags are excluded.
+                    {
                         roomTypeFlagsFilterPassed = true;
+                    }
 
 
                     if (greaterThanOrEqual)
@@ -1207,9 +1217,9 @@ namespace ProceduralDungeon.DungeonGeneration
             if (list.Count == 0)
             {
                 if (!filterByRoomType)
-                    throw new Exception($"DungeonGenerator.CreateRoom() - Failed to create a new room, because no room blueprint with {doorCount} doors was found on floor {roomLevel}!");
+                    throw new Exception($"DungeonGenerator.CreateRoom() - Failed to create a new room, because no room blueprint with {(greaterThanOrEqual ? ">=" : "==")} {doorCount} doors was found on floor {roomLevel}!");
                 else
-                    throw new Exception($"DungeonGenerator.CreateRoom() - Failed to create a new room, because no room blueprint with {doorCount} doors was found on floor {roomLevel} with room type flags [{roomTypeFlags}]!");
+                    throw new Exception($"DungeonGenerator.CreateRoom() - Failed to create a new room, because no room blueprint with {(greaterThanOrEqual ? ">=" : "==")} {doorCount} doors was found on floor {roomLevel} with room type flags [{roomTypeFlags}]!");
 
                 //return null;
             }

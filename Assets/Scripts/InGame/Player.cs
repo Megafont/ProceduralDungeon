@@ -12,7 +12,6 @@ using ProceduralDungeon.Utilities;
 
 namespace ProceduralDungeon.InGame
 {
-
     [RequireComponent(typeof(Health))]
     [RequireComponent(typeof(PlayerInput))]
     public class Player : MonoBehaviour
@@ -23,12 +22,14 @@ namespace ProceduralDungeon.InGame
         private float _MoveSpeed = 10f;
 
 
-        private Vector3 _LastMoveDirection = Vector3.right;
-
         private Animator _MyAnimator;
         private Rigidbody2D _MyRigidBody2D;
+        
+        private Combat _MyCombat;
+
 
         private Vector2 _MoveInput;
+        private Vector3 _LastMoveDirection = Vector3.up;
         private Vector2 _Velocity;
 
         ItemData _BombItem;
@@ -41,10 +42,16 @@ namespace ProceduralDungeon.InGame
             _MyAnimator = GetComponent<Animator>();
             _MyRigidBody2D = GetComponent<Rigidbody2D>();
 
+            _MyCombat = transform.Find("Weapon").GetComponent<Combat>();
+
 
             //Create a bomb item.
             _BombItem = new ItemData(Inventory.ItemDatabase.LookupByName("Bomb"));
             Inventory.Data.AddItem(_BombItem, 3);
+
+
+            Debug.LogError("Don't forget to remove temporary inventory save/load controls in Player.Update().");
+
         }
 
 
@@ -55,7 +62,7 @@ namespace ProceduralDungeon.InGame
             Animate();
 
 
-            if (Input.GetKeyUp(KeyCode.Space))
+            if (Input.GetKeyUp(KeyCode.KeypadMinus))
                 Inventory.Save();
             if (Input.GetKeyUp(KeyCode.KeypadEnter))
                 Inventory.Load();
@@ -77,9 +84,12 @@ namespace ProceduralDungeon.InGame
         void OnMove(InputValue value)
         {
             _MoveInput = value.Get<Vector2>();
-            
+
             if (_MoveInput != Vector2.zero)
+            {
                 _LastMoveDirection = _MoveInput;
+                _MyCombat.OnPlayerMoved(_MoveInput);
+            }
         }
 
         void OnAction1()
@@ -107,6 +117,11 @@ namespace ProceduralDungeon.InGame
                 litBomb.GetComponent<Object_Bomb>().LightFuse();
             }
 
+        }
+
+        void OnAttack()
+        {
+            _MyCombat.DoAttack(_LastMoveDirection);
         }
 
         void Run()

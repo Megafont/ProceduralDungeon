@@ -27,9 +27,11 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
     {
         private static GameObject _ItemsParent;
         private static GameObject _ObjectsParent;
+        private static GameObject _Objects_Buttons_Parent;
         private static GameObject _Objects_Chests_Parent;
         private static GameObject _Objects_Doors_Parent;
         private static GameObject _Objects_Doors_BombableWalls_Parent;
+        private static GameObject _Objects_IceBlocks_Parent;
         private static GameObject _Objects_Spikes_Parent;
 
         private static Dictionary<MissionStructureGraphNode, Object_Door> _LockedDoorsDictionary;
@@ -57,9 +59,11 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             _ItemsParent = GameObject.Find("SpawnedItems");
 
             _ObjectsParent = GameObject.Find("SpawnedObjects");
+            _Objects_Buttons_Parent = _ObjectsParent.transform.Find("Buttons").gameObject;
             _Objects_Chests_Parent = _ObjectsParent.transform.Find("Chests").gameObject;
             _Objects_Doors_Parent = _ObjectsParent.transform.Find("Doors").gameObject;
             _Objects_Doors_BombableWalls_Parent = _ObjectsParent.transform.Find("Doors_BombableWalls").gameObject;
+            _Objects_IceBlocks_Parent = _ObjectsParent.transform.Find("IceBlocks").gameObject;
             _Objects_Spikes_Parent = _ObjectsParent.transform.Find("Spikes").gameObject;
 
 
@@ -74,25 +78,19 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
                 switch (roomNode.MissionStructureNode.GrammarSymbol)
                 {
                     case GrammarSymbols.T_Lock:
-                        doorway = GetDoorFromMiniBossRoomToThisRoom(roomNode);
-                        if (doorway == null)
-                            doorway = GetDoorFromParentRoomToThisRoom(roomNode);
+                        doorway = GetDoorFromMiniBossRoomToThisRoom(roomNode) ?? GetDoorFromParentRoomToThisRoom(roomNode);
 
                         SpawnObject_Door(doorway, DoorLockTypes.Lock);
                         break;
 
                     case GrammarSymbols.T_Lock_Multi:
-                        doorway = GetDoorFromMiniBossRoomToThisRoom(roomNode);
-                        if (doorway == null)
-                            doorway = GetDoorFromParentRoomToThisRoom(roomNode);
+                        doorway = GetDoorFromMiniBossRoomToThisRoom(roomNode) ?? GetDoorFromParentRoomToThisRoom(roomNode);
 
                         SpawnObject_Door(doorway, DoorLockTypes.Lock_Multipart);
                         break;
 
                     case GrammarSymbols.T_Lock_Goal:
-                        doorway = GetDoorFromMainBossRoomToThisRoom(roomNode);
-                        if (doorway == null)
-                            doorway = GetDoorFromParentRoomToThisRoom(roomNode);
+                        doorway = GetDoorFromMainBossRoomToThisRoom(roomNode) ?? GetDoorFromParentRoomToThisRoom(roomNode);
 
                         SpawnObject_Door(doorway, DoorLockTypes.Lock_Goal);
                         break;
@@ -118,8 +116,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
                     case GrammarSymbols.T_Treasure_Key_Goal:
                         SpawnItem_Key(roomNode, rng, KeyTypes.Key_Goal);
-                        break;
-
+                        break; 
 
                 } // end switch
 
@@ -139,6 +136,14 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             {
                 switch (pair.Value.Tile.TileType)
                 {
+                    case DungeonTileTypes.Placeholders_Objects_Button:
+                        SpawnObject_Button(pair.Key, roomNode);
+                        break;
+
+                    case DungeonTileTypes.Placeholders_Objects_IceBlock:
+                        SpawnObject_IceBlock(pair.Key, roomNode);
+                        break;
+
                     case DungeonTileTypes.Placeholders_Objects_Spikes:
                         SpawnObject_Spikes(pair.Key, roomNode);
                         break;
@@ -149,7 +154,6 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
         }
 
-
         private static void ClearAnyPreviousSpawnedPrefabs()
         {
 
@@ -158,8 +162,10 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
             // Destroy any previously spawned objects.
             DestroyAllChildGameObjects(_Objects_Chests_Parent);
+            DestroyAllChildGameObjects(_Objects_Buttons_Parent);
             DestroyAllChildGameObjects(_Objects_Doors_Parent);
             DestroyAllChildGameObjects(_Objects_Doors_BombableWalls_Parent);
+            DestroyAllChildGameObjects(_Objects_IceBlocks_Parent);
             DestroyAllChildGameObjects(_Objects_Spikes_Parent);
         }
       
@@ -385,6 +391,44 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
             // Give the new object a reference to the doorway it represents.
             door.GetComponent<Object_Door_BombableWall>().Doorway = doorToSpawn;
+        }
+
+        private static void SpawnObject_Button(Vector3Int position, DungeonGraphNode roomNode)
+        {
+            // Calculate the position of the spikes.
+            Vector3 centerPoint = DungeonConstructionUtils.AdjustTileCoordsForRoomPositionAndRotation(position, roomNode.RoomPosition, roomNode.RoomFinalDirection);
+
+
+            // Spawn a spikes object and configure it.
+            GameObject button = GameObject.Instantiate(PrefabManager.GetPrefab("Object_Button", roomNode.RoomBlueprint.RoomSet),
+                                                       centerPoint + _ObjectOffsetVector,
+                                                       Quaternion.identity,
+                                                       _Objects_Buttons_Parent.transform);
+
+
+            RoomSets roomSet = roomNode.RoomBlueprint.RoomSet;
+            Object_Button buttonComponent = button.GetComponent<Object_Button>();
+            buttonComponent._ButtonSprite = SpriteManager.GetSprite("Object_Button", roomSet);
+            buttonComponent._ButtonPressedSprite = SpriteManager.GetSprite("Object_Button_Pressed", roomSet);
+        }
+
+        private static void SpawnObject_IceBlock(Vector3Int position, DungeonGraphNode roomNode)
+        {
+            // Calculate the position of the ice block.
+            Vector3 centerPoint = DungeonConstructionUtils.AdjustTileCoordsForRoomPositionAndRotation(position, roomNode.RoomPosition, roomNode.RoomFinalDirection);
+
+
+            // Spawn an ice block and configure it.
+            GameObject iceBlock = GameObject.Instantiate(PrefabManager.GetPrefab("Object_IceBlock", roomNode.RoomBlueprint.RoomSet),
+                                                       centerPoint + _ObjectOffsetVector,
+                                                       Quaternion.identity,
+                                                       _Objects_IceBlocks_Parent.transform);
+
+
+            RoomSets roomSet = roomNode.RoomBlueprint.RoomSet;
+            Object_IceBlock iceBlockComponent = iceBlock.GetComponent<Object_IceBlock>();
+            iceBlockComponent.GetComponent<SpriteRenderer>().sprite = SpriteManager.GetSprite("Object_IceBlock", roomSet);
+
         }
 
         private static void SpawnObject_Spikes(Vector3Int position, DungeonGraphNode roomNode)

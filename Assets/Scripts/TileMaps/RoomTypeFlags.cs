@@ -44,15 +44,19 @@ namespace ProceduralDungeon.TileMaps
     [Flags]
     public enum RoomTypeFlags
     {
-        CanBeStart = 1,
-        CanBeGoal = 2,
+        GenericRoom = 1,
 
-        CanHaveKey = 4,
-        CanHaveKey_Multipart = 8,
-        CanHaveKey_Goal = 16,
-        CanHaveTreasure = 32,
+        CanBeStart = 2,
+        CanBeGoal = 4,
 
-        CanBeSecretRoom = 64,
+        CanHaveKey = 8,
+        CanHaveKey_Multipart = 16,
+        CanHaveKey_Goal = 32,
+        CanHaveTreasure = 64,
+
+        CanBeSecretRoom = 128,
+        
+        PuzzleRoom = 256,
 
         Miniboss = 1024,
         Boss = 2048,

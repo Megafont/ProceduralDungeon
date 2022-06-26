@@ -1095,7 +1095,7 @@ TextureImporter:
       name: DungeonTileset_Ice_Wall_Corrner_Outer
       rect:
         serializedVersion: 2
-        x: 33
+        x: 32
         y: 176
         width: 16
         height: 16
@@ -2212,6 +2212,27 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: DungeonTileset_Ice_Wall_StoneBlock
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 144
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b68ffe59c8f6cfb4baf8df4fd00054d0
+      internalID: -566419407
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     physicsShape: []
     bones: []
@@ -2277,6 +2298,7 @@ TextureImporter:
       DungeonTileset_Ice_WallTop_Cracks_03: 738710857
       DungeonTileset_Ice_WallTop_BombableLeft: 1965709173
       DungeonTileset_Ice_63: -1379982796
+      DungeonTileset_Ice_Wall_StoneBlock: -566419407
       DungeonTileset_Ice_Wall_BlockProtrusion_BottomRight: 1893196424
       DungeonTileset_Ice_61: -146006137
       DungeonTileset_Ice_Wall_Bombable_Closed_Right: 133350982

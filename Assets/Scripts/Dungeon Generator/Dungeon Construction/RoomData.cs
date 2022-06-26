@@ -33,6 +33,9 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
         public List<SavedTile> Key_Multipart_Placeholders;
         public List<SavedTile> Key_Goal_Placeholders;
 
+        public List<SavedTile> Button_Placeholders;
+
+        public List<SavedTile> IceBlock_Placeholders;
 
         public string RoomName;
         public RoomLevels RoomLevel = RoomLevels.Level_1stFloor;
@@ -70,6 +73,9 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             Key_Multipart_Placeholders = new List<SavedTile>();
             Key_Goal_Placeholders = new List<SavedTile>();
 
+            Button_Placeholders = new List<SavedTile>();
+
+            IceBlock_Placeholders = new List<SavedTile>();
 
             RoomName = loadedRoom.RoomName;
             RoomLevel = loadedRoom.RoomLevel;
@@ -85,7 +91,6 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             foreach (KeyValuePair<Vector3Int, SavedTile> pair in Placeholders_Item_Tiles)
             {
                 SavedTile sTile = pair.Value;
-                Vector3Int tilePosition = pair.Key;
 
 
                 // Fill in the placeholders lists.
@@ -99,6 +104,11 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
                 else if (sTile.Tile.TileType == DungeonTileTypes.Placeholders_Items_Key_Goal)
                     Key_Goal_Placeholders.Add(sTile);
 
+                else if (sTile.Tile.TileType == DungeonTileTypes.Placeholders_Objects_Button)
+                    Button_Placeholders.Add(sTile);
+
+                else if (sTile.Tile.TileType == DungeonTileTypes.Placeholders_Objects_IceBlock)
+                    IceBlock_Placeholders.Add(sTile);
 
             } // end foreach sTile
 
@@ -129,9 +139,9 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
 
                 if ((srcTile.Position == tileToGetNeighborsOf.Position + Vector3Int.up) || // Is this tile the north neighbor?
-                     (srcTile.Position == tileToGetNeighborsOf.Position + Vector3Int.down) || // Is this tile the south neighbor?
-                     (srcTile.Position == tileToGetNeighborsOf.Position + Vector3Int.right) || // Is this tile the east neighbor?
-                     (srcTile.Position == tileToGetNeighborsOf.Position + Vector3Int.left)) // Is this tile the west neighbor?
+                    (srcTile.Position == tileToGetNeighborsOf.Position + Vector3Int.down) || // Is this tile the south neighbor?
+                    (srcTile.Position == tileToGetNeighborsOf.Position + Vector3Int.right) || // Is this tile the east neighbor?
+                    (srcTile.Position == tileToGetNeighborsOf.Position + Vector3Int.left)) // Is this tile the west neighbor?
                 {
                     sTiles.Add(srcTile);
                 }

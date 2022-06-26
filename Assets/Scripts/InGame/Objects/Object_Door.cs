@@ -60,8 +60,7 @@ namespace ProceduralDungeon.InGame.Objects
 
         private void Start()
         {
-            if (_Player == null)
-                _Player = GameObject.FindGameObjectWithTag("Player");
+            _Player ??= GameObject.FindGameObjectWithTag("Player");
         }
 
         private void OnCollisionEnter2D(Collision2D collision)
