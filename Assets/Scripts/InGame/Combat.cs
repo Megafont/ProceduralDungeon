@@ -3,6 +3,8 @@ using System.Collections.Generic;
 
 using UnityEngine;
 
+using ProceduralDungeon.InGame.Items;
+
 
 namespace ProceduralDungeon.InGame
 {
@@ -19,7 +21,8 @@ namespace ProceduralDungeon.InGame
 
         private SpriteRenderer _MySpriteRenderer;
         private Animator _MyWeaponAnimator;
-        
+        private Weapon _MyWeapon;
+
         string _LastAttack = "";
 
         bool _IsAttacking = false;
@@ -32,6 +35,9 @@ namespace ProceduralDungeon.InGame
         {
             _MySpriteRenderer = GetComponent<SpriteRenderer>();
             _MyWeaponAnimator = GetComponent<Animator>();
+            
+            _MyWeapon = GetComponent<Weapon>();
+            _MyWeapon.gameObject.SetActive(false); // Disable the weapon object. This way it is both invisible and disabled so if you move too close to an enemy, it won't deal erroneous damage to it.
 
             _WeaponType = WeaponTypes.Sword;
         }
@@ -58,6 +64,8 @@ namespace ProceduralDungeon.InGame
             if (_IsAttacking)
                 return;
 
+            // Enable the weapon gameobject. It is disabled while not attacking to stop it dealing erroneous damage when the player gets close to enemies.
+            gameObject.SetActive(true);
 
             _MyWeaponAnimator.SetFloat("X Movement", moveInput.x);
             _MyWeaponAnimator.SetFloat("Y Movement", moveInput.y);
@@ -85,6 +93,8 @@ namespace ProceduralDungeon.InGame
             _MyWeaponAnimator.ResetTrigger(_LastAttack);
 
             _IsAttacking = false;
+
+            gameObject.SetActive(false);
         }
 
 
@@ -100,6 +110,18 @@ namespace ProceduralDungeon.InGame
             else
                 _MySpriteRenderer.sortingOrder = 0;
 
+        }
+
+
+
+        public void EquipWeapon(ItemData weapon)
+        {
+            _MyWeapon.WeaponItem = weapon;            
+        }
+
+        public ItemData GetWeaponItem()
+        {
+            return _MyWeapon.WeaponItem;
         }
 
     }

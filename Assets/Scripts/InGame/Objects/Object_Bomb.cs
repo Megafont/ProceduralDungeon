@@ -10,7 +10,7 @@ using ProceduralDungeon.TileMaps;
 using ProceduralDungeon.Utilities;
 
 
-namespace ProceduralDungeon.InGame.Items
+namespace ProceduralDungeon.InGame.Objects
 {
 
     public class Object_Bomb : MonoBehaviour

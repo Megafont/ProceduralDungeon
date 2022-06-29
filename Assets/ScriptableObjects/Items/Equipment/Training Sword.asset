@@ -10,15 +10,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 54b9f12744183af4294fbd541a829e23, type: 3}
-  m_Name: Sword 1
+  m_Name: Training Sword
   m_EditorClassIdentifier: 
-  ID: 5
+  ID: 8
   InstanceID: 0
-  Icon: {fileID: -1472476886, guid: fd1249da2b4341243a33e5cfd1457dcf, type: 3}
+  Icon: {fileID: -1472476886, guid: 91abded9e03c40a45ad82a6d8f20d5cf, type: 3}
   Type: 2
-  Description: A deadly early game sword.
+  Description: A crappy wooden sword.
   Buffs:
-  - Attribute: 1
+  - Attribute: 3
     AttributeValue: 0
     MinValue: 1
-    MaxValue: 30
+    MaxValue: 3

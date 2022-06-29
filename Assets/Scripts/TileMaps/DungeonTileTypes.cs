@@ -24,7 +24,7 @@ namespace ProceduralDungeon.TileMaps
         PLACEHOLDERS_ITEMS_START = 120000,
         PLACEHOLDERS_ITEMS_END = 139999,
 
-        PLACEHOLDERS_ENEMIES_START = 140000,
+        PLACEHOLDERS_ENEMIES_START = 141000,
         PLACEHOLDERS_ENEMIES_END = 159999,
     }
 
@@ -87,10 +87,10 @@ namespace ProceduralDungeon.TileMaps
         Placeholders_Objects_Doors_2ndFloor = 100002,
         Placeholders_Objects_Doors_EntryOrExit = 100003,
 
-        Placeholders_Objects_Spikes = 100020,
-        Placeholders_Objects_IceBlock = 100021,
-        Placeholders_Objects_StoneBlock = 100022,
-        Placeholders_Objects_Button = 100023,
+        Placeholders_Objects_Spikes = 101000,
+        Placeholders_Objects_IceBlock = 101001,
+        Placeholders_Objects_Button = 101002,
+
 
         // Placeholder Tiles - Items
         Placeholders_Items_Key = 120000,
@@ -99,8 +99,12 @@ namespace ProceduralDungeon.TileMaps
         Placeholders_Items_RandomTreasure = 120003,
 
 
-        // Placeholder Tiles - Enemies
+        // Placeholder Tiles - Other
+        Placeholders_Player = 140000,
 
+        Placeholders_Enemy = 141000, // Can spawn any enemy.
+        // The following placeholders are used when you want to force a certain type of enemy to spawn in a room.
+        Placeholders_Enemy_Grumpice = 141001,
 
     }
 

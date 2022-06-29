@@ -9,7 +9,7 @@ using ProceduralDungeon.InGame.Items;
 namespace ProceduralDungeon.InGame.Items.Definitions
 {
     [CreateAssetMenu(fileName = "New Key Item Object", menuName = "Inventory System/Item Definitions/Key")]
-    public class ItemDefinition_Key : ItemDefinition
+    public class ItemDefinition_Key : ItemDefinitionBase
     {
         public KeyTypes KeyType;
         public uint KeyID;
@@ -18,7 +18,7 @@ namespace ProceduralDungeon.InGame.Items.Definitions
 
         public void Awake()
         {
-            Type = ItemTypes2.Key;
+            Type = ItemTypes.Key;
         }
     }
 

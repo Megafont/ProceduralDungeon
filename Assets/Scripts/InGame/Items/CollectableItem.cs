@@ -15,7 +15,7 @@ namespace ProceduralDungeon.InGame.Items
     [ExecuteInEditMode]
     public class CollectableItem : MonoBehaviour
     {
-        public ItemDefinition Item;
+        public ItemDefinitionBase Item;
         public uint ItemCount;
         public ItemDatabaseObject ItemDatabase;
 

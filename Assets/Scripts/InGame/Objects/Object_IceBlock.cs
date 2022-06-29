@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-namespace ProceduralDungeon.InGame.Items
+namespace ProceduralDungeon.InGame.Objects
 {
 
     public class Object_IceBlock : MonoBehaviour
@@ -14,11 +14,16 @@ namespace ProceduralDungeon.InGame.Items
 
         private Rigidbody2D _Rigidbody;
 
+        private Vector3 _OriginalSpawnPosition = Vector3.zero;
+
+
 
         // Start is called before the first frame update
         void Start()
         {
             _Rigidbody = GetComponent<Rigidbody2D>();
+
+            _OriginalSpawnPosition = transform.position;
         }
 
         
@@ -32,9 +37,9 @@ namespace ProceduralDungeon.InGame.Items
                 _Rigidbody.velocity = Vector2.zero;
 
                 // Snap the block to the nearest grib position to ensure it lines up properly when it hits something. That way it looks nice when you push it onto a button.
-                transform.position = new Vector3(((int) transform.position.x) + 0.5f, 
-                                                 ((int) transform.position.y) + 0.5f, 
-                                                  (int) transform.position.z);
+                transform.position = new Vector3((int) Mathf.Floor(transform.position.x) + 0.5f, 
+                                                 (int) Mathf.Floor(transform.position.y) + 0.5f, 
+                                                 (int) Mathf.Floor(transform.position.z));
             }
         }
 
@@ -89,6 +94,12 @@ namespace ProceduralDungeon.InGame.Items
 
         }
 
+
+
+        public void ResetToSpawnPosition()
+        {
+            transform.position = _OriginalSpawnPosition;
+        }
 
 
     }

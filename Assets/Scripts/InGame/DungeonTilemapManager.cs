@@ -10,6 +10,7 @@ using ProceduralDungeon.DungeonGeneration;
 using ProceduralDungeon.DungeonGeneration.DungeonConstruction;
 using ProceduralDungeon.DungeonGeneration.MissionStructureGeneration;
 using ProceduralDungeon.InGame.Items;
+using ProceduralDungeon.InGame.Enemies;
 using ProceduralDungeon.TileMaps;
 
 
@@ -34,6 +35,7 @@ namespace ProceduralDungeon.InGame
 
         [SerializeField] private RoomSets _RoomSet; // Determines which folder a room will be saved/loaded to/from.
         [SerializeField] private ItemDatabaseObject _ItemDatabase;
+        [SerializeField] private EnemySpawningData _EnemySpawningData;
 
 
 
@@ -41,6 +43,7 @@ namespace ProceduralDungeon.InGame
         public RoomSets RoomSet { get { return _RoomSet; } }
 
         public ItemDatabaseObject ItemDatabase { get { return _ItemDatabase;  } }
+        public EnemySpawningData EnemySpawningData { get { return _EnemySpawningData; } }
 
         private DungeonMap _DungeonMap;
 

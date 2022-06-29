@@ -88,7 +88,7 @@ namespace ProceduralDungeon.InGame.Objects
 
                 if (unlocked)
                 {
-                    DoorState = DoorStates.Closed; // Switch from locked state to just closed so we can open the door.
+                    DoorState = DoorStates.Open; // Switch from locked state to just closed so we can open the door.
                     ToggleState(); // Open the door.
                 }
 
@@ -103,7 +103,7 @@ namespace ProceduralDungeon.InGame.Objects
         {
             bool state = true;
 
-            if (DoorState == DoorStates.Closed)
+            if (DoorState == DoorStates.Open)
                 state = false;
                 
                    
@@ -118,14 +118,16 @@ namespace ProceduralDungeon.InGame.Objects
         {
             SpriteRenderer renderer = GetComponent<SpriteRenderer>();
 
-            if (DoorState == DoorStates.Locked)
+            if (DoorState == DoorStates.Locked || DoorState == DoorStates.Closed)
             {
-                if (LockType == DoorLockTypes.Lock)
+                if (LockType == DoorLockTypes.None)
+                    renderer.sprite = ClosedSprite;
+                else if (LockType == DoorLockTypes.Lock)
                     renderer.sprite = LockedSprite;
                 else if (LockType == DoorLockTypes.Lock_Multipart)
                     renderer.sprite = LockedMultipartSprite;
                 else if (LockType == DoorLockTypes.Lock_Goal)
-                    renderer.sprite = LockedGoalSprite;
+                    renderer.sprite = LockedGoalSprite;                
             }
             else
             {

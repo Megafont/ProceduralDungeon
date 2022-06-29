@@ -167,11 +167,11 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Placeholders_Entity_Player
+      name: Placeholders_Player
       rect:
         serializedVersion: 2
-        x: 128
-        y: 240
+        x: 0
+        y: 64
         width: 16
         height: 16
       alignment: 0
@@ -355,6 +355,48 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: Placeholders_Enemy
+      rect:
+        serializedVersion: 2
+        x: 16
+        y: 64
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 413c36e34c4ad624aa1fb456ee589408
+      internalID: 973278092
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Placeholders_Enemy_Grumpice
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 48
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ae9eef7b9bcaa984f99ebbdf47e27189
+      internalID: 924344820
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     physicsShape: []
     bones: []
@@ -370,13 +412,15 @@ TextureImporter:
       Placeholders_Objects_Spikes: 1352249957
       Placeholders_Objects_Doors_1stFloor: 1105143702
       Placeholders_Objects_Doors_Basement: -518213313
-      Placeholders_Entity_Player: -2023910191
       Placeholders_Items_Key_Multipart: 308713404
       Placeholders_Objects_IceBlock: -292079397
       Placeholders_Objects_Button: -139206268
       Placeholders_Objects_Doors_2ndFloor: 116298976
       Placeholders_Items_Key_Goal: -528717469
+      Placeholders_Enemy: 973278092
       Placeholders_Items_Key: 1536171610
+      Placeholders_Enemy_Grumpice: 924344820
+      Placeholders_Player: -2023910191
       Placeholders_Objects_StoneBlock: 656565814
       Placeholders_Items_RandomTreasure: 818637492
   spritePackingTag: 

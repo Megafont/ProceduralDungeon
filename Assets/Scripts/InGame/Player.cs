@@ -5,8 +5,10 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 using ProceduralDungeon.DungeonGeneration;
+using ProceduralDungeon.DungeonGeneration.DungeonGraphGeneration;
 using ProceduralDungeon.InGame.Items;
 using ProceduralDungeon.InGame.Inventory;
+using ProceduralDungeon.InGame.Objects;
 using ProceduralDungeon.Utilities;
 
 
@@ -23,10 +25,9 @@ namespace ProceduralDungeon.InGame
 
 
         private Animator _MyAnimator;
+        private Combat _MyCombat;
         private Rigidbody2D _MyRigidBody2D;
         
-        private Combat _MyCombat;
-
 
         private Vector2 _MoveInput;
         private Vector3 _LastMoveDirection = Vector3.up;
@@ -88,8 +89,9 @@ namespace ProceduralDungeon.InGame
             if (_MoveInput != Vector2.zero)
             {
                 _LastMoveDirection = _MoveInput;
-                _MyCombat.OnPlayerMoved(_MoveInput);
+                _MyCombat.OnPlayerMoved(_MoveInput);               
             }
+
         }
 
         void OnAction1()
@@ -121,6 +123,20 @@ namespace ProceduralDungeon.InGame
 
         void OnAttack()
         {
+            if (string.IsNullOrEmpty(_MyCombat.GetWeaponItem().Name))
+            {
+                ItemData sword;
+                if (Inventory.Data.FindItem("Training Sword", 1, out sword))
+                {
+                    _MyCombat.EquipWeapon(sword);
+                }
+                else
+                {
+                    Debug.LogError("Player.OnAttack() - The player does not have a sword!");
+                    return;
+                }
+            }
+
             _MyCombat.DoAttack(_LastMoveDirection);
         }
 
@@ -129,6 +145,13 @@ namespace ProceduralDungeon.InGame
             Vector2 moveDistance = new Vector2(_MoveInput.x, _MoveInput.y);
 
             _Velocity = moveDistance * _MoveSpeed;
+
+            if (_Velocity.x != 0 || _Velocity.y != 0)
+            {
+                // Update the current and previous room variables if needed.
+                DungeonGraphNode temp = DungeonGenerator.LookupRoomFromTile(Vector3Int.FloorToInt(transform.position));
+                InGameUtils.PlayerVisitedRoom(temp);
+            }
 
             //_MyRigidBody2D.MovePosition(_MyRigidBody2D.position + moveDistance);
             //_MyRigidBody2D.position += moveDistance;

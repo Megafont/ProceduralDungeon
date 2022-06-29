@@ -14,6 +14,7 @@ using ProceduralDungeon.InGame.Items.Definitions;
 using ProceduralDungeon.InGame.Inventory;
 using ProceduralDungeon.InGame.Objects;
 using ProceduralDungeon.TileMaps;
+using ProceduralDungeon.TileMaps.TileTypes;
 using ProceduralDungeon.Utilities;
 
 
@@ -24,15 +25,17 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 {
 
     public static class DungeonPopulator
-    {
+    {   
         private static GameObject _ItemsParent;
         private static GameObject _ObjectsParent;
         private static GameObject _Objects_Buttons_Parent;
         private static GameObject _Objects_Chests_Parent;
         private static GameObject _Objects_Doors_Parent;
         private static GameObject _Objects_Doors_BombableWalls_Parent;
+        private static GameObject _Objects_Doors_Locked_Parent;
         private static GameObject _Objects_IceBlocks_Parent;
         private static GameObject _Objects_Spikes_Parent;
+
 
         private static Dictionary<MissionStructureGraphNode, Object_Door> _LockedDoorsDictionary;
         private static Dictionary<MissionStructureGraphNode, InventoryObject> _KeyChestsDictionary;
@@ -44,7 +47,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
 
 
-        public static void PopulateDungeon(DungeonGraph dungeonGraph, NoiseRNG rng, string roomSet)
+        public static void PopulateDungeon(DungeonGraph dungeonGraph, NoiseRNG rng)
         {
             Assert.IsNotNull(dungeonGraph, "DungeonPopulator.PopulateDungeon() - The passed in dungeon graph is null!");
             Assert.IsNotNull(rng, "DungeonPopulator.PopulateDungeon() - The passed in random number generator is null!");
@@ -63,12 +66,13 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             _Objects_Chests_Parent = _ObjectsParent.transform.Find("Chests").gameObject;
             _Objects_Doors_Parent = _ObjectsParent.transform.Find("Doors").gameObject;
             _Objects_Doors_BombableWalls_Parent = _ObjectsParent.transform.Find("Doors_BombableWalls").gameObject;
+            _Objects_Doors_Locked_Parent = _ObjectsParent.transform.Find("Doors_Locked").gameObject;
             _Objects_IceBlocks_Parent = _ObjectsParent.transform.Find("IceBlocks").gameObject;
             _Objects_Spikes_Parent = _ObjectsParent.transform.Find("Spikes").gameObject;
 
 
             // Clear out any previously spawned dungeon items/objects.
-            ClearAnyPreviousSpawnedPrefabs();
+            ClearPreviouslySpawnedPrefabs();
 
 
             // Populate each room in the dungeon.
@@ -104,6 +108,10 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
                         items.AddItem(new ItemData(DungeonGenerator.ItemDatabase.LookupByName("Bomb")), (uint) rng.RollRandomIntInRange(1, 3));
 
                         SpawnObject_Chest(roomNode, rng, ChestTypes.RandomTreasure, items);
+                        break;
+
+                    case GrammarSymbols.T_Test_Secret:
+                        SpawnObjects_ClosedPuzzleRoomDoors(roomNode);
                         break;
 
                     case GrammarSymbols.T_Treasure_Key:
@@ -154,21 +162,37 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
         }
 
-        private static void ClearAnyPreviousSpawnedPrefabs()
+        private static void ClearPreviouslySpawnedPrefabs()
         {
+            ClearPreviouslySpawnedPrefabs_Items();
+            ClearPreviouslySpawnedPrefabs_Objects();
+        }
 
+        private static void ClearPreviouslySpawnedPrefabs_Items()
+        {
             // Destroy any previously spawned items.
             DestroyAllChildGameObjects(_ItemsParent);
 
-            // Destroy any previously spawned objects.
-            DestroyAllChildGameObjects(_Objects_Chests_Parent);
-            DestroyAllChildGameObjects(_Objects_Buttons_Parent);
-            DestroyAllChildGameObjects(_Objects_Doors_Parent);
-            DestroyAllChildGameObjects(_Objects_Doors_BombableWalls_Parent);
-            DestroyAllChildGameObjects(_Objects_IceBlocks_Parent);
-            DestroyAllChildGameObjects(_Objects_Spikes_Parent);
         }
-      
+
+        private static void ClearPreviouslySpawnedPrefabs_Objects()
+        {
+            // Destroy any previously spawned objects.
+            List<Transform> childObjects = new List<Transform>(_ObjectsParent.transform.GetComponentsInChildren<Transform>()); // Get all child objects of the main SpawnObjects game object.
+
+            // Remove the parent object from the list. This MUST be done to prevent the loop below from clearing all the child category objects out of the parent object.
+            childObjects.Remove(_ObjectsParent.transform);
+
+            foreach (Transform transform in childObjects)
+            {
+                if (transform != null)
+                {
+                    //Debug.LogError($"Cleared transform: \"{transform.name}\"");
+                    DestroyAllChildGameObjects(transform.gameObject);
+                }
+            }
+        }
+
         /// <summary>
         /// Spawns a chest at a randomly chosen placeholder tile the type of which is determined by the specified chest type.
         /// </summary>
@@ -235,7 +259,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             else if (chestType == ChestTypes.Key_Goal)
                 chestPrefab = PrefabManager.GetPrefab("Object_ChestGoal", roomNode.RoomBlueprint.RoomSet);
 
-            
+
             GameObject chest = GameObject.Instantiate(chestPrefab, 
                                                       _ItemOffsetVector + position,
                                                       rotation,
@@ -269,7 +293,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             return chest;
         }
 
-        private static void SpawnObject_Door(DungeonDoor doorToSpawn, DoorLockTypes lockType)
+        private static Object_Door SpawnObject_Door(DungeonDoor doorToSpawn, DoorLockTypes lockType)
         {
             Vector3 offset;
             Quaternion rotation;
@@ -298,7 +322,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
                                                                                               doorToSpawn.ThisRoom_Node.RoomFinalDirection);
             rotation = correctedDirection.DirectionToRotation();
             
-            //Debug.LogError($"ORIG: {doorToSpawn.ThisRoom_Node.RoomBlueprint.DoorsList[(int) doorToSpawn.ThisRoom_DoorIndex].DoorDirection}    FINAL: {doorToSpawn.ThisRoom_DoorAdjustedDirection}    CORRECTED: {correctedDirection}");
+            //Debug.LogError($"ORIGINAL: {doorToSpawn.ThisRoom_Node.RoomBlueprint.DoorsList[(int) doorToSpawn.ThisRoom_DoorIndex].DoorDirection}    FINAL: {doorToSpawn.ThisRoom_DoorAdjustedDirection}    CORRECTED: {correctedDirection}");
 
 
             // Calculate the center point of the door.
@@ -310,31 +334,38 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             GameObject door = GameObject.Instantiate(PrefabManager.GetPrefab("Object_Door", doorToSpawn.ThisRoom_Node.RoomBlueprint.RoomSet), 
                                                      centerPoint, 
                                                      rotation,
-                                                     _Objects_Doors_Parent.transform);
+                                                     lockType == DoorLockTypes.None ? _Objects_Doors_Parent.transform : _Objects_Doors_Locked_Parent.transform);
 
             Object_Door doorComponent = door.GetComponent<Object_Door>();
 
 
-            // We use the other room node for non-goal locked doors, because these locked doors spawn in the room next to the lock room,
-            // thus preventing access to the room.
-            // This is also true if this lock is blocking a mini boss room.
-            if (lockType != DoorLockTypes.Lock_Goal &&
-                doorToSpawn.OtherRoom_Node.MissionStructureNode.GrammarSymbol != GrammarSymbols.T_Boss_Mini)
+            if (lockType != DoorLockTypes.None)
             {
-                _LockedDoorsDictionary.Add(doorToSpawn.OtherRoom_Node.MissionStructureNode, doorComponent);
+                // We use the other room node for non-goal locked doors, because these locked doors spawn in the room next to the lock room,
+                // thus preventing access to the room.
+                // This is also true if this lock is blocking a mini boss room.
+                if (lockType != DoorLockTypes.Lock_Goal &&
+                    doorToSpawn.OtherRoom_Node.MissionStructureNode.GrammarSymbol != GrammarSymbols.T_Boss_Mini)
+                {
+                    _LockedDoorsDictionary.Add(doorToSpawn.OtherRoom_Node.MissionStructureNode, doorComponent);
+                }
+                else
+                {
+                    _LockedDoorsDictionary.Add(doorToSpawn.ThisRoom_Node.MissionStructureNode, doorComponent);
+                }
+
+                doorComponent.Key_ID = _NextKeyID;
+                _NextKeyID++;
+
+                doorComponent.DoorState = DoorStates.Locked;
 }
             else
             {
-                _LockedDoorsDictionary.Add(doorToSpawn.ThisRoom_Node.MissionStructureNode, doorComponent);
+                doorComponent.DoorState = DoorStates.Closed;
             }
-            
 
-
-            doorComponent.Key_ID = _NextKeyID;
-            _NextKeyID++;
 
             doorComponent.Doorway = doorToSpawn; // Give the new object a reference to the doorway it represents.
-            doorComponent.DoorState = DoorStates.Locked;
             doorComponent.LockType = lockType;
 
             RoomSets roomSet = doorToSpawn.ThisRoom_Node.RoomBlueprint.RoomSet;
@@ -345,6 +376,8 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
             doorComponent.ToggleState();
 
+
+            return doorComponent;
         }
 
         private static void SpawnObject_Door_BombableWall(DungeonDoor doorToSpawn)
@@ -393,6 +426,37 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             door.GetComponent<Object_Door_BombableWall>().Doorway = doorToSpawn;
         }
 
+        /// <summary>
+        /// Spawns closed doors in the specified puzzle room. Doors connecting to tightly coupled child rooms will get closed doors
+        /// blocking them off until the puzzle is solved.
+        /// </summary>
+        /// <param name="roomNode">The node for the room to spawn closed doors in.</param>
+        private static void SpawnObjects_ClosedPuzzleRoomDoors(DungeonGraphNode roomNode)
+        {
+            // Iterate through the doorways.
+            foreach (DungeonDoor doorway in roomNode.Doorways)
+            {
+                MissionStructureGraphNode node;
+                if (doorway.OtherRoom_Node == null)
+                    continue;
+                else
+                    node = doorway.OtherRoom_Node.MissionStructureNode;
+
+
+                // We want to spawn a closed door for all doorways except the entry door.
+                // So check each doorway to see if the room beyond it is farther from the start than this one.
+                // Also check that it is not a bombable wall.
+                if (node.DungeonRoomNode.DistanceFromStart > roomNode.DistanceFromStart && 
+                    node.GrammarSymbol != GrammarSymbols.T_Secret_Room) // Secret rooms are always connected to the rest of the dungeon by a bombable wall.
+                {
+                    Object_Door doorObject = SpawnObject_Door(doorway, DoorLockTypes.None);
+                    roomNode.ClosedPuzzleDoors.Add(doorObject);
+                }
+
+            } // end foreach door
+
+        }
+
         private static void SpawnObject_Button(Vector3Int position, DungeonGraphNode roomNode)
         {
             // Calculate the position of the spikes.
@@ -410,6 +474,9 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             Object_Button buttonComponent = button.GetComponent<Object_Button>();
             buttonComponent._ButtonSprite = SpriteManager.GetSprite("Object_Button", roomSet);
             buttonComponent._ButtonPressedSprite = SpriteManager.GetSprite("Object_Button_Pressed", roomSet);
+            button.GetComponent<SpriteRenderer>().sprite = buttonComponent._ButtonSprite;
+
+            roomNode.Buttons.Add(buttonComponent);
         }
 
         private static void SpawnObject_IceBlock(Vector3Int position, DungeonGraphNode roomNode)
@@ -429,6 +496,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             Object_IceBlock iceBlockComponent = iceBlock.GetComponent<Object_IceBlock>();
             iceBlockComponent.GetComponent<SpriteRenderer>().sprite = SpriteManager.GetSprite("Object_IceBlock", roomSet);
 
+            roomNode.IceBlocks.Add(iceBlock);
         }
 
         private static void SpawnObject_Spikes(Vector3Int position, DungeonGraphNode roomNode)

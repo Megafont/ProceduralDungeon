@@ -4,10 +4,19 @@ using System.Collections.Generic;
 
 using UnityEngine;
 
+using ProceduralDungeon.DungeonGeneration;
 
-namespace ProceduralDungeon.InGame.Items
+
+namespace ProceduralDungeon.InGame.Objects
 {
 
+    /// <summary>
+    /// A button to push an object onto or step on.
+    /// </summary>
+    /// <remarks>
+    /// The collider of the button is smaller than the button sprite because otherwise if an ice block or player is
+    /// on a diagonally adjacent tile, it will still trigger the OnTriggerEnter2D() method on the button.
+    /// </remarks>
     public class Object_Button : MonoBehaviour
     {
         public Sprite _ButtonSprite;
@@ -15,11 +24,14 @@ namespace ProceduralDungeon.InGame.Items
 
 
         public bool IsPressed { get; private set; }
+        public List<GameObject> ObjectsOnButton { get; private set; }
 
 
-        BoxCollider2D _Collider;
-        SpriteRenderer _Renderer;
+        private BoxCollider2D _Collider;
+        private SpriteRenderer _Renderer;
 
+        private ContactFilter2D _ContactFilter;
+        
 
 
         // Start is called before the first frame update
@@ -28,29 +40,42 @@ namespace ProceduralDungeon.InGame.Items
             _Collider = GetComponent<BoxCollider2D>();
             _Renderer = GetComponent<SpriteRenderer>();
 
+            ObjectsOnButton = new List<GameObject>();
+            
             _Renderer.sprite = _ButtonSprite;
+
+
+            // Setup a contact filter.
+            LayerMask layerMask = (1 << LayerMask.NameToLayer("Player")) |
+                                  (1 << LayerMask.NameToLayer("Enemies")) |
+                                  (1 << LayerMask.NameToLayer("Objects"));
+            _ContactFilter = new ContactFilter2D();
+            _ContactFilter.SetLayerMask(layerMask);
+            _ContactFilter.useLayerMask = true;
         }
 
 
 
         private void OnTriggerEnter2D(Collider2D collision)
         {
-            if (collision.gameObject.layer == LayerMask.NameToLayer("Player") ||
-                collision.gameObject.layer == LayerMask.NameToLayer("Objects"))
-            {
-                CheckOverlappingColliders();
-            }
+            // Simply return if this button's Start() method hasn't been called yet.
+            if (ObjectsOnButton == null)
+                return;
+
+            
+            CheckOverlappingColliders();
+            ObjectsOnButton.Add(collision.gameObject);
         }
 
         private void OnTriggerExit2D(Collider2D collision)
         {
-            // Check that the collider that exited is one of the types that can trigger the button.
-            // This way it can't be tricked into thinking its not pressed anymore.
-            if (collision.gameObject.layer == LayerMask.NameToLayer("Player") ||
-                collision.gameObject.layer == LayerMask.NameToLayer("Objects"))
-            {
-                CheckOverlappingColliders();
-            }
+            // Simply return if this button's Start() method hasn't been called yet.
+            if (ObjectsOnButton == null)
+                return;
+
+
+            CheckOverlappingColliders();
+            ObjectsOnButton.Remove(collision.gameObject);
 
         }
 
@@ -65,17 +90,14 @@ namespace ProceduralDungeon.InGame.Items
         /// </remnarks>
         private void CheckOverlappingColliders()
         {
-            LayerMask layerMask = (1 << LayerMask.NameToLayer("Player")) |
-                                  (1 << LayerMask.NameToLayer("Enemies")) |
-                                  (1 << LayerMask.NameToLayer("Objects"));
-            
-            ContactFilter2D filter = new ContactFilter2D();
-            filter.SetLayerMask(layerMask);
-            filter.useLayerMask = true;
+            // Simply return if this button's Start() method hasn't been called yet.
+            if (_Collider == null)
+                return;
+
 
             // Get a filtered list of colliders that are overlapping the button's collider.
             List<Collider2D> colliders = new List<Collider2D>();
-            int colliderCount = _Collider.OverlapCollider(filter, colliders);
+            int colliderCount = _Collider.OverlapCollider(_ContactFilter, colliders);
 
 
             if (colliderCount > 0)
@@ -88,6 +110,9 @@ namespace ProceduralDungeon.InGame.Items
                 IsPressed = false;
                 _Renderer.sprite = _ButtonSprite;
             }
+
+
+            InGameUtils.CheckRoomPuzzleState(DungeonGenerator.LookupRoomFromTile(Vector3Int.FloorToInt(transform.position)));
 
         }
 

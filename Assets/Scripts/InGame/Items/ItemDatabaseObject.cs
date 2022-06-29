@@ -12,11 +12,11 @@ namespace ProceduralDungeon.InGame.Items
     [ExecuteInEditMode]
     public class ItemDatabaseObject : ScriptableObject, ISerializationCallbackReceiver
     {
-        public ItemDefinition[] Items;
+        public ItemDefinitionBase[] Items;
         
         
-        private Dictionary<uint, ItemDefinition> _LookupByID;
-        private Dictionary<string, ItemDefinition> _LookupByName;
+        private Dictionary<uint, ItemDefinitionBase> _LookupByID;
+        private Dictionary<string, ItemDefinitionBase> _LookupByName;
 
         private Dictionary<uint, uint> _LookupNextAvailableInstanceIdFromItemId;
 
@@ -37,12 +37,12 @@ namespace ProceduralDungeon.InGame.Items
 
 
 
-        public ItemDefinition LookupByID(uint id)
+        public ItemDefinitionBase LookupByID(uint id)
         {
             return _LookupByID[id];
         }
 
-        public ItemDefinition LookupByName(string name)
+        public ItemDefinitionBase LookupByName(string name)
         {
             return _LookupByName[name];
         }
@@ -90,8 +90,8 @@ namespace ProceduralDungeon.InGame.Items
 
             if (_LookupByID == null || _LookupByName == null)
             {
-                _LookupByID = new Dictionary<uint, ItemDefinition>();
-                _LookupByName = new Dictionary<string, ItemDefinition>();
+                _LookupByID = new Dictionary<uint, ItemDefinitionBase>();
+                _LookupByName = new Dictionary<string, ItemDefinitionBase>();
 
                 _LookupNextAvailableInstanceIdFromItemId = new Dictionary<uint, uint>();
             }
@@ -172,9 +172,9 @@ namespace ProceduralDungeon.InGame.Items
         /// </summary>
         private void SortItemsArray()
         {
-            List<ItemDefinition> ItemList = new List<ItemDefinition>(Items);
+            List<ItemDefinitionBase> ItemList = new List<ItemDefinitionBase>(Items);
 
-            ItemList.Sort(ItemDefinition.CompareByName);
+            ItemList.Sort(ItemDefinitionBase.CompareByName);
 
             Items = ItemList.ToArray();
         }

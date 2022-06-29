@@ -7,12 +7,12 @@ using UnityEngine;
 namespace ProceduralDungeon.InGame.Items.Definitions
 {
     [CreateAssetMenu(fileName = "New Food Item Object", menuName = "Inventory System/Item Definitions/Food")]
-    public class ItemDefinition_Food : ItemDefinition
+    public class ItemDefinition_Food : ItemDefinitionBase
     {
 
         public void Awake()
         {
-            Type = ItemTypes2.Food;
+            Type = ItemTypes.Food;
         }
     }
 

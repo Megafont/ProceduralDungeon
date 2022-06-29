@@ -11,11 +11,16 @@ namespace ProceduralDungeon.InGame
     public enum DamageTypes
     {
         BombBlast,
+        EnemyContact,
         Spikes,
+        Weapon,
     }
 
     public class Health : MonoBehaviour
     {
+        public float DamageRepeatDelay = 1.0f; // How long before damage of a given type can be receivd again.
+        public bool FlashRedOnDamage = true;
+
         public delegate void OnDeathEventHandler(object sender);
         public delegate void OnHealEventHandler(object sender);
         public delegate void OnTakeDamageEventHandler(object sender);
@@ -30,15 +35,21 @@ namespace ProceduralDungeon.InGame
 
         [SerializeField]
         private float _MaxHealth;
-
+        
 
         private float _Health;
 
+        private SpriteRenderer _Renderer;
+
         private Dictionary<DamageTypes, float> _LastDamageTimes;
+        private DamageTypes _LastDamageType;
 
 
-        private void Start()
+
+        private void Start()        
         {
+            _Renderer = GetComponent<SpriteRenderer>();
+
             _Health = _MaxHealth;
 
             // Create damage times dictionary to track the last time damage of each type was received.
@@ -53,29 +64,44 @@ namespace ProceduralDungeon.InGame
 
         public void DealDamage(float damageAmount, DamageTypes damageType)
         {
-            // If the player already took spike damage in the last second, then ignore this damage event.
+            if (damageAmount < 0)
+                throw new Exception("Health.DealDamage() - The damage amount cannot be negative!");
+
+
+            // If the player already took damage of the same type, then ignore this damage event.
             // This is to prevent the player from taking double damage if standing on the edges of two
-            // spike tiles at the same time.
-            if (damageType == DamageTypes.Spikes &&
-                Time.time - _LastDamageTimes[damageType] < 1.0f)
+            // spike tiles at the same time for example. It also just prevents massive damage from continued
+            // contact with anything dangerous.
+            if (damageType == _LastDamageType &&
+                Time.time - _LastDamageTimes[damageType] < DamageRepeatDelay)
             {
                 return;
             }
 
-
+            
             _Health = Mathf.Max(0, _Health - damageAmount);
             _LastDamageTimes[damageType] = Time.time;
+            _LastDamageType = damageType;
 
             UpdateHealthBar();
 
             OnTakeDamage?.Invoke(this); // Fire the OnTakeDamage event.
 
+            if (FlashRedOnDamage)
+                StartCoroutine(FlashRed());
+
             if (_Health <= 0)
+            {
                 OnDeath?.Invoke(this); // Fire the OnDeath event.
+            }
         }
 
         public void Heal(float healAmount)
         {
+            if (healAmount < 0)
+                throw new Exception("Health.DealDamage() - The heal amount cannot be negative!");
+
+
             _Health = Mathf.Min(_MaxHealth, _Health + healAmount);
 
             UpdateHealthBar();
@@ -85,8 +111,24 @@ namespace ProceduralDungeon.InGame
 
         private void UpdateHealthBar()
         {
-            HealthBar.fillAmount = _Health / _MaxHealth;
+            // Do not attempt to display health if no display has been specified.
+            if (HealthBar != null)
+                HealthBar.fillAmount = _Health / _MaxHealth;
         }
+
+
+        private IEnumerator FlashRed()
+        {
+            if (_Renderer != null)
+            {
+                _Renderer.color = Color.red;
+                yield return new WaitForSeconds(0.05f);
+
+                _Renderer.color = Color.white;
+            }
+
+        }
+
 
     }
 

@@ -24,7 +24,7 @@ namespace ProceduralDungeon.InGame.Items
         /// This class represents an instance of an item in an inventory.
         /// </summary>
         /// <param name="item"></param>
-        public ItemData(ItemDefinition item)
+        public ItemData(ItemDefinitionBase item)
         {
             Name = item.name;
             ID = item.ID;
@@ -38,6 +38,23 @@ namespace ProceduralDungeon.InGame.Items
                 Buffs[i].Attribute = item.Buffs[i].Attribute;
             }
 
+        }
+
+
+        /// <summary>
+        /// Gets the value of the first buff with the specified attribute.
+        /// </summary>
+        /// <param name="attribute">The attribute to find.</param>
+        /// <returns>The value of the attribute, or -1 if this item does not contain the specified attribute buff.</returns>
+        public int GetBuffValue(ItemAttributes attribute)
+        {
+            foreach (ItemBuff buff in Buffs)
+            {
+                if (buff.Attribute == attribute)
+                    return buff.AttributeValue;
+            }
+
+            return -1;
         }
 
     }

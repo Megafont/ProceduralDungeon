@@ -37,6 +37,9 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
         public List<SavedTile> IceBlock_Placeholders;
 
+        public List<SavedTile> Enemy_Placeholders;
+        public List<SavedTile> Enemy_ForceSpawn_Placeholders;
+
         public string RoomName;
         public RoomLevels RoomLevel = RoomLevels.Level_1stFloor;
         public RoomSets RoomSet = RoomSets.Test;
@@ -77,6 +80,10 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
             IceBlock_Placeholders = new List<SavedTile>();
 
+            Enemy_Placeholders = new List<SavedTile>();
+            Enemy_ForceSpawn_Placeholders = new List<SavedTile>();
+
+
             RoomName = loadedRoom.RoomName;
             RoomLevel = loadedRoom.RoomLevel;
             RoomSet = loadedRoom.RoomSet;
@@ -88,6 +95,12 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
         public void Init()
         {
+            InitItemPlaceholderLists();
+            InitEnemyPlaceholderLists();
+        }
+
+        private void InitItemPlaceholderLists()
+        {
             foreach (KeyValuePair<Vector3Int, SavedTile> pair in Placeholders_Item_Tiles)
             {
                 SavedTile sTile = pair.Value;
@@ -97,6 +110,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
                 if (sTile.Tile.TileType == DungeonTileTypes.Placeholders_Items_RandomTreasure)
                     Chest_RandomTreasure_Placeholders.Add(sTile);
 
+                // Keys
                 else if (sTile.Tile.TileType == DungeonTileTypes.Placeholders_Items_Key)
                     Key_Placeholders.Add(sTile);
                 else if (sTile.Tile.TileType == DungeonTileTypes.Placeholders_Items_Key_Multipart)
@@ -104,11 +118,31 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
                 else if (sTile.Tile.TileType == DungeonTileTypes.Placeholders_Items_Key_Goal)
                     Key_Goal_Placeholders.Add(sTile);
 
+                // Objects
                 else if (sTile.Tile.TileType == DungeonTileTypes.Placeholders_Objects_Button)
                     Button_Placeholders.Add(sTile);
-
                 else if (sTile.Tile.TileType == DungeonTileTypes.Placeholders_Objects_IceBlock)
                     IceBlock_Placeholders.Add(sTile);
+
+            } // end foreach sTile
+
+        }
+
+        private void InitEnemyPlaceholderLists()
+        {
+
+            foreach (KeyValuePair<Vector3Int, SavedTile> pair in Placeholders_Enemy_Tiles)
+            {
+                SavedTile sTile = pair.Value;
+
+
+                // Enemy
+                if (sTile.Tile.TileType == DungeonTileTypes.Placeholders_Enemy)
+                    Enemy_Placeholders.Add(sTile);
+
+                // Enemy force spawns
+                else if (sTile.Tile.TileType == DungeonTileTypes.Placeholders_Enemy_Grumpice)
+                    Enemy_ForceSpawn_Placeholders.Add(sTile);
 
             } // end foreach sTile
 

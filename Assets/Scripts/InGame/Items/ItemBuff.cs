@@ -20,6 +20,7 @@ namespace ProceduralDungeon.InGame.Items
         public int MaxValue;        
 
 
+
         public ItemBuff(int minValue, int maxValue)
         {
             MinValue = minValue;
@@ -30,7 +31,7 @@ namespace ProceduralDungeon.InGame.Items
 
         public void GenerateValue()
         {
-            AttributeValue = DungeonGenerator.DungeonGenRNG.RollRandomIntInRange(MinValue, MaxValue);
+            AttributeValue = DungeonGenerator.RNG_DungeonGen.RollRandomIntInRange(MinValue, MaxValue);
         }
 
 

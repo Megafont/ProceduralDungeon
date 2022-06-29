@@ -1,15 +1,4 @@
 
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-
-using UnityEngine;
-using UnityEngine.Assertions;
-
-using ToolboxLib_Shared.Math;
-using ToolboxLib_Shared.Utilities;
-
 using ProceduralDungeon.DungeonGeneration.DungeonConstruction;
 using ProceduralDungeon.DungeonGeneration.DungeonConstruction.PlaceholderUtilities;
 using ProceduralDungeon.DungeonGeneration.DungeonGraphGeneration;
@@ -17,8 +6,13 @@ using ProceduralDungeon.DungeonGeneration.MissionStructureGeneration;
 using ProceduralDungeon.InGame;
 using ProceduralDungeon.InGame.Items;
 using ProceduralDungeon.TileMaps;
-
-
+using System;
+using System.Collections.Generic;
+using System.IO;
+using ToolboxLib_Shared.Math;
+using ToolboxLib_Shared.Utilities;
+using UnityEngine;
+using UnityEngine.Assertions;
 using GrammarSymbols = ProceduralDungeon.DungeonGeneration.MissionStructureGeneration.GenerativeGrammar.Symbols;
 using MSCNData = ProceduralDungeon.DungeonGeneration.MissionStructureGeneration.MissionStructureChildNodeData;
 
@@ -29,6 +23,7 @@ namespace ProceduralDungeon.DungeonGeneration
     {
         private const float EXTRA_DOORS_ROOM_SPAWN_CHANCE = 0.3f; // The probability that each unused doorway will have a new room spawned next to it after the main dungeon generation is done.
         private const int LINEAR_DOOR_SCAN_LENGTH = 5; // How many tiles to scan in front of a door for room collisions and neighboring doors.
+        private const int MAX_FIND_DOOR_ATTEMPTS = 16; // Max. number of times FindDoorToConnectNewRoomTo() will try to find a door to connect a new room to.
         private const int MAX_ROOM_BLUEPRINT_SELECTION_ATTEMPTS = 16; // Max. number of times to try choosing and placing a room blueprint before aborting.
         private const int MAX_ROOM_CONNECTION_ATTEMPTS = 16; // Max. number of times to try connecting a new room into one of the unconnected doors on the dungeon.
 
@@ -61,6 +56,7 @@ namespace ProceduralDungeon.DungeonGeneration
         private static NoiseRNG _RNG_Seed = null;
         private static NoiseRNG _RNG_MissionStructureGen = null;
         private static NoiseRNG _RNG_DungeonGen = null;
+        private static NoiseRNG _RNG_InGame = null;
 
 
         private static Dictionary<Vector3Int, DungeonDoor> _DoorFromTileDict; // Associates tile positions with doors that are occupying them.
@@ -73,7 +69,8 @@ namespace ProceduralDungeon.DungeonGeneration
 
 
 
-        public static NoiseRNG DungeonGenRNG { get { return _RNG_DungeonGen; } }
+        public static NoiseRNG RNG_DungeonGen { get { return _RNG_DungeonGen; } }
+        public static NoiseRNG RNG_InGame { get { return _RNG_InGame; } }
         public static DungeonGraph DungeonGraph { get { return _DungeonGraph; } }
         public static DungeonTilemapManager DungeonTilemapManager { get { return _DungeonTilemapManager; } }
         public static bool IsGeneratingDungeon { get { return _IsGeneratingDungeon; } }
@@ -148,6 +145,10 @@ namespace ProceduralDungeon.DungeonGeneration
             _GoalDoor = null;
         }
 
+        /// <summary>
+        /// Initializes the random number generator using the current time as the seed.
+        /// </summary>
+        /// <returns>The seed.</returns>
         private static uint InitRNG()
         {
             // Auto-generate a main seed.
@@ -171,6 +172,9 @@ namespace ProceduralDungeon.DungeonGeneration
 
             // Create the Room RNG (used for generating rooms) and give it a random seed.
             _RNG_DungeonGen = new NoiseRNG(_RNG_Seed.RollRandomUInt32());
+
+            // Create the in game RNG (used for enemies and other things going on during gameplay).
+            _RNG_InGame = new NoiseRNG(_RNG_Seed.RollRandomUInt32());
 
 
             return mainSeed;
@@ -243,9 +247,13 @@ namespace ProceduralDungeon.DungeonGeneration
 
             _DungeonTilemapManager.DungeonMap.CompressBoundsOfAllTileMaps();
 
-            DungeonPopulator.PopulateDungeon(_DungeonGraph, 
-                                             _RNG_DungeonGen,
-                                             Enum.GetName(typeof(RoomSets), _DungeonTilemapManager.RoomSet));
+            DungeonPopulator.PopulateDungeon(_DungeonGraph, _RNG_DungeonGen);
+
+            if (Application.isPlaying)
+            {
+                DungeonEnemySpawner.SpawnEnemiesInDungeon();
+            }
+
 
             _IsGeneratingDungeon = false;
 
@@ -253,7 +261,7 @@ namespace ProceduralDungeon.DungeonGeneration
 
         public static void BuildDungeonRooms()
         {
-            MissionStructureGraphNode curStructureNode = null;
+            MissionStructureGraphNode curStructureNode;
             Queue<MissionStructureGraphNode> nodeQueue = new Queue<MissionStructureGraphNode>();
 
 
@@ -264,7 +272,7 @@ namespace ProceduralDungeon.DungeonGeneration
             while (nodeQueue.Count > 0)
             {
                 roomCount++;
-
+                
                 // Get the next node.
                 curStructureNode = nodeQueue.Dequeue();
 
@@ -335,6 +343,24 @@ namespace ProceduralDungeon.DungeonGeneration
 
             } // while nodeQueue is not empty
 
+        }
+
+        public static DungeonDoor LookupDoorFromTile(Vector3Int tilePos)
+        {
+            DungeonDoor result;
+
+            _DoorFromTileDict.TryGetValue(tilePos, out result);
+
+            return result;
+        }
+
+        public static DungeonGraphNode LookupRoomFromTile(Vector3Int tilePos)
+        {
+            DungeonGraphNode result;
+
+            _RoomFromTileDict.TryGetValue(tilePos, out result);
+
+            return result;
         }
 
         private static DungeonGraphNode SnapNewRoomIntoDungeon(MissionStructureGraphNode missionStructureNode, DungeonDoor doorToConnectTo = null)
@@ -524,7 +550,7 @@ namespace ProceduralDungeon.DungeonGeneration
                 }
 
                 // Select a random door on the new room to connect to the existing door we already chose.
-                newRoomDoorIndex = (uint)SelectRandomDoorOnRoom(newRoomData, parentDoorLevel);
+                newRoomDoorIndex = (uint)SelectRandomDoorOnRoomAndFloor(newRoomData, parentDoorLevel);
 
 
                 // Create the new room and connect it to its parent.
@@ -822,10 +848,7 @@ namespace ProceduralDungeon.DungeonGeneration
                     throw new Exception($"DungeonGenerator.FindDoorToConnectNewRoomTo() - The parent room \"{parentRoomNode.RoomBlueprint.RoomName}\" ({parentRoomNode.MissionStructureNode.GrammarSymbol}) has no unconnected doors available!");
 
                 // Select a random unconnected door on the parent room to connect the new room to.
-                doorIndex = _RNG_DungeonGen.RollRandomIntInRange(0, unconnectedParentRoomDoors.Count - 1);
-
-                doorToConnectTo.OtherRoom_Node = parentRoomNode;
-                doorToConnectTo.OtherRoom_DoorIndex = unconnectedParentRoomDoors[doorIndex].ThisRoom_DoorIndex;
+                return SelectRandomDoorFromList(unconnectedParentRoomDoors);
             }
             else
             {            
@@ -848,25 +871,22 @@ namespace ProceduralDungeon.DungeonGeneration
                     if (missionStructureNode != _MissionStructureGraph.StartNode)
                     {
                         if (lockNumber >= _DoorsBehindLocks[lockNumber][doorIndex].ThisRoom_Node.MissionStructureNode.LockCount)
-                        {
-                            doorToConnectTo.OtherRoom_Node = _DoorsBehindLocks[lockNumber][doorIndex].ThisRoom_Node;
-                            doorToConnectTo.OtherRoom_DoorIndex = _DoorsBehindLocks[lockNumber][doorIndex].ThisRoom_DoorIndex; // Get the index of the door within the parent room.
-
-                            return doorToConnectTo;
-                        }
+                            return SelectRandomDoorFromList(_DoorsBehindLocks[lockNumber]);
                     }
 
 
                     attempts++;
-                    if (attempts > 16)
+                    if (attempts > MAX_FIND_DOOR_ATTEMPTS)
                     {                    
                         Debug.LogError($"Failed to find a door to connect the room \"{missionStructureNode.GrammarSymbol}\" to!");
                         break;
                     }
                 }
-           }
+
+            }
 
 
+            // This only runs if the while loop above fails.
             return doorToConnectTo;
 
         }
@@ -1052,7 +1072,21 @@ namespace ProceduralDungeon.DungeonGeneration
 
         }
 
-        private static int SelectRandomDoorOnRoom(RoomData room, RoomLevels doorLevel)
+        private static DungeonDoor SelectRandomDoorFromList(List<DungeonDoor> doorsList)
+        {
+            DungeonDoor doorToConnectTo = new DungeonDoor();
+
+
+            int doorIndex = _RNG_DungeonGen.RollRandomIntInRange(0, doorsList.Count - 1);
+
+            doorToConnectTo.OtherRoom_Node = doorsList[doorIndex].ThisRoom_Node;
+            doorToConnectTo.OtherRoom_DoorIndex = doorsList[doorIndex].ThisRoom_DoorIndex;
+
+
+            return doorToConnectTo;
+        }
+
+        private static int SelectRandomDoorOnRoomAndFloor(RoomData room, RoomLevels doorLevel)
         {
             List<DoorData> doorsOnDesiredLevel = new List<DoorData>();
 

@@ -27,6 +27,26 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
 
 
 
+        public static MissionStructureGraph Generate(NoiseRNG rng)
+        {
+            MissionStructureGraph graph = new MissionStructureGraph();
+
+            // Create the starting node.
+            MissionStructureGraphNode startNode = new MissionStructureGraphNode(GenerativeGrammar.Symbols.NT_Start);
+            graph.Nodes.Add(startNode);
+            graph.StartNode = startNode;
+
+
+            GrammarRuleProcessor.GenerateMissionStructureGraph(graph,
+                                                               GrammarReplacementRules_Default.GetGrammarReplacementRuleSet(),
+                                                               rng);
+
+
+            return graph;
+        }
+
+
+
         public MissionStructureGraph()
         {
             _Nodes = new List<MissionStructureGraphNode>();
@@ -48,25 +68,6 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
             return newNode;
         }
 
-
-        public static MissionStructureGraph Generate(NoiseRNG rng)
-        {
-            MissionStructureGraph graph = new MissionStructureGraph();
-
-            // Create the starting node.
-            MissionStructureGraphNode startNode = new MissionStructureGraphNode(GenerativeGrammar.Symbols.NT_Start);
-            graph.Nodes.Add(startNode);
-            graph.StartNode = startNode;
-
-
-            GrammarRuleProcessor.GenerateMissionStructureGraph(graph,
-                                                               GrammarReplacementRules_Default.GetGrammarReplacementRuleSet(),
-                                                               rng);
-
-
-            return graph;
-        }
-
         public bool IsTightlyCoupledToAnyNode(MissionStructureGraphNode structureNode)
         {
             foreach (MissionStructureGraphNode node in _Nodes)
@@ -82,6 +83,23 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
 
 
             return false;
+        }
+
+        public int GetLockRoomCount()
+        {
+            int lockCount = 0;
+
+            foreach (MissionStructureGraphNode node in _Nodes)
+            {
+                if (node.GrammarSymbol == GrammarSymbols.T_Lock || 
+                    node.GrammarSymbol == GrammarSymbols.T_Lock_Multi || 
+                    node.GrammarSymbol == GrammarSymbols.T_Lock_Goal)
+                {
+                    lockCount++;
+                }
+            }
+
+            return lockCount;
         }
 
 

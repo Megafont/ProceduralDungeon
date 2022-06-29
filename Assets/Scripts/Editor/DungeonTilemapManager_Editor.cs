@@ -30,7 +30,7 @@ namespace ProceduralDungeon.EditorScripts
         SerializedProperty _ItemDatabase;
         SerializedProperty _Player;
         SerializedProperty _RoomSet;
-
+        SerializedProperty _EnemySpawningData;
 
 
         void OnEnable()
@@ -47,6 +47,7 @@ namespace ProceduralDungeon.EditorScripts
             _ItemDatabase = serializedObject.FindProperty("_ItemDatabase");
             _Player = serializedObject.FindProperty("_Player");
             _RoomSet = serializedObject.FindProperty("_RoomSet");
+            _EnemySpawningData = serializedObject.FindProperty("_EnemySpawningData");
         }
 
 
@@ -80,6 +81,7 @@ namespace ProceduralDungeon.EditorScripts
             EditorGUILayout.PropertyField(_ItemDatabase);
             EditorGUILayout.PropertyField(_Player);
             EditorGUILayout.PropertyField(_RoomSet);
+            EditorGUILayout.PropertyField(_EnemySpawningData);
 
 
 
