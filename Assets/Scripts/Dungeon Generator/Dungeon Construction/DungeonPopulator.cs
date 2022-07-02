@@ -121,7 +121,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
                     case GrammarSymbols.T_Treasure_Bonus:
                         items = new InventoryData();
                         items.AddItem(DungeonGenerator.ItemDatabase.LookupByName("Cookie").CreateItemInstance(),
-                                      (uint)rng.RollRandomIntInRange(1, 2));
+                                      (uint)rng.RollRandomIntInRange(1, 4));
 
                         SpawnObject_Chest(roomNode, rng, ChestTypes.Treasure, items);
                         break;
