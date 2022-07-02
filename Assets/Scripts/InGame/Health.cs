@@ -18,7 +18,7 @@ namespace ProceduralDungeon.InGame
 
     public class Health : MonoBehaviour
     {
-        public float DamageRepeatDelay = 1.0f; // How long before damage of a given type can be receivd again.
+        public float DamageRepeatDelay = 0.5f; // How long before damage of a given type can be receivd again.
         public bool FlashRedOnDamage = true;
 
         public delegate void OnDeathEventHandler(object sender);
@@ -42,7 +42,6 @@ namespace ProceduralDungeon.InGame
         private SpriteRenderer _Renderer;
 
         private Dictionary<DamageTypes, float> _LastDamageTimes;
-        private DamageTypes _LastDamageType;
 
 
 
@@ -68,12 +67,8 @@ namespace ProceduralDungeon.InGame
                 throw new Exception("Health.DealDamage() - The damage amount cannot be negative!");
 
 
-            // If the player already took damage of the same type, then ignore this damage event.
-            // This is to prevent the player from taking double damage if standing on the edges of two
-            // spike tiles at the same time for example. It also just prevents massive damage from continued
-            // contact with anything dangerous.
-            if (damageType == _LastDamageType &&
-                Time.time - _LastDamageTimes[damageType] < DamageRepeatDelay)
+            // Don't allow damage of a certain type to hit again until DamageRepeatDelay amount of time has elapsed.
+            if (Time.time - _LastDamageTimes[damageType] < DamageRepeatDelay)
             {
                 return;
             }
@@ -81,19 +76,17 @@ namespace ProceduralDungeon.InGame
             
             _Health = Mathf.Max(0, _Health - damageAmount);
             _LastDamageTimes[damageType] = Time.time;
-            _LastDamageType = damageType;
+
 
             UpdateHealthBar();
 
             OnTakeDamage?.Invoke(this); // Fire the OnTakeDamage event.
 
             if (FlashRedOnDamage)
-                StartCoroutine(FlashRed());
-
-            if (_Health <= 0)
-            {
+                StartCoroutine(FlashRed()); // NOTE: This coroutine also invokes the OnDeath event.
+            else 
                 OnDeath?.Invoke(this); // Fire the OnDeath event.
-            }
+
         }
 
         public void Heal(float healAmount)
@@ -125,6 +118,12 @@ namespace ProceduralDungeon.InGame
                 yield return new WaitForSeconds(0.05f);
 
                 _Renderer.color = Color.white;
+            }
+
+
+            if (_Health <= 0)
+            {
+                OnDeath?.Invoke(this); // Fire the OnDeath event.
             }
 
         }

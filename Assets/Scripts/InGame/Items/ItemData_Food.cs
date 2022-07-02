@@ -9,22 +9,19 @@ using ProceduralDungeon.InGame.Items.Definitions;
 namespace ProceduralDungeon.InGame.Items
 {
     [Serializable]
-    public class ItemData
+    public class ItemData_Food : ItemData
     {
-        public string Name;
-        public uint ID;
-        public ItemTypes Type;
+        public float RecoveryAmount;
 
 
         /// <summary>
         /// This class represents an instance of an item in an inventory.
         /// </summary>
         /// <param name="item"></param>
-        public ItemData(ItemDefinitionBase item)
+        public ItemData_Food(ItemDefinition_Food foodItemDefinition)
+            : base(foodItemDefinition as ItemDefinition)
         {
-            Name = item.name;
-            ID = item.ID;
-            Type = item.Type;
+            RecoveryAmount = foodItemDefinition.RecoveryAmount;
         }
 
 

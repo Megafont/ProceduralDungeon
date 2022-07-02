@@ -17,17 +17,51 @@ namespace ProceduralDungeon.InGame.Inventory
 
 
 
-        public InventorySlot(ItemData item, uint count)
+        public InventorySlot()
         {
+            Item = null;
+            ItemCount = 0;
+        }
+
+        public InventorySlot(ItemData item, uint itemCount)
+        {
+            if (item != null &&
+                (string.IsNullOrEmpty(item.Name) || item.ID == 0))
+            {
+                item = null;
+            }
+
+
             Item = item;
-            ItemCount = count;
+            ItemCount = itemCount;
         }
 
 
 
-        public void AddItems(uint amountToAdd)
+        public void AddToSlot(uint amountToAdd)
         {
             ItemCount += amountToAdd;
+        }
+
+        public void UpdateSlot(ItemData item, uint itemCount)
+        {
+            Item = item;
+            ItemCount = itemCount;
+        }
+
+        public bool IsEmpty()
+        {
+            if (Item == null)
+            {
+                return true;
+            }
+            else if (string.IsNullOrEmpty(Item.Name) || Item.ID == 0)
+            {
+                return true;
+            }
+
+
+            return false;
         }
 
     }

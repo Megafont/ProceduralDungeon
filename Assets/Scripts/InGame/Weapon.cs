@@ -11,7 +11,7 @@ namespace ProceduralDungeon.InGame
 { 
     public class Weapon : MonoBehaviour
     {
-        public ItemData WeaponItem;
+        public ItemDataWithBuffs WeaponItem;
 
 
         private void OnTriggerEnter2D(Collider2D collision)
@@ -30,7 +30,7 @@ namespace ProceduralDungeon.InGame
                 //       using different weapon attributes than Strength, such as maybe FireDamage. The Health class
                 //       could also be extended to allow equipping certain equipment items on it to add resistances
                 //       to certain types of damage.
-                collision.gameObject.GetComponent<Health>().DealDamage(WeaponItem.GetBuffValue(ItemAttributes.Strength), 
+                collision.gameObject.GetComponent<Health>().DealDamage(WeaponItem.Buffs[ItemAttributes.Strength], 
                                                                        DamageTypes.Weapon);
             }
 

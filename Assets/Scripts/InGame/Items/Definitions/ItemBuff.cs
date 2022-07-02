@@ -8,30 +8,29 @@ using ProceduralDungeon.DungeonGeneration;
 using ProceduralDungeon.InGame.Items.Definitions;
 
 
-namespace ProceduralDungeon.InGame.Items
+namespace ProceduralDungeon.InGame.Items.Definitions
 {
 
     [Serializable]
     public class ItemBuff
     {
         public ItemAttributes Attribute;
-        public int AttributeValue;
-        public int MinValue;
-        public int MaxValue;        
+        public float MinValue;
+        public float MaxValue;        
 
 
 
-        public ItemBuff(int minValue, int maxValue)
+        public ItemBuff(float minValue, float maxValue)
         {
             MinValue = minValue;
             MaxValue = maxValue;
-
-            GenerateValue();
         }
 
-        public void GenerateValue()
+
+
+        public float GenerateAttributeValue()
         {
-            AttributeValue = DungeonGenerator.RNG_DungeonGen.RollRandomIntInRange(MinValue, MaxValue);
+            return DungeonGenerator.RNG_DungeonGen.RollRandomFloatInRange(MinValue, MaxValue);
         }
 
 

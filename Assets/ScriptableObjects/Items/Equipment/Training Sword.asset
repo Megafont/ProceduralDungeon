@@ -13,12 +13,11 @@ MonoBehaviour:
   m_Name: Training Sword
   m_EditorClassIdentifier: 
   ID: 8
-  InstanceID: 0
   Icon: {fileID: -1472476886, guid: 91abded9e03c40a45ad82a6d8f20d5cf, type: 3}
   Type: 2
   Description: A crappy wooden sword.
+  InstanceID: 0
   Buffs:
-  - Attribute: 3
-    AttributeValue: 0
+  - Attribute: 4
     MinValue: 1
     MaxValue: 3

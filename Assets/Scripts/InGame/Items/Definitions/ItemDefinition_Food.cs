@@ -7,13 +7,25 @@ using UnityEngine;
 namespace ProceduralDungeon.InGame.Items.Definitions
 {
     [CreateAssetMenu(fileName = "New Food Item Object", menuName = "Inventory System/Item Definitions/Food")]
-    public class ItemDefinition_Food : ItemDefinitionBase
+    public class ItemDefinition_Food : ItemDefinition, IItemDefinition
     {
+        public float RecoveryAmount;
 
-        public void Awake()
+
+
+        public new void Awake()
         {
             Type = ItemTypes.Food;
         }
+
+
+        public override ItemData CreateItemInstance()
+        {
+            ItemData_Food newItem = new ItemData_Food(this);
+            return newItem;
+        }
+
+
     }
 
 }

@@ -15,7 +15,7 @@ namespace ProceduralDungeon.InGame.Items
     [ExecuteInEditMode]
     public class CollectableItem : MonoBehaviour
     {
-        public ItemDefinitionBase Item;
+        public ItemDefinition ItemDefinition;
         public uint ItemCount;
         public ItemDatabaseObject ItemDatabase;
 
@@ -23,7 +23,7 @@ namespace ProceduralDungeon.InGame.Items
 
         public void Start()
         {
-            Sprite sprite = ItemDatabase.LookupByID(Item.ID).Icon;
+            Sprite sprite = ItemDatabase.LookupByID(ItemDefinition.ID).Icon;
             GetComponent<SpriteRenderer>().sprite = sprite;
         }
 
@@ -33,18 +33,20 @@ namespace ProceduralDungeon.InGame.Items
             {
                 RoomSets roomSet = DungeonGenerator.DungeonTilemapManager.RoomSet;
 
+                // We cast to the IItemDefinition interface first to ensure the correct version of CreateItemInstance() gets called.
+                ItemData itemData = (ItemDefinition as IItemDefinition).CreateItemInstance();
+                other.gameObject.GetComponent<Player>().Inventory.Data.AddItem(itemData, ItemCount);
 
-                other.gameObject.GetComponent<Player>().Inventory.Data.AddItem(new ItemData(Item), ItemCount);
 
                 GameObject obj = GameObject.Find("SpawnedObjects");
                 GameObject uiObjectsParent = obj.transform.Find("UI").gameObject;
 
                 GameObject popup = Instantiate(PrefabManager.GetPrefab("UI_CollectedItemPopup", roomSet),
-                                                          transform.position + Vector3.up * 0.2f,
-                                                          Quaternion.identity,
-                                                          uiObjectsParent.transform);
+                                               transform.position + Vector3.up * 0.2f,
+                                               Quaternion.identity,
+                                               uiObjectsParent.transform);
 
-                popup.GetComponent<UI_CollectedItemPopup>().SetItem(new Inventory.InventorySlot(new ItemData(Item), ItemCount), 
+                popup.GetComponent<UI_CollectedItemPopup>().SetItem(new Inventory.InventorySlot(itemData, ItemCount), 
                                                                     roomSet);
                 
 

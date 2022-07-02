@@ -27,7 +27,9 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
     public static class DungeonPopulator
     {   
         private static GameObject _ItemsParent;
+
         private static GameObject _ObjectsParent;
+
         private static GameObject _Objects_Buttons_Parent;
         private static GameObject _Objects_Chests_Parent;
         private static GameObject _Objects_Doors_Parent;
@@ -77,6 +79,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
             // Populate each room in the dungeon.
             DungeonDoor doorway;
+            InventoryData items;
             foreach (DungeonGraphNode roomNode in dungeonGraph.Nodes)
             {
                 switch (roomNode.MissionStructureNode.GrammarSymbol)
@@ -104,14 +107,23 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
                         SpawnObject_Door_BombableWall(doorway);
 
-                        InventoryData items = new InventoryData();
-                        items.AddItem(new ItemData(DungeonGenerator.ItemDatabase.LookupByName("Bomb")), (uint) rng.RollRandomIntInRange(1, 3));
+                        items = new InventoryData();
+                        items.AddItem(DungeonGenerator.ItemDatabase.LookupByName("Bomb").CreateItemInstance(), 
+                                      (uint) rng.RollRandomIntInRange(1, 3));
 
-                        SpawnObject_Chest(roomNode, rng, ChestTypes.RandomTreasure, items);
+                        SpawnObject_Chest(roomNode, rng, ChestTypes.Treasure, items);
                         break;
-
+                        
                     case GrammarSymbols.T_Test_Secret:
                         SpawnObjects_ClosedPuzzleRoomDoors(roomNode);
+                        break;
+
+                    case GrammarSymbols.T_Treasure_Bonus:
+                        items = new InventoryData();
+                        items.AddItem(DungeonGenerator.ItemDatabase.LookupByName("Cookie").CreateItemInstance(),
+                                      (uint)rng.RollRandomIntInRange(1, 2));
+
+                        SpawnObject_Chest(roomNode, rng, ChestTypes.Treasure, items);
                         break;
 
                     case GrammarSymbols.T_Treasure_Key:
@@ -206,7 +218,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
         {
             // Select placeholders list.
             List<SavedTile> placeholdersList = null;
-            if (chestType == ChestTypes.RandomTreasure)
+            if (chestType == ChestTypes.Treasure)
                 placeholdersList = roomNode.RoomBlueprint.Chest_RandomTreasure_Placeholders;
 
             // Randomly select a chest placeholder position.
@@ -254,10 +266,10 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
         {
             // Select chest type.
             GameObject chestPrefab = null;
-            if (chestType == ChestTypes.Key || chestType == ChestTypes.Key_Multipart || chestType == ChestTypes.RandomTreasure)
-                chestPrefab = PrefabManager.GetPrefab("Object_Chest", roomNode.RoomBlueprint.RoomSet);
-            else if (chestType == ChestTypes.Key_Goal)
+            if (chestType == ChestTypes.Key_Goal)
                 chestPrefab = PrefabManager.GetPrefab("Object_ChestGoal", roomNode.RoomBlueprint.RoomSet);
+            else
+                chestPrefab = PrefabManager.GetPrefab("Object_Chest", roomNode.RoomBlueprint.RoomSet);
 
 
             GameObject chest = GameObject.Instantiate(chestPrefab, 
@@ -275,15 +287,15 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             // Setup the chest's sprite properties.
             Object_Chest objChest = chest.GetComponent<Object_Chest>();
             RoomSets roomSet = roomNode.RoomBlueprint.RoomSet;
-            if (chestType == ChestTypes.Key || chestType == ChestTypes.Key_Multipart || chestType == ChestTypes.RandomTreasure)
-            {
-                objChest.ClosedSprite = SpriteManager.GetSprite("Object_Chest_Closed", roomSet);
-                objChest.OpenSprite = SpriteManager.GetSprite("Object_Chest_Open", roomSet);
-            }
-            else
+            if (chestType == ChestTypes.Key_Goal)
             {
                 objChest.ClosedSprite = SpriteManager.GetSprite("Object_ChestGoal_Closed", roomSet);
                 objChest.OpenSprite = SpriteManager.GetSprite("Object_ChestGoal_Open", roomSet);
+            }
+            else
+            {
+                objChest.ClosedSprite = SpriteManager.GetSprite("Object_Chest_Closed", roomSet);
+                objChest.OpenSprite = SpriteManager.GetSprite("Object_Chest_Open", roomSet);
             }
 
             objChest.GetComponent<SpriteRenderer>().sprite = objChest.ClosedSprite;
@@ -532,7 +544,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             // Get the key's local position within the parent room, and its rotation.
             Vector3Int keyPosLocal = Vector3Int.zero;
             Quaternion keyRotation = Quaternion.identity;
-            ChestTypes chestType = ChestTypes.RandomTreasure;
+            ChestTypes chestType = ChestTypes.Treasure;
             if (keyType == KeyTypes.Key)
             {
                 chestType = ChestTypes.Key;

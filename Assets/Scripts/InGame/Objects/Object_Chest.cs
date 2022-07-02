@@ -19,7 +19,7 @@ namespace ProceduralDungeon.InGame.Objects
         Key,
         Key_Multipart,
         Key_Goal,
-        RandomTreasure,
+        Treasure,
     }
 
 
@@ -89,10 +89,13 @@ namespace ProceduralDungeon.InGame.Objects
 
         private IEnumerator ShowCollectedItemPopups()
         {
-            for (int i = 0; i < _Inventory.Data.Items.Count; i++)
-            {
-                InventorySlot slot = _Inventory.Data.Items[i];
+            for (int i = 0; i < _Inventory.Data.GetOccupiedSlotCount(); i++)
+            {                
+                InventorySlot slot = _Inventory.Data.InventorySlots[i];
+                if (slot.IsEmpty())
+                    continue;
 
+                 
                 GameObject popup = Instantiate(PrefabManager.GetPrefab("UI_CollectedItemPopup", ParentRoom.RoomBlueprint.RoomSet),
                                                transform.position + Vector3.up * 0.2f,
                                                Quaternion.identity,

@@ -18,7 +18,6 @@ namespace ProceduralDungeon.InGame.Enemies
 
         private Animator _Animator;
         private Health _Health;
-        private SpriteRenderer _Renderer;
 
 
         private Vector2 _MoveDirection = Vector2.right;
@@ -43,8 +42,6 @@ namespace ProceduralDungeon.InGame.Enemies
 
             _Health = GetComponent<Health>();
             _Health.OnDeath += OnDeath;
-
-            _Renderer = GetComponent<SpriteRenderer>();
 
 
             // Setup a contact filter.

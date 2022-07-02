@@ -1,29 +1,13 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 using UnityEngine;
 
 
 namespace ProceduralDungeon.InGame.Items.Definitions
 {
-    public enum ItemTypes
-    {
-        Default,
-        Food,
-        Equipment,
-        Key,
-    }
-
-    public enum ItemAttributes
-    {
-        Agility,
-        Intellect,
-        Stamina,
-        Strength,
-    }
-
-
-
     /// <summary>
     /// This is the abstract base class for our item system. It is the definition or blueprint of an item object.
     /// I learned how to make this item/inventory system from the video series by Coding With Unity:
@@ -32,22 +16,22 @@ namespace ProceduralDungeon.InGame.Items.Definitions
     public abstract class ItemDefinitionBase : ScriptableObject
     {
         public uint ID;
-        public uint InstanceID; // This is a unique ID for items with buffs so you can tell them apart since the ID field will be the same for all instances of an item.
         public Sprite Icon;
         public ItemTypes Type;
 
         [TextArea(15, 20)]
         public string Description;
 
-        public ItemBuff[] Buffs;
 
 
-
-        public ItemData CreateItem()
+        public void Awake()
         {
-            ItemData newItem = new ItemData(this);
-            return newItem;
+            Type = ItemTypes.Default;
         }
+
+
+
+        public abstract ItemData CreateItemInstance();
 
 
 

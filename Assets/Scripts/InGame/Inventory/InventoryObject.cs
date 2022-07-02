@@ -20,6 +20,10 @@ namespace ProceduralDungeon.InGame.Inventory
         public ItemDatabaseObject ItemDatabase;
         public InventoryData Data;
 
+        public delegate void OnItemClickedEventHandler(object sender, ItemData itemClicked);
+
+        public event OnItemClickedEventHandler OnItemClicked;
+
 
 
         /// <summary>
@@ -75,9 +79,12 @@ namespace ProceduralDungeon.InGame.Inventory
                 IFormatter formatter = new BinaryFormatter();
                 Stream stream = new FileStream(string.Concat(Application.persistentDataPath, ItemSavePath), FileMode.Open, FileAccess.Read);
                 
-                Data = (InventoryData)formatter.Deserialize(stream);
+                InventoryData newData = (InventoryData)formatter.Deserialize(stream);
                 Data.SetItemDatabase(ItemDatabase);
-
+                for (int i = 0; i < Data.InventorySlots.Length; i++)
+                {
+                    Data.InventorySlots[i].UpdateSlot(newData.InventorySlots[i].Item, newData.InventorySlots[i].ItemCount);
+                }
                 stream.Close();
 
                 AssignInstanceIDs();
@@ -88,7 +95,7 @@ namespace ProceduralDungeon.InGame.Inventory
         public void Clear()
         {
             //Contents = new Inventory();
-            Data.Items.Clear();
+            Data.Clear();
         }
 
 
@@ -104,14 +111,23 @@ namespace ProceduralDungeon.InGame.Inventory
 
         private void AssignInstanceIDs()
         {
-            foreach (InventorySlot slot in Data.Items)
+            foreach (InventorySlot slot in Data.InventorySlots)
             {
-                if (slot.Item.Buffs.Length > 0)
-                    slot.Item.InstanceID = ItemDatabase.GetNextAvailableInstanceID(slot.Item.ID);
-                else
-                    slot.Item.InstanceID = 0;
+                if (slot.Item is ItemDataWithBuffs)
+                {
+                    ItemDataWithBuffs itemWithBuffs = (ItemDataWithBuffs)slot.Item;
+
+                    if (itemWithBuffs.Buffs.Count > 0)
+                        itemWithBuffs.InstanceID = ItemDatabase.GetNextAvailableInstanceID(slot.Item.ID);
+                }
+
             }
 
+        }
+
+        public void SendItemClickedEventToInventoryOwner(ItemData itemClicked)
+        {
+            OnItemClicked?.Invoke(this, itemClicked);
         }
 
 

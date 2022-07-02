@@ -12,11 +12,11 @@ namespace ProceduralDungeon.InGame.Items
     [ExecuteInEditMode]
     public class ItemDatabaseObject : ScriptableObject, ISerializationCallbackReceiver
     {
-        public ItemDefinitionBase[] Items;
+        public ItemDefinition[] Items;
         
         
-        private Dictionary<uint, ItemDefinitionBase> _LookupByID;
-        private Dictionary<string, ItemDefinitionBase> _LookupByName;
+        private Dictionary<uint, ItemDefinition> _LookupByID;
+        private Dictionary<string, ItemDefinition> _LookupByName;
 
         private Dictionary<uint, uint> _LookupNextAvailableInstanceIdFromItemId;
 
@@ -37,14 +37,20 @@ namespace ProceduralDungeon.InGame.Items
 
 
 
-        public ItemDefinitionBase LookupByID(uint id)
+        public IItemDefinition LookupByID(uint id)
         {
-            return _LookupByID[id];
+            ItemDefinition item;
+            _LookupByID.TryGetValue(id, out item);
+
+            return item;
         }
 
-        public ItemDefinitionBase LookupByName(string name)
+        public IItemDefinition LookupByName(string name)
         {
-            return _LookupByName[name];
+            ItemDefinition item;
+            _LookupByName.TryGetValue(name, out item);
+
+            return item;
         }
 
         public uint GetNextAvailableInstanceID(uint itemID)
@@ -90,8 +96,8 @@ namespace ProceduralDungeon.InGame.Items
 
             if (_LookupByID == null || _LookupByName == null)
             {
-                _LookupByID = new Dictionary<uint, ItemDefinitionBase>();
-                _LookupByName = new Dictionary<string, ItemDefinitionBase>();
+                _LookupByID = new Dictionary<uint, ItemDefinition>();
+                _LookupByName = new Dictionary<string, ItemDefinition>();
 
                 _LookupNextAvailableInstanceIdFromItemId = new Dictionary<uint, uint>();
             }
@@ -141,7 +147,10 @@ namespace ProceduralDungeon.InGame.Items
                 uint id = (uint)i + 1; // We want our IDs to start at 1, not 0.
 
                 Items[i].ID = id;
-                Items[i].InstanceID = 0; // Nothing in the item database needs to have an instance ID set, so just zero it out.
+
+                // Nothing in the item database needs to have an instance ID set, so just zero it out if the item is one with buffs.
+                if (Items[i] is ItemWithBuffsDefinition)
+                    (Items[i] as ItemWithBuffsDefinition).InstanceID = 0;
 
                 _LookupByID.Add(id, Items[i]);
 
@@ -172,7 +181,7 @@ namespace ProceduralDungeon.InGame.Items
         /// </summary>
         private void SortItemsArray()
         {
-            List<ItemDefinitionBase> ItemList = new List<ItemDefinitionBase>(Items);
+            List<ItemDefinition> ItemList = new List<ItemDefinition>(Items);
 
             ItemList.Sort(ItemDefinitionBase.CompareByName);
 

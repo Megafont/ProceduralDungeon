@@ -114,7 +114,7 @@ namespace ProceduralDungeon.InGame
 
 
 
-        public void EquipWeapon(ItemData weapon)
+        public void EquipWeapon(ItemDataWithBuffs weapon)
         {
             _MyWeapon.WeaponItem = weapon;            
         }
