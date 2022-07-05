@@ -21,6 +21,9 @@ namespace ProceduralDungeon.InGame
     {
         public InventoryObject Inventory;
 
+        public readonly CharacterStats CharacterStats;
+
+
         [SerializeField] 
         private float _MoveSpeed = 10f;
 
@@ -38,6 +41,13 @@ namespace ProceduralDungeon.InGame
         ItemData _BombItem;
 
         private bool _MouseIsOverGUI;
+
+
+
+        public Player()
+        {
+            CharacterStats = new CharacterStats();
+        }
 
 
 

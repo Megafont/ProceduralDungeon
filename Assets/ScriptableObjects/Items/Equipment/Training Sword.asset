@@ -18,6 +18,6 @@ MonoBehaviour:
   Description: A crappy wooden sword.
   InstanceID: 0
   Buffs:
-  - Attribute: 4
+  - Attribute: 1
     MinValue: 1
     MaxValue: 3

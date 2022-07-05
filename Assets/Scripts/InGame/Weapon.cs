@@ -14,6 +14,15 @@ namespace ProceduralDungeon.InGame
         public ItemDataWithBuffs WeaponItem;
 
 
+        private CharacterStats _OwnerStats;
+
+
+        private void Start()
+        {
+            if (gameObject.transform.parent.name == "Player")
+                _OwnerStats = GameObject.Find("Player").GetComponent<Player>().CharacterStats;
+        }
+
         private void OnTriggerEnter2D(Collider2D collision)
         {
 
@@ -30,7 +39,7 @@ namespace ProceduralDungeon.InGame
                 //       using different weapon attributes than Strength, such as maybe FireDamage. The Health class
                 //       could also be extended to allow equipping certain equipment items on it to add resistances
                 //       to certain types of damage.
-                collision.gameObject.GetComponent<Health>().DealDamage(WeaponItem.Buffs[ItemAttributes.Strength], 
+                collision.gameObject.GetComponent<Health>().DealDamage(_OwnerStats.Attack + WeaponItem.Buffs[ItemAttributes.Attack], 
                                                                        DamageTypes.Weapon);
             }
 

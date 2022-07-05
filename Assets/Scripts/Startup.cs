@@ -6,6 +6,9 @@ using ToolboxLib_Shared.Diagnostics;
 using ToolboxLib_Shared.Diagnostics.Logging;
 using ToolboxLib_Shared.Diagnostics.Logging.Loggers;
 
+using ProceduralDungeon.InGame.DevConsoleCommands;
+
+
 public class Startup : MonoBehaviour
 {
 
@@ -97,5 +100,7 @@ public class Startup : MonoBehaviour
         g.transform.parent = transform;
 
 
+        DevConsoleCommands.InitDevConsoleCommands();
     }
+
 }

@@ -175,5 +175,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   DamageRepeatDelay: 1
+  FlashRedOnDamage: 1
   HealthBar: {fileID: 0}
   _MaxHealth: 5

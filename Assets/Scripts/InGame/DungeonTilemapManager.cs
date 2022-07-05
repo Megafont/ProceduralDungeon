@@ -45,6 +45,7 @@ namespace ProceduralDungeon.InGame
         public ItemDatabaseObject ItemDatabase { get { return _ItemDatabase;  } }
         public EnemySpawningData EnemySpawningData { get { return _EnemySpawningData; } }
 
+
         private DungeonMap _DungeonMap;
 
 

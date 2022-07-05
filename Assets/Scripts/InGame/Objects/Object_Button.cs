@@ -22,8 +22,15 @@ namespace ProceduralDungeon.InGame.Objects
         public Sprite _ButtonSprite;
         public Sprite _ButtonPressedSprite;
 
+        public bool InvertButtonState;
 
-        public bool IsPressed { get; private set; }
+        private bool _IsPressed;
+
+
+
+        public bool IsPressed { get { return !InvertButtonState ? _IsPressed : !IsPressed; } }
+                               
+
         public List<GameObject> ObjectsOnButton { get; private set; }
 
 
@@ -102,12 +109,12 @@ namespace ProceduralDungeon.InGame.Objects
 
             if (colliderCount > 0)
             {
-                IsPressed = true;
+                _IsPressed = true;
                 _Renderer.sprite = _ButtonPressedSprite;
             }
             else
             {
-                IsPressed = false;
+                _IsPressed = false;
                 _Renderer.sprite = _ButtonSprite;
             }
 

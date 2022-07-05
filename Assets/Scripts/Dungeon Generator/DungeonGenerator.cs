@@ -27,24 +27,11 @@ namespace ProceduralDungeon.DungeonGeneration
         private const int MAX_ROOM_BLUEPRINT_SELECTION_ATTEMPTS = 16; // Max. number of times to try choosing and placing a room blueprint before aborting.
         private const int MAX_ROOM_CONNECTION_ATTEMPTS = 16; // Max. number of times to try connecting a new room into one of the unconnected doors on the dungeon.
 
-
-        private static DungeonTilemapManager _DungeonTilemapManager;
-
-
-        private static DungeonGraph _DungeonGraph; // Holds the layout information of the dungeon used to build it with tiles.
-        private static MissionStructureGraph _MissionStructureGraph; // Holds the mission structure information of the dungeon, such as locations of things like keys, locks, or bosses.
-
-        private static ItemDatabaseObject _ItemDatabase;
-
         private static Dictionary<MissionStructureGraphNode, DungeonGraphNode> _ParentDictionary;
 
 
         private static DungeonDoor _EntranceDoor;
         private static DungeonDoor _GoalDoor;
-
-
-        private static bool _IsInitialized = false;
-        private static bool _IsGeneratingDungeon = false;
         private static bool _IsFinalizingDoors = false;
 
 
@@ -55,13 +42,13 @@ namespace ProceduralDungeon.DungeonGeneration
 
         private static NoiseRNG _RNG_Seed = null;
         private static NoiseRNG _RNG_MissionStructureGen = null;
-        private static NoiseRNG _RNG_DungeonGen = null;
-        private static NoiseRNG _RNG_InGame = null;
-
-
         private static Dictionary<Vector3Int, DungeonDoor> _DoorFromTileDict; // Associates tile positions with doors that are occupying them.
         private static Dictionary<Vector3Int, DungeonGraphNode> _RoomFromTileDict; // Associates tile positions with rooms that are occupying them.
 
+        // Holds references too fake tiles.
+        // These are non-existant tiles registered outside the dungeon's entrance and exit doors.
+        // We register these fake tiles in the _RoomFromTileDict dictionary to trick the generator into not generating rooms directly outside the entry or exit doors of the dungeon by making it think something is already there.
+        private static List<Vector3Int> _FakeRoomTiles; 
 
         private static List<DungeonDoor> _BlockedDoorways;
         private static Dictionary<int, List<DungeonDoor>> _DoorsBehindLocks;
@@ -69,27 +56,27 @@ namespace ProceduralDungeon.DungeonGeneration
 
 
 
-        public static NoiseRNG RNG_DungeonGen { get { return _RNG_DungeonGen; } }
-        public static NoiseRNG RNG_InGame { get { return _RNG_InGame; } }
-        public static DungeonGraph DungeonGraph { get { return _DungeonGraph; } }
-        public static DungeonTilemapManager DungeonTilemapManager { get { return _DungeonTilemapManager; } }
-        public static bool IsGeneratingDungeon { get { return _IsGeneratingDungeon; } }
-        public static bool IsInitialized { get { return _IsInitialized; } }
-        public static ItemDatabaseObject ItemDatabase { get { return _ItemDatabase; } }
-        public static MissionStructureGraph MissionStructureGraph { get { return _MissionStructureGraph; } }
+        public static NoiseRNG RNG_DungeonGen { get; private set; }
+        public static NoiseRNG RNG_InGame { get; private set; }        
+        public static DungeonGraph DungeonGraph { get; private set; }
+        public static DungeonTilemapManager DungeonTilemapManager { get; private set; }
+        public static bool IsGeneratingDungeon { get; private set; } = false;
+        public static bool IsInitialized { get; private set; } = false;
+        public static ItemDatabaseObject ItemDatabase { get; private set; }
+        public static MissionStructureGraph MissionStructureGraph { get; private set; }
 
-
+        
 
         public static void Init(DungeonTilemapManager manager)
         {
             Assert.IsNotNull(manager, "DungeonGenerator.Init() - Cannot initialize the dungeon generator, because the passed in DungeonGenerator is null!");
 
 
-            if (!_IsInitialized)
+            if (!IsInitialized)
             {
-                _IsInitialized = false;
+                IsInitialized = false;
 
-                _ItemDatabase = manager.ItemDatabase;
+                ItemDatabase = manager.ItemDatabase;
 
 
                 // Move these lists into a theme object later that holds all rooms from a certain set?
@@ -99,6 +86,7 @@ namespace ProceduralDungeon.DungeonGeneration
 
                 _DoorFromTileDict = new Dictionary<Vector3Int, DungeonDoor>();
                 _RoomFromTileDict = new Dictionary<Vector3Int, DungeonGraphNode>();
+                _FakeRoomTiles = new List<Vector3Int>();
 
                 _ParentDictionary = new Dictionary<MissionStructureGraphNode, DungeonGraphNode>();
 
@@ -110,17 +98,17 @@ namespace ProceduralDungeon.DungeonGeneration
 
 
             _IsFinalizingDoors = false;
-            _IsGeneratingDungeon = false;
+            IsGeneratingDungeon = false;
 
             ClearPreviousData();
 
-            _DungeonTilemapManager = manager;
+            DungeonTilemapManager = manager;
 
 
             LoadRoomsData();
             PreprocessRoomsData();
 
-            _IsInitialized = true;
+            IsInitialized = true;
         }
 
         public static DungeonGraphNode GetRoomDataFromTilePosition(Vector3Int tilePos)
@@ -136,6 +124,7 @@ namespace ProceduralDungeon.DungeonGeneration
 
             _DoorFromTileDict.Clear();
             _RoomFromTileDict.Clear();
+            _FakeRoomTiles.Clear();
 
             _BlockedDoorways.Clear();
             _DoorsBehindLocks.Clear();
@@ -171,10 +160,10 @@ namespace ProceduralDungeon.DungeonGeneration
             _RNG_MissionStructureGen = new NoiseRNG(_RNG_Seed.RollRandomUInt32());
 
             // Create the Room RNG (used for generating rooms) and give it a random seed.
-            _RNG_DungeonGen = new NoiseRNG(_RNG_Seed.RollRandomUInt32());
+            RNG_DungeonGen = new NoiseRNG(_RNG_Seed.RollRandomUInt32());
 
             // Create the in game RNG (used for enemies and other things going on during gameplay).
-            _RNG_InGame = new NoiseRNG(_RNG_Seed.RollRandomUInt32());
+            RNG_InGame = new NoiseRNG(_RNG_Seed.RollRandomUInt32());
 
 
             return mainSeed;
@@ -182,7 +171,7 @@ namespace ProceduralDungeon.DungeonGeneration
 
         private static void LoadRoomsData()
         {
-            string roomSet = Enum.GetName(typeof(RoomSets), _DungeonTilemapManager.RoomSet);
+            string roomSet = Enum.GetName(typeof(RoomSets), DungeonTilemapManager.RoomSet);
 
             foreach (string file in Directory.GetFiles(ScriptableRoomUtilities.GetRoomSetPath(roomSet)))
             {
@@ -220,11 +209,11 @@ namespace ProceduralDungeon.DungeonGeneration
 
         public static void GenerateDungeon()
         {
-            _IsGeneratingDungeon = true;
+            IsGeneratingDungeon = true;
 
 
 
-            _DungeonTilemapManager.DungeonMap.ClearAllTileMaps();
+            DungeonTilemapManager.DungeonMap.ClearAllTileMaps();
 
 
             // Init the random number generators.
@@ -233,21 +222,21 @@ namespace ProceduralDungeon.DungeonGeneration
 
 
             // Generate the mission structure graph.           
-            _MissionStructureGraph = MissionStructureGraph.Generate(_RNG_MissionStructureGen);
+            MissionStructureGraph = MissionStructureGraph.Generate(_RNG_MissionStructureGen);
 
 
             BuildDungeonRooms();
             FinalizeUnusedDoorways();
-            DungeonConstructionUtils.SealOffBlockedDoors(_DungeonTilemapManager, _BlockedDoorways, _RNG_DungeonGen);
+            DungeonConstructionUtils.SealOffBlockedDoors(DungeonTilemapManager, _BlockedDoorways, RNG_DungeonGen);
 
             // Reset the node positions so the ones added by FinalizedUnusedDoorways() for extra rooms get positions assigned.
             // This is only needed so they show up properly in the Unity Editor when the MissionStructureGraphGizmos script is not set to snap nodes to their generated dungeon rooms.
             GrammarRuleProcessor.SetPositions();
 
 
-            _DungeonTilemapManager.DungeonMap.CompressBoundsOfAllTileMaps();
+            DungeonTilemapManager.DungeonMap.CompressBoundsOfAllTileMaps();
 
-            DungeonPopulator.PopulateDungeon(_DungeonGraph, _RNG_DungeonGen);
+            DungeonPopulator.PopulateDungeon(DungeonGraph, RNG_DungeonGen);
 
             if (Application.isPlaying)
             {
@@ -255,7 +244,7 @@ namespace ProceduralDungeon.DungeonGeneration
             }
 
 
-            _IsGeneratingDungeon = false;
+            IsGeneratingDungeon = false;
 
         }
 
@@ -266,7 +255,7 @@ namespace ProceduralDungeon.DungeonGeneration
 
 
             // Add the start node to the queue.
-            nodeQueue.Enqueue(_MissionStructureGraph.StartNode);
+            nodeQueue.Enqueue(MissionStructureGraph.StartNode);
 
             int roomCount = 0;
             while (nodeQueue.Count > 0)
@@ -291,7 +280,7 @@ namespace ProceduralDungeon.DungeonGeneration
 
 
                 // Place the room in the tilemaps.
-                DungeonConstructionUtils.PlaceRoomTiles(_DungeonTilemapManager, roomNode, _RoomFromTileDict);
+                DungeonConstructionUtils.PlaceRoomTiles(DungeonTilemapManager, roomNode, _RoomFromTileDict);
 
 
 
@@ -309,7 +298,7 @@ namespace ProceduralDungeon.DungeonGeneration
                     // than the current node is. This way we ensure it is always after that parent in the dungeon layout
                     // as it should be.
                     if ((!curStructureNode.GetChildNodeData(childNode).IsTightlyCoupled) && // Check that the child is not tightly coupled to this node
-                         _MissionStructureGraph.IsTightlyCoupledToAnyNode(childNode))       // Check if it is tightly coupled to any other node
+                         MissionStructureGraph.IsTightlyCoupledToAnyNode(childNode))       // Check if it is tightly coupled to any other node
                     {
                         continue;
                     }
@@ -331,7 +320,7 @@ namespace ProceduralDungeon.DungeonGeneration
 
 
                 if (curStructureNode.GrammarSymbol == GrammarSymbols.T_Goal)
-                    _DungeonGraph.GoalRoomNode = curStructureNode.DungeonRoomNode;
+                    DungeonGraph.GoalRoomNode = curStructureNode.DungeonRoomNode;
 
                 Debug.Log($"Generated room \"{curStructureNode.GrammarSymbol}\"");
 
@@ -361,6 +350,24 @@ namespace ProceduralDungeon.DungeonGeneration
             _RoomFromTileDict.TryGetValue(tilePos, out result);
 
             return result;
+        }
+
+        public static bool IsFakeTile(Vector3Int tilePos)
+        {
+            return _FakeRoomTiles.Contains(tilePos);
+        }
+
+        public static List<Vector3Int> GetTilePositionsInRoom(DungeonGraphNode roomNode)
+        {
+            List<Vector3Int> roomTilePositions = new List<Vector3Int>();
+
+            foreach (KeyValuePair<Vector3Int, DungeonGraphNode> pair in _RoomFromTileDict)
+            {
+                if (pair.Value == roomNode)
+                    roomTilePositions.Add(pair.Key);
+            }
+
+            return roomTilePositions;
         }
 
         private static DungeonGraphNode SnapNewRoomIntoDungeon(MissionStructureGraphNode missionStructureNode, DungeonDoor doorToConnectTo = null)
@@ -422,7 +429,7 @@ namespace ProceduralDungeon.DungeonGeneration
 
                 if (missionStructureNode.GrammarSymbol == GrammarSymbols.T_Entrance)
                 {
-                    _DungeonGraph = new DungeonGraph(roomNode);
+                    DungeonGraph = new DungeonGraph(roomNode);
                     break; // This is the starting room, so we don't need to do any doorway validations. Simply break out of the loop instead.
                 }
 
@@ -448,7 +455,7 @@ namespace ProceduralDungeon.DungeonGeneration
 
                 if (doorsLeft >= minRemainingDoorsRequired)
                 {
-                    _DungeonGraph.AddNode(roomNode);
+                    DungeonGraph.AddNode(roomNode);
 
 
                     // Copy any blocked doors into the global blocked doors list since we know this room is now finalized for placement in the dungeon.
@@ -472,7 +479,7 @@ namespace ProceduralDungeon.DungeonGeneration
 
 
             // If this is the goal room, then assign one of the unused doors to be the exit door.
-            if (missionStructureNode == _MissionStructureGraph.GoalNode)
+            if (missionStructureNode == MissionStructureGraph.GoalNode)
                 ConfigureEntranceOrExitRoomDoor(roomNode, false);
 
 
@@ -493,7 +500,7 @@ namespace ProceduralDungeon.DungeonGeneration
 
 
             DungeonGraphNode newRoomNode;
-            if (missionStructureNode == _MissionStructureGraph.StartNode)
+            if (missionStructureNode == MissionStructureGraph.StartNode)
             {
                 newRoomNode = CreateStartingRoom(2);
                 return newRoomNode;
@@ -614,10 +621,10 @@ namespace ProceduralDungeon.DungeonGeneration
         private static DungeonGraphNode CreateStartingRoom(uint minDoorsNeeded)
         {
             // Choose a random rotation direction for the room.
-            Directions direction = (Directions)_RNG_DungeonGen.RollRandomIntInRange(0, (int)Directions.West);
+            Directions direction = (Directions)RNG_DungeonGen.RollRandomIntInRange(0, (int)Directions.West);
 
             // Choose a random floor for the start room to be on.
-            RoomLevels floor = (RoomLevels)_RNG_DungeonGen.RollRandomIntInRange(1, (int)RoomLevels.Level_2ndFloor); // We start the random number range at 1 rather than 0 since we don't want Level_AnyFloor to get selected.
+            RoomLevels floor = (RoomLevels)RNG_DungeonGen.RollRandomIntInRange(1, (int)RoomLevels.Level_2ndFloor); // We start the random number range at 1 rather than 0 since we don't want Level_AnyFloor to get selected.
 
             // Select a random starting room blueprint.
             RoomData roomBlueprint = SelectRandomRoomWithFilters(minDoorsNeeded, true, floor, true, RoomTypeFlags.CanBeStart);
@@ -629,11 +636,11 @@ namespace ProceduralDungeon.DungeonGeneration
                                                                   roomBlueprint,
                                                                   Vector3Int.zero,
                                                                   direction,
-                                                                  _MissionStructureGraph.StartNode);
+                                                                  MissionStructureGraph.StartNode);
 
 
             // Give the mission structure node a link to the room generated from it.
-            _MissionStructureGraph.StartNode.DungeonRoomNode = startRoomNode;
+            MissionStructureGraph.StartNode.DungeonRoomNode = startRoomNode;
 
             InitRoomDoors(startRoomNode);
 
@@ -688,7 +695,7 @@ namespace ProceduralDungeon.DungeonGeneration
 
             foreach (DungeonDoor doorway in unusedDoorways)
             {
-                float random = _RNG_DungeonGen.RollRandomFloat_ZeroToOne();
+                float random = RNG_DungeonGen.RollRandomFloat_ZeroToOne();
 
                 // Certain types of rooms are not allowed to have extra rooms attached, so check for those first.
                 if (RoomIsTypeNotAllowedToHaveExtraRoomsAttached(doorway.ThisRoom_Node.MissionStructureNode.GrammarSymbol))
@@ -724,10 +731,10 @@ namespace ProceduralDungeon.DungeonGeneration
                     structureNode.DungeonRoomNode = roomNode;
 
                     // Add the new mission structure node into the structure graph.
-                    _MissionStructureGraph.AddNode(structureNode);
+                    MissionStructureGraph.AddNode(structureNode);
 
                     // Place the room in the tilemaps.
-                    DungeonConstructionUtils.PlaceRoomTiles(_DungeonTilemapManager, roomNode, _RoomFromTileDict);
+                    DungeonConstructionUtils.PlaceRoomTiles(DungeonTilemapManager, roomNode, _RoomFromTileDict);
 
                     // Add the door that connects to the new room into the blocked doors list so the wall will get changed to a bomb wall when we seal up all blocked doors.
                     MarkDoorAsUnavailable(newRoomDoor.OtherRoom_Node.Doorways[(int) newRoomDoor.OtherRoom_DoorIndex], true);
@@ -768,7 +775,7 @@ namespace ProceduralDungeon.DungeonGeneration
 
 
                 Vector3Int otherRoomDoor_Tile1Pos;
-                LinearScanFromDoorResults result = PlaceholderUtils_Doors.DoLinearScanFromDoor(_DungeonTilemapManager, 
+                LinearScanFromDoorResults result = PlaceholderUtils_Doors.DoLinearScanFromDoor(DungeonTilemapManager, 
                                                                                                roomNode, 
                                                                                                doorIndex,
                                                                                                out otherRoomDoor_Tile1Pos,
@@ -863,12 +870,12 @@ namespace ProceduralDungeon.DungeonGeneration
                 while (true)
                 {
                     // Select a random unconnected door to connect the new room to.
-                    doorIndex = _RNG_DungeonGen.RollRandomIntInRange(0, _DoorsBehindLocks[lockNumber].Count - 1);
+                    doorIndex = RNG_DungeonGen.RollRandomIntInRange(0, _DoorsBehindLocks[lockNumber].Count - 1);
 
                     // Debug.LogWarning($"Parent: {parentRoomNode.MissionStructureNode.GrammarSymbol}: {parentRoomNode.MissionStructureNode.LockCount}    This: {missionStructureNode.GrammarSymbol}: {lockNumber + offset}    Offset: {offset}");
 
                     // Set the parent room variable to the room that owns the randomly selected door.
-                    if (missionStructureNode != _MissionStructureGraph.StartNode)
+                    if (missionStructureNode != MissionStructureGraph.StartNode)
                     {
                         if (lockNumber >= _DoorsBehindLocks[lockNumber][doorIndex].ThisRoom_Node.MissionStructureNode.LockCount)
                             return SelectRandomDoorFromList(_DoorsBehindLocks[lockNumber]);
@@ -957,7 +964,7 @@ namespace ProceduralDungeon.DungeonGeneration
 
                 // Do a linear scan outside the door to see if it collides with a wall or another door.
                 Vector3Int otherDoor_Tile1WorldPos;
-                LinearScanFromDoorResults result = PlaceholderUtils_Doors.DoLinearScanFromDoor(_DungeonTilemapManager,
+                LinearScanFromDoorResults result = PlaceholderUtils_Doors.DoLinearScanFromDoor(DungeonTilemapManager,
                                                                                                room,
                                                                                                (int)doorIndex,
                                                                                                out otherDoor_Tile1WorldPos,
@@ -993,7 +1000,7 @@ namespace ProceduralDungeon.DungeonGeneration
             if (isEntranceDoor)
             {
                 // Position the player next to the entrance door.
-                DungeonConstructionUtils.PositionPlayer(_DungeonTilemapManager, room, door);
+                DungeonConstructionUtils.PositionPlayer(DungeonTilemapManager, room, door);
                 _EntranceDoor = door;
             }
             else
@@ -1005,7 +1012,7 @@ namespace ProceduralDungeon.DungeonGeneration
             // fake tiles extending away from the outside of the door will make any room that tries
             // to generate outside the door think it collided with this room. That way no rooms will
             // spawn outside the entrance or exit doors.
-            DungeonConstructionUtils.RegisterFakeTilesOutsideDoor(room, door, _RoomFromTileDict);
+            DungeonConstructionUtils.RegisterFakeTilesOutsideDoor(room, door, _RoomFromTileDict, _FakeRoomTiles);
 
         }
 
@@ -1077,7 +1084,7 @@ namespace ProceduralDungeon.DungeonGeneration
             DungeonDoor doorToConnectTo = new DungeonDoor();
 
 
-            int doorIndex = _RNG_DungeonGen.RollRandomIntInRange(0, doorsList.Count - 1);
+            int doorIndex = RNG_DungeonGen.RollRandomIntInRange(0, doorsList.Count - 1);
 
             doorToConnectTo.OtherRoom_Node = doorsList[doorIndex].ThisRoom_Node;
             doorToConnectTo.OtherRoom_DoorIndex = doorsList[doorIndex].ThisRoom_DoorIndex;
@@ -1097,7 +1104,7 @@ namespace ProceduralDungeon.DungeonGeneration
             }
 
             // Select a random door from the list of those that are on the desired floor.
-            int doorIndex = _RNG_DungeonGen.RollRandomIntInRange(0, doorsOnDesiredLevel.Count - 1);
+            int doorIndex = RNG_DungeonGen.RollRandomIntInRange(0, doorsOnDesiredLevel.Count - 1);
 
             if (doorsOnDesiredLevel.Count < 1)
                 throw new Exception($"DungeonGenerator.SelectRandomDoor() - The specified room \"{room.RoomName}\" has no doors on the floor \"{doorLevel}\"!");
@@ -1244,7 +1251,7 @@ namespace ProceduralDungeon.DungeonGeneration
 
 
             // Select a random room from the filtered list.
-            int roomIndex = _RNG_DungeonGen.RollRandomIntInRange(0, list.Count - 1);
+            int roomIndex = RNG_DungeonGen.RollRandomIntInRange(0, list.Count - 1);
 
             // Return the selected room blueprint.
             // I added this if statement, because it crashed when my test room set had no start rooms on the 2nd floor. So now it returns null in this case.

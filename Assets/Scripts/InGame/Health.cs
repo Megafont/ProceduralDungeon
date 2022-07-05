@@ -77,6 +77,7 @@ namespace ProceduralDungeon.InGame
             _Health = Mathf.Max(0, _Health - damageAmount);
             _LastDamageTimes[damageType] = Time.time;
 
+            Debug.LogError($"{gameObject.name} took {damageAmount} poinnts of {damageType} damage!");
 
             UpdateHealthBar();
 

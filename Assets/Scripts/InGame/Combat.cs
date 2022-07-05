@@ -17,11 +17,12 @@ namespace ProceduralDungeon.InGame
 
     public class Combat : MonoBehaviour
     {
+        public Player _Player;
         public WeaponTypes _WeaponType;
 
-        private SpriteRenderer _MySpriteRenderer;
-        private Animator _MyWeaponAnimator;
-        private Weapon _MyWeapon;
+        private SpriteRenderer _SpriteRenderer;
+        private Animator _WeaponAnimator;
+        private Weapon _Weapon;
 
         string _LastAttack = "";
 
@@ -33,11 +34,11 @@ namespace ProceduralDungeon.InGame
         // Start is called before the first frame update
         void Start()
         {
-            _MySpriteRenderer = GetComponent<SpriteRenderer>();
-            _MyWeaponAnimator = GetComponent<Animator>();
+            _SpriteRenderer = GetComponent<SpriteRenderer>();
+            _WeaponAnimator = GetComponent<Animator>();
             
-            _MyWeapon = GetComponent<Weapon>();
-            _MyWeapon.gameObject.SetActive(false); // Disable the weapon object. This way it is both invisible and disabled so if you move too close to an enemy, it won't deal erroneous damage to it.
+            _Weapon = GetComponent<Weapon>();
+            _Weapon.gameObject.SetActive(false); // Disable the weapon object. This way it is both invisible and disabled so if you move too close to an enemy, it won't deal erroneous damage to it.
 
             _WeaponType = WeaponTypes.Sword;
         }
@@ -53,9 +54,9 @@ namespace ProceduralDungeon.InGame
         public void UpdateAnimationController()
         {
             if (_WeaponType == WeaponTypes.Sword)
-                _MyWeaponAnimator.SetBool("IsSwordEquipped", true);
+                _WeaponAnimator.SetBool("IsSwordEquipped", true);
             else
-                _MyWeaponAnimator.SetBool("IsSwordEquipped", false);
+                _WeaponAnimator.SetBool("IsSwordEquipped", false);
 
         }
 
@@ -67,30 +68,30 @@ namespace ProceduralDungeon.InGame
             // Enable the weapon gameobject. It is disabled while not attacking to stop it dealing erroneous damage when the player gets close to enemies.
             gameObject.SetActive(true);
 
-            _MyWeaponAnimator.SetFloat("X Movement", moveInput.x);
-            _MyWeaponAnimator.SetFloat("Y Movement", moveInput.y);
+            _WeaponAnimator.SetFloat("X Movement", moveInput.x);
+            _WeaponAnimator.SetFloat("Y Movement", moveInput.y);
 
 
             if (_WeaponType == WeaponTypes.Sword)
             {
                 _LastAttack = "DoSwordStab";
 
-                _MyWeaponAnimator.SetTrigger(_LastAttack);
+                _WeaponAnimator.SetTrigger(_LastAttack);
 
                 _IsAttacking = true;
             }
 
 
-            _MySpriteRenderer.enabled = _IsAttacking;
+            _SpriteRenderer.enabled = _IsAttacking;
 
         }
 
 
         public void OnAttackFinished()
         {
-            _MySpriteRenderer.enabled = false;
+            _SpriteRenderer.enabled = false;
 
-            _MyWeaponAnimator.ResetTrigger(_LastAttack);
+            _WeaponAnimator.ResetTrigger(_LastAttack);
 
             _IsAttacking = false;
 
@@ -100,15 +101,15 @@ namespace ProceduralDungeon.InGame
 
         public void OnPlayerMoved(Vector2 moveInput)
         {
-            _MyWeaponAnimator.SetFloat("X Movement", moveInput.x);
-            _MyWeaponAnimator.SetFloat("Y Movement", moveInput.y);
+            _WeaponAnimator.SetFloat("X Movement", moveInput.x);
+            _WeaponAnimator.SetFloat("Y Movement", moveInput.y);
 
 
             // Check whether the weapon should be in front of or behind the player. The player's sortingLayer property is set to 1.
             if (moveInput == Vector2.down || moveInput == Vector2.right)
-                _MySpriteRenderer.sortingOrder = 2;
+                _SpriteRenderer.sortingOrder = 2;
             else
-                _MySpriteRenderer.sortingOrder = 0;
+                _SpriteRenderer.sortingOrder = 0;
 
         }
 
@@ -116,12 +117,12 @@ namespace ProceduralDungeon.InGame
 
         public void EquipWeapon(ItemDataWithBuffs weapon)
         {
-            _MyWeapon.WeaponItem = weapon;            
+            _Weapon.WeaponItem = weapon;            
         }
 
         public ItemData GetWeaponItem()
         {
-            return _MyWeapon.WeaponItem;
+            return _Weapon.WeaponItem;
         }
 
     }
