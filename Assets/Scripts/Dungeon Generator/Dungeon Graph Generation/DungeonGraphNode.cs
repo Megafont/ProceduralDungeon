@@ -21,7 +21,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonGraphGeneration
         public List<Object_Button> Buttons { get; private set; }
 
         public List<GameObject> Enemies { get; private set; }
-        public List<Object_Door> ClosedPuzzleDoors { get { return _ClosedPuzzleDoors; } }
+        public List<Object_Door> PuzzleActivatedDoors { get { return _ClosedPuzzleDoors; } }
         public List<GameObject> IceBlocks { get { return _IceBlocks; } }
         public MissionStructureGraphNode MissionStructureNode { get; private set; }  // A reference to the mission structure node this room was generated from (if any).
         public DungeonGraphNode Parent { get; private set; }

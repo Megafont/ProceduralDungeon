@@ -10,6 +10,9 @@ using ProceduralDungeon.DungeonGeneration;
 using ProceduralDungeon.DungeonGeneration.DungeonConstruction;
 using ProceduralDungeon.DungeonGeneration.DungeonGraphGeneration;
 using ProceduralDungeon.DungeonGeneration.MissionStructureGeneration;
+using ProceduralDungeon.InGame.Items;
+using ProceduralDungeon.InGame.Items.Definitions;
+using ProceduralDungeon.InGame.Inventory;
 using ProceduralDungeon.TileMaps;
 
 
@@ -21,12 +24,21 @@ namespace ProceduralDungeon.InGame.DevConsoleCommands
 
     public static class DevConsoleCommands
     {
-        private static GameObject _Player;
+        private static Player _Player;
 
 
 
         public static void InitDevConsoleCommands()
         {
+            DevConsole.RegisterConsoleCommand("Give",
+                                              "Give itemName [amount]",
+                                              new string[] { "Gives the player a specified item. The optional amount parameter allows you to get a specific amount.",
+                                                             "If no amount is specified, or if the item has buffs (is an instanced item like a weapon), the player will simply get one of that item.",
+                                                             "If an item name contains multiple words like \"Key Part\", surround it in double quotes to force it to be treated as a single parameter." },
+                                                             new DevConsoleCommandExecutionFunction(ExecCmd_Give),
+                                                             DevConsoleAccessLevels.Public,
+                                                             new byte[] { 1, 2 });
+
             DevConsole.RegisterConsoleCommand("Warp", 
                                               "Warp roomTypeIndex [roomIndex] | Warp roomTypeName [roomIndex]", 
                                               new string[] { "Warps the player to the specified room index.",
@@ -42,10 +54,65 @@ namespace ProceduralDungeon.InGame.DevConsoleCommands
 
         
 
+        public static bool ExecCmd_Give(string[] tokensList)
+        {
+            if (_Player == null)
+                _Player = GameObject.Find("Player").GetComponent<Player>();
+
+
+            // The item name may be surrounded by double quotes if it is a name containing multiple words.
+            // If so, remove the enclosing double quotation marks.
+            string itemName = tokensList[1];
+            if (itemName.Length > 1 &&
+                itemName.StartsWith("\"") && itemName.EndsWith("\""))
+            {
+                itemName = itemName.Substring(1, itemName.Length - 2);
+            }
+
+
+            // Look up the item definition for the specified item.
+            IItemDefinition itemDef = _Player.Inventory.ItemDatabase.LookupByName(itemName);
+            if (itemDef == null)
+            {
+                DevConsole.PostMessage($"Cannot give the player unknown item \"itemName\"!", "Error");
+                return false;
+            }
+
+            DevConsole.PostMessage($"|{tokensList[1]}|");
+
+
+            // Get the value of the amount parameter if it was supplied.
+            uint amount = 1;
+            if (tokensList.Length == 3 && !uint.TryParse(tokensList[2], out amount))
+            {
+                DevConsole.PostMessage("The amount parameter is invalid!", "Error");
+                return false;
+            }
+
+            if (amount < 1)
+            {
+                DevConsole.PostMessage("The amount must be 1 or greater!", "Error");
+                return false;
+            }
+
+
+            // If the item is one with buffs, such as a weapon, then force amount to be 1.
+            // This limiation is simply because these items do not stack, and there is no need to get a bunch of them at once.
+            if (itemDef is ItemWithBuffsDefinition)
+                amount = 1;
+
+
+            // Create an instance of the specified item and add it to the player's inventory.
+            ItemData item = itemDef.CreateItemInstance();
+            _Player.Inventory.Data.AddItem(item, amount);
+
+            return true;
+        }
+
         public static bool ExecCmd_Warp(string[] tokensList)
         {
             if (_Player == null)
-                _Player = GameObject.Find("Player");
+                _Player = GameObject.Find("Player").GetComponent<Player>();
 
 
             GrammarSymbols roomType;

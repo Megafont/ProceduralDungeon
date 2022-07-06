@@ -164,7 +164,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction.PlaceholderUti
 
                 // Check for doorway top tiles first to prevent them from causing a false collision.
                 if ((wallScanTile1 != null && wallScanTile2 != null) && 
-                    (wallScanTile1.TileType == DungeonTileTypes.Walls_Doorway_Top && wallScanTile2.TileType == DungeonTileTypes.Walls_Doorway_Top))
+                    (wallScanTile1.TileType == DungeonTileTypes.Walls_Doorway_WallTop && wallScanTile2.TileType == DungeonTileTypes.Walls_Doorway_WallTop))
                 {
                     continue;
                 }

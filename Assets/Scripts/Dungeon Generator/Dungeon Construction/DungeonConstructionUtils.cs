@@ -298,7 +298,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
                 // Register this tile in the dungeon generator's dictionary to associate it with the room it now belongs to.
                 // Wall top tiles are excluded from counting since the wall top tiles of rooms are allowed to overlap because its fine for them to get overwritten.
                 if (!roomFromTileDict.ContainsKey(pos) &&
-                    (sTile.Tile.TileType != DungeonTileTypes.Walls_Doorway_Top && 
+                    (sTile.Tile.TileType != DungeonTileTypes.Walls_Doorway_WallTop && 
                      sTile.Tile.TileType != DungeonTileTypes.Walls_Top && 
                      sTile.Tile.TileType != DungeonTileTypes.Walls_Top_Corner))
                 {
@@ -338,9 +338,9 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             foreach (Vector3Int pos in wallTopCornerPositions)
             {
                 north = (BasicDungeonTile) wallsMap.GetTile(pos + Vector3Int.up);
-                east = (BasicDungeonTile)wallsMap.GetTile(pos + Vector3Int.right);
-                south = (BasicDungeonTile)wallsMap.GetTile(pos + Vector3Int.down);
-                west = (BasicDungeonTile)wallsMap.GetTile(pos + Vector3Int.left);
+                east = (BasicDungeonTile) wallsMap.GetTile(pos + Vector3Int.right);
+                south = (BasicDungeonTile) wallsMap.GetTile(pos + Vector3Int.down);
+                west = (BasicDungeonTile) wallsMap.GetTile(pos + Vector3Int.left);
 
 
                 int count = 0;

@@ -88,7 +88,6 @@ namespace ProceduralDungeon.InGame.Objects
 
                 if (unlocked)
                 {
-                    DoorState = DoorStates.Open; // Switch from locked state to just closed so we can open the door.
                     ToggleState(); // Open the door.
                 }
 
@@ -99,19 +98,25 @@ namespace ProceduralDungeon.InGame.Objects
 
 
 
-        public void ToggleState()
+        public void SetOpen(bool state)
         {
-            bool state = true;
+            if (state)
+                DoorState = DoorStates.Open;
+            else
+                DoorState = DoorStates.Closed;
 
-            if (DoorState == DoorStates.Open)
-                state = false;
-                
-                   
-            GetComponent<BoxCollider2D>().enabled = state;
 
+            GetComponent<BoxCollider2D>().enabled = !state;
 
             UpdateSprite();
 
+        }
+
+        public void ToggleState()
+        {
+            bool state = DoorState == DoorStates.Open;
+
+            SetOpen(!state);
         }
        
         public void UpdateSprite()

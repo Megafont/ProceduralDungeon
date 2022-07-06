@@ -111,13 +111,6 @@ namespace ProceduralDungeon.DungeonGeneration
             IsInitialized = true;
         }
 
-        public static DungeonGraphNode GetRoomDataFromTilePosition(Vector3Int tilePos)
-        {
-            return _RoomFromTileDict[tilePos];
-        }
-
-
-
         private static void ClearPreviousData()
         {
             _AllRooms.Clear();

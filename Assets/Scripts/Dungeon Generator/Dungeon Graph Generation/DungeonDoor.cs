@@ -127,6 +127,14 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonGraphGeneration
             }
         }
 
+        public Vector3 CenterPosition
+        {
+            get
+            {
+                Vector3 sum = (Vector3)(_ThisRoom_DoorTile1WorldPos + _ThisRoom_DoorTile2WorldPos);
+                return (sum / 2) + new Vector3(0.5f, 0.5f);
+            }
+        }
 
 
         private static Directions CalculateAdjustedDoorDirection(DungeonGraphNode parentRoom, int doorIndex)

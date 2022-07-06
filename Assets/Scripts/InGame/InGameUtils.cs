@@ -29,7 +29,7 @@ namespace ProceduralDungeon.InGame
         {
             bool state = CheckButtonsStates(roomNode);
 
-            TogglePuzzleDoors(roomNode, state);
+            UpdatePuzzleDoors(roomNode, state);
         }
 
         private static bool CheckButtonsStates(DungeonGraphNode roomNode)
@@ -48,18 +48,17 @@ namespace ProceduralDungeon.InGame
             return result;
         }
 
-        public static void TogglePuzzleDoors(DungeonGraphNode roomNode, bool state)
+        public static void UpdatePuzzleDoors(DungeonGraphNode roomNode, bool state)
         {
             if (roomNode == null)
                 return;
 
 
-            foreach (Object_Door door in roomNode.ClosedPuzzleDoors)
+            foreach (Object_Door door in roomNode.PuzzleActivatedDoors)
             {
                 // We use the ternary operator here to make it so that if this code is triggered again, it toggles the state
                 // of the puzzle doors. That way when the player steps on a button, he can see that it opens the door, but only while it is pressed.
-                door.DoorState = state ? DoorStates.Open : DoorStates.Closed;
-                door.ToggleState();
+                door.SetOpen(state);
             }
 
         }

@@ -30,10 +30,12 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
         private static GameObject _ObjectsParent;
 
+        private static GameObject _Objects_BossBattleTriggers;
         private static GameObject _Objects_Buttons_Parent;
         private static GameObject _Objects_Chests_Parent;
         private static GameObject _Objects_Doors_Parent;
         private static GameObject _Objects_Doors_BombableWalls_Parent;
+        private static GameObject _Objects_Doors_BossRooms_Parent;
         private static GameObject _Objects_Doors_Locked_Parent;
         private static GameObject _Objects_IceBlocks_Parent;
         private static GameObject _Objects_Spikes_Parent;
@@ -64,9 +66,11 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             _ItemsParent = GameObject.Find("SpawnedItems");
 
             _ObjectsParent = GameObject.Find("SpawnedObjects");
+            _Objects_BossBattleTriggers = _ObjectsParent.transform.Find("BossBattleTriggers").gameObject;
             _Objects_Buttons_Parent = _ObjectsParent.transform.Find("Buttons").gameObject;
             _Objects_Chests_Parent = _ObjectsParent.transform.Find("Chests").gameObject;
             _Objects_Doors_Parent = _ObjectsParent.transform.Find("Doors").gameObject;
+            _Objects_Doors_BossRooms_Parent = _ObjectsParent.transform.Find("Doors_BossRooms").gameObject;
             _Objects_Doors_BombableWalls_Parent = _ObjectsParent.transform.Find("Doors_BombableWalls").gameObject;
             _Objects_Doors_Locked_Parent = _ObjectsParent.transform.Find("Doors_Locked").gameObject;
             _Objects_IceBlocks_Parent = _ObjectsParent.transform.Find("IceBlocks").gameObject;
@@ -136,7 +140,13 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
                     case GrammarSymbols.T_Treasure_Key_Goal:
                         SpawnItem_Key(roomNode, rng, KeyTypes.Key_Goal);
-                        break; 
+                        break;
+
+                    case GrammarSymbols.T_Boss_Mini:
+                    case GrammarSymbols.T_Boss_Main:
+                        SpawnObject_BossBattleTrigger(roomNode);
+                        SpawnObjects_BossRoomDoors(roomNode);
+                        break;
 
                 } // end switch
 
@@ -305,7 +315,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             return chest;
         }
 
-        private static Object_Door SpawnObject_Door(DungeonDoor doorToSpawn, DoorLockTypes lockType)
+        private static Object_Door SpawnObject_Door(DungeonDoor doorToSpawn, DoorLockTypes lockType, bool isInBossRoom = false)
         {
             Vector3 offset;
             Quaternion rotation;
@@ -342,11 +352,18 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             centerPoint += offset;
 
 
+            // Get the door's parent.
+            Transform parent;
+            if (!isInBossRoom)
+                parent = lockType == DoorLockTypes.None ? _Objects_Doors_Parent.transform : _Objects_Doors_Locked_Parent.transform;
+            else
+                parent = _Objects_Doors_BossRooms_Parent.transform;
+
             // Spawn a door object and configure it.
             GameObject door = GameObject.Instantiate(PrefabManager.GetPrefab("Object_Door", doorToSpawn.ThisRoom_Node.RoomBlueprint.RoomSet), 
                                                      centerPoint, 
                                                      rotation,
-                                                     lockType == DoorLockTypes.None ? _Objects_Doors_Parent.transform : _Objects_Doors_Locked_Parent.transform);
+                                                     parent);
 
             Object_Door doorComponent = door.GetComponent<Object_Door>();
 
@@ -386,7 +403,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             doorComponent.LockedMultipartSprite = SpriteManager.GetSprite("Object_Door_Locked_Multipart", roomSet);
             doorComponent.LockedGoalSprite = SpriteManager.GetSprite("Object_Door_Locked_Goal", roomSet);
 
-            doorComponent.ToggleState();
+            doorComponent.UpdateSprite();
 
 
             return doorComponent;
@@ -438,59 +455,6 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             door.GetComponent<Object_Door_BombableWall>().Doorway = doorToSpawn;
         }
 
-        /// <summary>
-        /// Spawns closed doors in the specified puzzle room. Doors connecting to tightly coupled child rooms will get closed doors
-        /// blocking them off until the puzzle is solved.
-        /// </summary>
-        /// <param name="roomNode">The node for the room to spawn closed doors in.</param>
-        private static void SpawnObjects_ClosedPuzzleRoomDoors(DungeonGraphNode roomNode)
-        {
-            // Iterate through the doorways.
-            foreach (DungeonDoor doorway in roomNode.Doorways)
-            {
-                MissionStructureGraphNode node;
-                if (doorway.OtherRoom_Node == null)
-                    continue;
-                else
-                    node = doorway.OtherRoom_Node.MissionStructureNode;
-
-
-                // We want to spawn a closed door for all doorways except the entry door.
-                // So check each doorway to see if the room beyond it is farther from the start than this one.
-                // Also check that it is not a bombable wall.
-                if (node.DungeonRoomNode.DistanceFromStart > roomNode.DistanceFromStart && 
-                    node.GrammarSymbol != GrammarSymbols.T_Secret_Room) // Secret rooms are always connected to the rest of the dungeon by a bombable wall.
-                {
-                    Object_Door doorObject = SpawnObject_Door(doorway, DoorLockTypes.None);
-                    roomNode.ClosedPuzzleDoors.Add(doorObject);
-                }
-
-            } // end foreach door
-
-        }
-
-        private static void SpawnObject_Button(Vector3Int position, DungeonGraphNode roomNode)
-        {
-            // Calculate the position of the spikes.
-            Vector3 centerPoint = DungeonConstructionUtils.AdjustTileCoordsForRoomPositionAndRotation(position, roomNode.RoomPosition, roomNode.RoomFinalDirection);
-
-
-            // Spawn a spikes object and configure it.
-            GameObject button = GameObject.Instantiate(PrefabManager.GetPrefab("Object_Button", roomNode.RoomBlueprint.RoomSet),
-                                                       centerPoint + _ObjectOffsetVector,
-                                                       Quaternion.identity,
-                                                       _Objects_Buttons_Parent.transform);
-
-
-            RoomSets roomSet = roomNode.RoomBlueprint.RoomSet;
-            Object_Button buttonComponent = button.GetComponent<Object_Button>();
-            buttonComponent._ButtonSprite = SpriteManager.GetSprite("Object_Button", roomSet);
-            buttonComponent._ButtonPressedSprite = SpriteManager.GetSprite("Object_Button_Pressed", roomSet);
-            button.GetComponent<SpriteRenderer>().sprite = buttonComponent._ButtonSprite;
-
-            roomNode.Buttons.Add(buttonComponent);
-        }
-
         private static void SpawnObject_IceBlock(Vector3Int position, DungeonGraphNode roomNode)
         {
             // Calculate the position of the ice block.
@@ -527,6 +491,106 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             RoomSets roomSet = roomNode.RoomBlueprint.RoomSet;
             Object_Spikes spikesComponent = spikes.GetComponent<Object_Spikes>();
             spikesComponent.GetComponent<SpriteRenderer>().sprite = SpriteManager.GetSprite("Object_Spikes", roomSet);
+        }
+
+        private static void SpawnObject_Button(Vector3Int position, DungeonGraphNode roomNode)
+        {
+            // Calculate the position of the spikes.
+            Vector3 centerPoint = DungeonConstructionUtils.AdjustTileCoordsForRoomPositionAndRotation(position, roomNode.RoomPosition, roomNode.RoomFinalDirection);
+
+
+            // Spawn a spikes object and configure it.
+            GameObject button = GameObject.Instantiate(PrefabManager.GetPrefab("Object_Button", roomNode.RoomBlueprint.RoomSet),
+                                                       centerPoint + _ObjectOffsetVector,
+                                                       Quaternion.identity,
+                                                       _Objects_Buttons_Parent.transform);
+
+
+            RoomSets roomSet = roomNode.RoomBlueprint.RoomSet;
+            Object_Button buttonComponent = button.GetComponent<Object_Button>();
+            buttonComponent._ButtonSprite = SpriteManager.GetSprite("Object_Button", roomSet);
+            buttonComponent._ButtonPressedSprite = SpriteManager.GetSprite("Object_Button_Pressed", roomSet);
+            button.GetComponent<SpriteRenderer>().sprite = buttonComponent._ButtonSprite;
+
+            roomNode.Buttons.Add(buttonComponent);
+        }
+
+        private static void SpawnObject_BossBattleTrigger(DungeonGraphNode roomNode)
+        {
+            DungeonDoor door = GetDoorFromThisRoomToParentRoom(roomNode);
+
+            GameObject bossTriggerPrefab = PrefabManager.GetPrefab("Object_BossBattleTrigger", roomNode.RoomBlueprint.RoomSet);
+
+            Directions doorDirection = roomNode.RoomBlueprint.DoorsList[(int)door.ThisRoom_DoorIndex].DoorDirection;
+            Directions doorAdjustedDirection = door.ThisRoom_DoorAdjustedDirection;
+
+            if (doorDirection == Directions.East || doorDirection == Directions.West)
+                doorAdjustedDirection = doorAdjustedDirection.FlipDirection();
+
+            Directions bossTriggerDirection = MiscellaneousUtils.CorrectObjectRotationDirection(doorDirection,
+                                                                                                doorAdjustedDirection,
+                                                                                                roomNode.RoomFinalDirection);
+
+            Vector3 bossTriggerPosition = door.CenterPosition;
+            Vector3 offset = door.ThisRoom_DoorAdjustedDirection.DirectionToNormalizedVector();
+            bossTriggerPosition += offset * -0.5f;
+
+            GameObject bossTrigger = GameObject.Instantiate(bossTriggerPrefab,
+                                                            bossTriggerPosition,
+                                                            bossTriggerDirection.DirectionToRotation(),
+                                                            _Objects_BossBattleTriggers.transform);
+        }
+
+        /// <summary>
+        /// Spawns closed doors in the specified puzzle room. Doors connecting to tightly coupled child rooms will get closed doors
+        /// blocking them off until the puzzle is solved.
+        /// </summary>
+        /// <param name="roomNode">The node for the room to spawn closed doors in.</param>
+        private static void SpawnObjects_ClosedPuzzleRoomDoors(DungeonGraphNode roomNode)
+        {
+            // Iterate through the doorways.
+            foreach (DungeonDoor doorway in roomNode.Doorways)
+            {
+                MissionStructureGraphNode node;
+                if (doorway.OtherRoom_Node == null)
+                    continue;
+                else
+                    node = doorway.OtherRoom_Node.MissionStructureNode;
+
+
+                // We want to spawn a closed door for all doorways except the entry door.
+                // So check each doorway to see if the room beyond it is farther from the start than this one.
+                // Also check that it is not a bombable wall.
+                if (node.DungeonRoomNode.DistanceFromStart > roomNode.DistanceFromStart &&
+                    node.GrammarSymbol != GrammarSymbols.T_Secret_Room) // Secret rooms are always connected to the rest of the dungeon by a bombable wall.
+                {
+                    Object_Door doorObject = SpawnObject_Door(doorway, DoorLockTypes.None);
+                    roomNode.PuzzleActivatedDoors.Add(doorObject);
+                }
+
+            } // end foreach door
+
+        }
+
+        private static void SpawnObjects_BossRoomDoors(DungeonGraphNode roomNode)
+        {
+            DungeonMap dungeonMap = DungeonGenerator.DungeonTilemapManager.DungeonMap;
+
+
+            // Iterate through the doorways.
+            foreach (DungeonDoor doorway in roomNode.Doorways)
+            {
+                BasicDungeonTile tile = (BasicDungeonTile) dungeonMap.WallsMap.GetTile(doorway.ThisRoom_DoorTile1WorldPosition);
+                if (tile.TileType == DungeonTileTypes.Walls_Doorway || tile.TileType == DungeonTileTypes.Walls_Doorway)
+                {
+                    Object_Door doorObject = SpawnObject_Door(doorway, DoorLockTypes.None, true);
+                    doorObject.SetOpen(true);
+
+                    roomNode.PuzzleActivatedDoors.Add(doorObject);
+                }
+
+            } // end foreach door
+
         }
 
 
@@ -589,6 +653,8 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
         }
 
+
+
         private static void FinalizeLockedDoors()
         {
             // If Unity is not in play mode, then just return as the code below will cause a null reference exception then anyway.
@@ -648,12 +714,11 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
         }
 
-
         private static DungeonDoor GetDoorFromParentRoomToThisRoom(DungeonGraphNode roomNode)
         {
             DungeonGraphNode parentRoomNode = roomNode.Parent;
 
-            // Find the door to this room's parent.
+            // Find the door from this room's parent.
             foreach (DungeonDoor door in parentRoomNode.Doorways)
             {
                 if (door.OtherRoom_Node == roomNode)
@@ -673,6 +738,21 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
                 else if (door.OtherRoom_Node.MissionStructureNode.GrammarSymbol == GrammarSymbols.T_Boss_Mini)
                     return door;
             }
+
+            return null;
+        }
+
+        private static DungeonDoor GetDoorFromThisRoomToParentRoom(DungeonGraphNode roomNode)
+        {
+            DungeonGraphNode parentRoomNode = roomNode.Parent;
+
+            // Find the door from this room's parent.
+            foreach (DungeonDoor door in roomNode.Doorways)
+            {
+                if (door.OtherRoom_Node == parentRoomNode)
+                        return door;
+
+            } // end foreach parent room door
 
             return null;
         }
