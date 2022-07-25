@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-namespace ProceduralDungeon.InGame.Enemies
+namespace ProceduralDungeon.InGame.Enemies.SpawningData
 {
     [CreateAssetMenu(fileName = "New Enemy Spawning Data Object", menuName = "Enemies/Enemy Spawning Data")]
     public class EnemySpawningData : ScriptableObject

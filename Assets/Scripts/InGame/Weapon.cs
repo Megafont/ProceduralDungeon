@@ -30,7 +30,15 @@ namespace ProceduralDungeon.InGame
             {
                 if (WeaponItem == null)
                 {
-                    Debug.LogError("Weapon.OnTriggerEnter2D() - Cannot deal damage because no weapon item is equipped!");
+                    Debug.LogWarning("Weapon.OnTriggerEnter2D() - Cannot deal damage because no weapon item is equipped!");
+                    return;
+                }
+
+
+                Health health = collision.gameObject.GetComponent<Health>();
+                if (health == null)
+                {
+                    Debug.LogWarning($"Weapon.OnTriggerEnter2D() - Cannot deal damage because the object hit (\"{collision.name}\") does not have a health component!");
                     return;
                 }
 
@@ -39,8 +47,9 @@ namespace ProceduralDungeon.InGame
                 //       using different weapon attributes than Strength, such as maybe FireDamage. The Health class
                 //       could also be extended to allow equipping certain equipment items on it to add resistances
                 //       to certain types of damage.
-                collision.gameObject.GetComponent<Health>().DealDamage(_OwnerStats.Attack + WeaponItem.Buffs[ItemAttributes.Attack], 
-                                                                       DamageTypes.Weapon);
+                health.DealDamage(_OwnerStats.Attack + WeaponItem.Buffs[ItemAttributes.Attack],
+                                  DamageTypes.Weapon);
+
             }
 
         }

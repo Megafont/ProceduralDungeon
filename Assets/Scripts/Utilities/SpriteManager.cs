@@ -29,33 +29,121 @@ namespace ProceduralDungeon.Utilities
 
 
             string roomSetName = ManagerUtils.GetRoomSetName(roomSet);
+            string spritePath = GetFullSpritePath(spriteName, roomSetName);
 
-            _SpritesDictionary.TryGetValue(roomSetName, out dict);
-            if (dict != null)
+
+            dict = GetRoomSetDictionary(roomSetName);
+ 
+            dict.TryGetValue(spritePath, out sprite);
+            if (sprite != null)
+                return sprite;
+
+
+            sprite = Resources.Load<Sprite>(spritePath);
+
+            //Debug.Log($"Loaded sprite: \"{spritePath}\"");
+
+
+            if (dict.ContainsKey(spritePath))
+                dict[spritePath] = sprite;
+            else
+                dict.Add(spritePath, sprite);
+
+
+            return sprite;
+
+        }
+
+        public static Sprite GetSpriteFromSheet(string spriteSheetName, string spriteName, RoomSets roomSet, bool cacheAllSpritesFromSheet = false)
+        {
+            Sprite sprite;
+            Sprite[] spriteSheetSprites;
+            Dictionary<string, Sprite> dict;
+
+
+            string roomSetName = ManagerUtils.GetRoomSetName(roomSet);
+            string spriteSheetPath = GetFullSpritePath(spriteSheetName, roomSetName); // We intentionally pass in the sprite sheet name here rather than the sprite name since accessing a sprite from a sheet is a bit different than an individual.
+            string spriteSheetPathKey = $"{spriteSheetPath}.{spriteName}";
+
+            dict = GetRoomSetDictionary(roomSetName);
+
+            dict.TryGetValue(spriteSheetPathKey, out sprite);
+            if (sprite != null)
+                return sprite;
+
+
+            spriteSheetSprites = Resources.LoadAll<Sprite>(spriteSheetPath);
+
+            //Debug.Log($"Loaded sprite from sheet: \"{spriteSheetPathKey}\"");
+
+
+            foreach (Sprite s in spriteSheetSprites)
             {
-                dict.TryGetValue(spriteName, out sprite);
+                bool isMatch = false;
+                string spriteKey = $"{spriteSheetPath}.{s.name}";
 
-                if (sprite != null)
+
+                if (s.name == spriteName)
+                {
+                    sprite = s;
+                    isMatch = true;
+                }
+
+                if (isMatch || cacheAllSpritesFromSheet)
+                {
+                    if (dict.ContainsKey(spriteKey))
+                        dict[spriteKey] = s;
+                    else
+                        dict.Add(spriteKey, s);
+                }
+
+
+                if (isMatch && !cacheAllSpritesFromSheet)
                     return sprite;
             }
-            else
+
+
+            return sprite;
+
+        }
+
+        private static void CacheSpriteSheet(Sprite[] spriteSheetSprites, string spriteSheetPath, Dictionary<string, Sprite> dict)
+        {
+            foreach (Sprite sprite in spriteSheetSprites)
+            {
+                string key = $"{spriteSheetPath}.{sprite.name}";
+
+                if (dict.ContainsKey(key))
+                    dict[key] = sprite;
+                else
+                    dict.Add(key, sprite);
+            }
+
+        }
+
+        private static string GetFullSpritePath(string spriteName, string roomSetName)
+        {
+            string spritesPath = ScriptableRoomUtilities.GetRoomSetSpritesPath(roomSetName);
+            string type = ManagerUtils.GetResourceTypeFromName(spriteName);
+
+
+            return $"{spritesPath}/{type}{spriteName}";
+        }
+
+        private static Dictionary<string, Sprite> GetRoomSetDictionary(string roomSetName)
+        {
+            Dictionary<string, Sprite> dict;
+
+
+            _SpritesDictionary.TryGetValue(roomSetName, out dict);
+            if (dict == null)
             {
                 dict = new Dictionary<string, Sprite>();
                 _SpritesDictionary.Add(roomSetName, dict);
             }
 
-            string spritesPath = ScriptableRoomUtilities.GetRoomSetSpritesPath(roomSetName);
-            string type = ManagerUtils.GetResourceTypeFromName(spriteName);
-            sprite = Resources.Load<Sprite>($"{spritesPath}/{type}/{spriteName}");
 
-            if (dict.ContainsKey(spriteName))
-                dict[spriteName] = sprite;
-            else
-                dict.Add(spriteName, sprite);
-
-
-            return sprite;
-
+            return dict;
         }
 
 

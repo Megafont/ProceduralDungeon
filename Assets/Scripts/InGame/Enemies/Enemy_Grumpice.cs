@@ -10,7 +10,6 @@ namespace ProceduralDungeon.InGame.Enemies
 {
     public class Enemy_Grumpice : MonoBehaviour
     {
-        public float ContactDamage = 10f;
         public float MaxIdleTime = 5f;
         public float MaxWalkTime = 10f;
         public float WalkSpeed = 6f;
@@ -55,19 +54,6 @@ namespace ProceduralDungeon.InGame.Enemies
         void Update()
         {
             RunAI();
-        }
-
-        private void OnCollisionEnter(Collision collision)
-        {
-            if (collision.gameObject.layer == LayerMask.NameToLayer("Weapons"))
-                _Health.DealDamage(10f, DamageTypes.Weapon);
-
-        }
-        private void OnCollisionStay2D(Collision2D collision)
-        {
-            if (collision.gameObject.tag == "Player")
-                collision.gameObject.GetComponent<Health>().DealDamage(ContactDamage, DamageTypes.EnemyContact);
-
         }
 
 

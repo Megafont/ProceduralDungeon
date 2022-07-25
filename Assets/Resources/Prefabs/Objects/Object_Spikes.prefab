@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 6733427148235593260}
   - component: {fileID: 6733427148235593259}
   - component: {fileID: 6733427148235593262}
-  - component: {fileID: 6733427148235593257}
+  - component: {fileID: 7672431715860493273}
   m_Layer: 8
   m_Name: Object_Spikes
   m_TagString: Untagged
@@ -73,7 +73,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 1243288589
-  m_SortingLayer: 6
+  m_SortingLayer: 2
   m_SortingOrder: 0
   m_Sprite: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -112,7 +112,7 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
---- !u!114 &6733427148235593257
+--- !u!114 &7672431715860493273
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -121,8 +121,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 6733427148235593256}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b85b41a9f0b3f7e498d31c9464d7e2f1, type: 3}
+  m_Script: {fileID: 11500000, guid: a9447ba205b86cf45b24111af1651aee, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _DamageDelay: 1
-  _DamageAmount: 15
+  DamageAmount: 15
+  DamageType: 60000
+  ColliderIsTrigger: 1

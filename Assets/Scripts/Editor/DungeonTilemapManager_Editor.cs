@@ -31,6 +31,10 @@ namespace ProceduralDungeon.EditorScripts
         SerializedProperty _Player;
         SerializedProperty _RoomSet;
         SerializedProperty _EnemySpawningData;
+        SerializedProperty _MiniBossSpawningData;
+        SerializedProperty _BossSpawningData;
+
+
 
 
         void OnEnable()
@@ -48,6 +52,8 @@ namespace ProceduralDungeon.EditorScripts
             _Player = serializedObject.FindProperty("_Player");
             _RoomSet = serializedObject.FindProperty("_RoomSet");
             _EnemySpawningData = serializedObject.FindProperty("_EnemySpawningData");
+            _MiniBossSpawningData = serializedObject.FindProperty("_MiniBossSpawningData");
+            _BossSpawningData = serializedObject.FindProperty("_BossSpawningData");
         }
 
 
@@ -82,6 +88,8 @@ namespace ProceduralDungeon.EditorScripts
             EditorGUILayout.PropertyField(_Player);
             EditorGUILayout.PropertyField(_RoomSet);
             EditorGUILayout.PropertyField(_EnemySpawningData);
+            EditorGUILayout.PropertyField(_MiniBossSpawningData);
+            EditorGUILayout.PropertyField(_BossSpawningData);
 
 
 

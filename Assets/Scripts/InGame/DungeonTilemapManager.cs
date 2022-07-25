@@ -10,7 +10,7 @@ using ProceduralDungeon.DungeonGeneration;
 using ProceduralDungeon.DungeonGeneration.DungeonConstruction;
 using ProceduralDungeon.DungeonGeneration.MissionStructureGeneration;
 using ProceduralDungeon.InGame.Items;
-using ProceduralDungeon.InGame.Enemies;
+using ProceduralDungeon.InGame.Enemies.SpawningData;
 using ProceduralDungeon.TileMaps;
 
 
@@ -36,15 +36,18 @@ namespace ProceduralDungeon.InGame
         [SerializeField] private RoomSets _RoomSet; // Determines which folder a room will be saved/loaded to/from.
         [SerializeField] private ItemDatabaseObject _ItemDatabase;
         [SerializeField] private EnemySpawningData _EnemySpawningData;
-
+        [SerializeField] private BossSpawningData _MiniBossSpawningData;
+        [SerializeField] private BossSpawningData _BossSpawningData;
 
 
         public GameObject Player { get { return _Player; } }
         public RoomSets RoomSet { get { return _RoomSet; } }
 
         public ItemDatabaseObject ItemDatabase { get { return _ItemDatabase;  } }
-        public EnemySpawningData EnemySpawningData { get { return _EnemySpawningData; } }
 
+        public EnemySpawningData EnemySpawningData { get { return _EnemySpawningData; } }
+        public BossSpawningData MiniBossSpawningData { get { return _MiniBossSpawningData; } }
+        public BossSpawningData BossSpawningData { get { return _BossSpawningData; } }
 
         private DungeonMap _DungeonMap;
 
@@ -59,6 +62,11 @@ namespace ProceduralDungeon.InGame
             Assert.IsNotNull(_Placeholders_Enemies_Map, "DungeonTilemapManager.Awake() - The enemy placeholders map field is null!");
 
             Assert.IsNotNull(_ItemDatabase, "DungeonTilemapManager.Awake() - The ItemDatabaseObject is null!");
+
+            Assert.IsNotNull(_EnemySpawningData, "DungeonTilemapManager.Awake() - The EnemySpawningData object is null!");
+            Assert.IsNotNull(_MiniBossSpawningData, "DungeonTilemapManager.Awake() - The MiniBossSpawningData object is null!");
+            Assert.IsNotNull(_BossSpawningData, "DungeonTilemapManager.Awake() - The BossSpawningData object is null!");
+
 
             DungeonGenerator.Init(this);
         }

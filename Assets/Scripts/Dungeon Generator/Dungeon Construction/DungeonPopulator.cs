@@ -489,8 +489,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
 
             RoomSets roomSet = roomNode.RoomBlueprint.RoomSet;
-            Object_Spikes spikesComponent = spikes.GetComponent<Object_Spikes>();
-            spikesComponent.GetComponent<SpriteRenderer>().sprite = SpriteManager.GetSprite("Object_Spikes", roomSet);
+            spikes.GetComponent<SpriteRenderer>().sprite = SpriteManager.GetSprite("Object_Spikes", roomSet);
         }
 
         private static void SpawnObject_Button(Vector3Int position, DungeonGraphNode roomNode)

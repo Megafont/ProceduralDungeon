@@ -45,7 +45,9 @@ namespace ProceduralDungeon.Utilities
             }
 
             string type = ManagerUtils.GetResourceTypeFromName(prefabName);
-            prefab = Resources.Load<GameObject>($"{PREFABS_PATH}/{type}/{prefabName}");
+            prefab = Resources.Load<GameObject>($"{PREFABS_PATH}/{type}{prefabName}");
+
+            //Debug.Log($"Loaded prefab: \"{PREFABS_PATH}/{type}{prefabName}\".");
 
             if (dict.ContainsKey(prefabName))
                 dict[prefabName] = prefab;

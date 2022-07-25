@@ -18,18 +18,22 @@ namespace ProceduralDungeon.Utilities
 
             // These are in order of how frequenetly they are used to make this function a bit faster.
             if (nameLower.StartsWith("object_"))
-                return "Objects";
+                return "Objects/";
             else if (nameLower.StartsWith("item_"))
-                return "Items";
+                return "Items/";
             else if (nameLower.StartsWith("ui_"))
-                return "UI";
-            else if (nameLower.StartsWith(@"boss_"))
-                return "Bosses";
+                return "UI/";
             else if (nameLower.StartsWith(@"enemy_"))
-                return "Enemies";
-
-
-            return null;
+                return "Enemies/";
+            else if (nameLower.StartsWith(@"boss_"))
+                return "Enemies/Bosses/";
+            else if (nameLower.StartsWith(@"miniboss_"))
+                return "Enemies/Minibosses/";
+            else if (nameLower.StartsWith(@"projectile_"))
+                return "Projectiles/";
+            else
+                return "";
+            
         }
 
         public static string GetRoomSetName(RoomSets roomSet)

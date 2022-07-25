@@ -15,6 +15,8 @@ GameObject:
   - component: {fileID: 1350728187139727767}
   - component: {fileID: 1350728187139727787}
   - component: {fileID: 1350728187139727785}
+  - component: {fileID: 1743509633992296716}
+  - component: {fileID: 5232055024790762421}
   m_Layer: 11
   m_Name: Enemy_Grumpice
   m_TagString: Untagged
@@ -158,7 +160,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 58766e5529a125e4fbad4c927f510faa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ContactDamage: 10
   MaxIdleTime: 5
   MaxWalkTime: 10
   WalkSpeed: 6
@@ -175,6 +176,34 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   DamageRepeatDelay: 1
-  FlashRedOnDamage: 1
+  FlashRedWhenDamaged: 1
+  IsVulnerable: 1
   HealthBar: {fileID: 0}
   _MaxHealth: 5
+--- !u!114 &1743509633992296716
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1350728187139727766}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a9447ba205b86cf45b24111af1651aee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  DamageAmount: 10
+  DamageType: 40000
+  ColliderIsTrigger: 0
+--- !u!114 &5232055024790762421
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1350728187139727766}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4fab3266332337349a5e52f2c0131c1a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

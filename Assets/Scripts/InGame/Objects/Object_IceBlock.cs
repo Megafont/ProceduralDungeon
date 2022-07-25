@@ -49,7 +49,7 @@ namespace ProceduralDungeon.InGame.Objects
             ContactPoint2D hitPoint = collision.GetContact(0);            
             
             //Debug.Log("COLLISION! " + hitPoint.point + "   " + hitPoint.normal + "    " + collision.collider.ClosestPoint(hitPoint.point));
-            if (collision.gameObject.tag == "Player")
+            if (collision.gameObject.CompareTag("Player"))
             {
                 // Get the center point of the player's collider.
                 // This originally used collision.GetContact() to get the contact point, but the player has a capsul collider, so sometimes

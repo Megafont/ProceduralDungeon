@@ -29,7 +29,7 @@ namespace ProceduralDungeon.InGame.Items
 
         public void OnTriggerEnter2D(Collider2D other)
         {
-            if (other.tag == "Player")
+            if (other.CompareTag("Player"))
             {
                 RoomSets roomSet = DungeonGenerator.DungeonTilemapManager.RoomSet;
 

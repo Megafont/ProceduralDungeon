@@ -139,15 +139,15 @@ namespace ProceduralDungeon.InGame.Objects
             // Deal damage to all characters that were found.
             foreach (Collider2D collider in colliders)
             {
-                if (collider.gameObject.tag == "Player" ||
-                    collider.gameObject.tag == "Enemy")
+                if (collider.gameObject.CompareTag("Player") ||
+                    collider.gameObject.CompareTag("Enemy"))
                 {
                     Health health = collider.gameObject.GetComponent<Health>();
 
                     if (health != null)
                         health.DealDamage(_ExplosionDamage, DamageTypes.BombBlast);
                 }
-                else if (collider.gameObject.tag == "Door_BombableWall")
+                else if (collider.gameObject.CompareTag("Door_BombableWall"))
                 {
                     collider.gameObject.GetComponent<Object_Door_BombableWall>().OpenBombWall();
                 }

@@ -8,7 +8,7 @@ using ToolboxLib_Shared.Math;
 using ProceduralDungeon.DungeonGeneration;
 using ProceduralDungeon.DungeonGeneration.DungeonConstruction;
 using ProceduralDungeon.DungeonGeneration.MissionStructureGeneration;
-using ProceduralDungeon.InGame.Enemies;
+using ProceduralDungeon.InGame.Enemies.SpawningData;
 using ProceduralDungeon.TileMaps;
 
 
