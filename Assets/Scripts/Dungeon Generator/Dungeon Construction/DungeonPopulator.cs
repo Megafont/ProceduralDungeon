@@ -49,14 +49,12 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
         private static Vector3 _ObjectOffsetVector = new Vector3(0.5f, 0.5f);
         private static Vector3 _ItemOffsetVector = new Vector3(0.5f, 0.5f);
 
+        private static bool _IsInitialized;
 
 
-        public static void PopulateDungeon(DungeonGraph dungeonGraph, NoiseRNG rng)
+
+        public static void Init()
         {
-            Assert.IsNotNull(dungeonGraph, "DungeonPopulator.PopulateDungeon() - The passed in dungeon graph is null!");
-            Assert.IsNotNull(rng, "DungeonPopulator.PopulateDungeon() - The passed in random number generator is null!");
-
-
             _LockedDoorsDictionary = new Dictionary<MissionStructureGraphNode, Object_Door>();
             _KeyChestsDictionary = new Dictionary<MissionStructureGraphNode, InventoryObject>();
             _NextKeyID = 0;
@@ -77,7 +75,20 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             _Objects_Spikes_Parent = _ObjectsParent.transform.Find("Spikes").gameObject;
 
 
-            // Clear out any previously spawned dungeon items/objects.
+            _IsInitialized = true;
+        }
+
+
+        public static void PopulateDungeon(DungeonGraph dungeonGraph, NoiseRNG rng)
+        {
+            Assert.IsNotNull(dungeonGraph, "DungeonPopulator.PopulateDungeon() - The passed in dungeon graph is null!");
+            Assert.IsNotNull(rng, "DungeonPopulator.PopulateDungeon() - The passed in random number generator is null!");
+
+
+            if (!_IsInitialized)
+                Init();
+
+
             ClearPreviouslySpawnedPrefabs();
 
 
@@ -184,8 +195,12 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
         }
 
-        private static void ClearPreviouslySpawnedPrefabs()
+        public static void ClearPreviouslySpawnedPrefabs()
         {
+            if (!_IsInitialized)
+                Init();
+
+
             ClearPreviouslySpawnedPrefabs_Items();
             ClearPreviouslySpawnedPrefabs_Objects();
         }
@@ -252,7 +267,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             chestDirection = chestDirection.DirectionFromRotation(chestRotation);            
 
             Directions chestFinalDirection = chestDirection.AddRotationDirection(roomNode.RoomFinalDirection);
-            chestFinalDirection = MiscellaneousUtils.CorrectObjectRotationDirection(chestDirection, chestFinalDirection, roomNode.RoomFinalDirection);
+            chestFinalDirection = DungeonGeneratorUtils.CorrectObjectRotationDirection(chestDirection, chestFinalDirection, roomNode.RoomFinalDirection);
 
             Quaternion chestFinalRotation = chestFinalDirection.DirectionToRotation();
 
@@ -339,7 +354,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             if (doorDirection == Directions.East || doorDirection == Directions.West)
                 doorAdjustedDirection = doorAdjustedDirection.FlipDirection();
 
-            Directions correctedDirection = MiscellaneousUtils.CorrectObjectRotationDirection(doorDirection, 
+            Directions correctedDirection = DungeonGeneratorUtils.CorrectObjectRotationDirection(doorDirection, 
                                                                                               doorAdjustedDirection,
                                                                                               doorToSpawn.ThisRoom_Node.RoomFinalDirection);
             rotation = correctedDirection.DirectionToRotation();
@@ -348,7 +363,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
 
             // Calculate the center point of the door.
-            Vector3 centerPoint = MiscellaneousUtils.GetUpperLeftMostTile(doorToSpawn.ThisRoom_DoorTile1WorldPosition, doorToSpawn.ThisRoom_DoorTile2WorldPosition);
+            Vector3 centerPoint = DungeonGeneratorUtils.GetUpperLeftMostTile(doorToSpawn.ThisRoom_DoorTile1WorldPosition, doorToSpawn.ThisRoom_DoorTile2WorldPosition);
             centerPoint += offset;
 
 
@@ -433,14 +448,14 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             if (doorDirection == Directions.East || doorDirection == Directions.West)
                 doorAdjustedDirection = doorAdjustedDirection.FlipDirection();
 
-            Directions correctedDirection = MiscellaneousUtils.CorrectObjectRotationDirection(doorDirection,
+            Directions correctedDirection = DungeonGeneratorUtils.CorrectObjectRotationDirection(doorDirection,
                                                                                               doorAdjustedDirection,
                                                                                               doorToSpawn.ThisRoom_Node.RoomFinalDirection);
             rotation = correctedDirection.DirectionToRotation();
 
 
             // Calculate the center point of the door.
-            Vector3 centerPoint = MiscellaneousUtils.GetUpperLeftMostTile(doorToSpawn.ThisRoom_DoorTile1WorldPosition, doorToSpawn.ThisRoom_DoorTile2WorldPosition);
+            Vector3 centerPoint = DungeonGeneratorUtils.GetUpperLeftMostTile(doorToSpawn.ThisRoom_DoorTile1WorldPosition, doorToSpawn.ThisRoom_DoorTile2WorldPosition);
             centerPoint += offset;
 
 
@@ -526,7 +541,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             if (doorDirection == Directions.East || doorDirection == Directions.West)
                 doorAdjustedDirection = doorAdjustedDirection.FlipDirection();
 
-            Directions bossTriggerDirection = MiscellaneousUtils.CorrectObjectRotationDirection(doorDirection,
+            Directions bossTriggerDirection = DungeonGeneratorUtils.CorrectObjectRotationDirection(doorDirection,
                                                                                                 doorAdjustedDirection,
                                                                                                 roomNode.RoomFinalDirection);
 
@@ -633,7 +648,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             keyDirection = keyDirection.DirectionFromRotation(keyRotation);
 
             Directions keyFinalDirection = keyDirection.AddRotationDirection(roomNode.RoomFinalDirection);
-            keyFinalDirection = MiscellaneousUtils.CorrectObjectRotationDirection(keyDirection, keyFinalDirection, roomNode.RoomFinalDirection);
+            keyFinalDirection = DungeonGeneratorUtils.CorrectObjectRotationDirection(keyDirection, keyFinalDirection, roomNode.RoomFinalDirection);
 
             Quaternion keyFinalRotation = keyFinalDirection.DirectionToRotation();
 

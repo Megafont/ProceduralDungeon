@@ -123,34 +123,35 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction.PlaceholderUti
                 tile2ScanPos = doorTile2Pos + (scanVector * i);
 
 
-                // Are we are scanning the first tile in front of both door tiles?
-                if (i == 1)
+                // First, check for a chance connection to another room's door.
+                // ====================================================================================================
+
+                // Get placeholder_objects map tile that is i tiles in front of each of the door's tiles.
+                BasicDungeonTile doorScanTile1 = (BasicDungeonTile)tileMapManager.DungeonMap.Placeholders_Objects_Map.GetTile(tile1ScanPos);
+                BasicDungeonTile doorScanTile2 = (BasicDungeonTile)tileMapManager.DungeonMap.Placeholders_Objects_Map.GetTile(tile2ScanPos);
+
+                if (TileIsDoorPlaceholder(doorScanTile1) && TileIsDoorPlaceholder(doorScanTile2))
                 {
-                    // Get placeholder_objects map tile that is i tiles in front of each of the door's tiles.
-                    BasicDungeonTile doorScanTile1 = (BasicDungeonTile)tileMapManager.DungeonMap.Placeholders_Objects_Map.GetTile(tile1ScanPos);
-                    BasicDungeonTile doorScanTile2 = (BasicDungeonTile)tileMapManager.DungeonMap.Placeholders_Objects_Map.GetTile(tile2ScanPos);
+                    // Use our out parameter to return the position of the other door's tile 1 coordinate so the calliing code can use it to look up the doorway.
+                    otherDoor_Tile1WorldPos = tile1ScanPos;
 
-                    if (TileIsDoorPlaceholder(doorScanTile1) && TileIsDoorPlaceholder(doorScanTile2))
+                    // Debug.Log($"LVL DATA:    Tile1: \"{doorScanTile1.TileType}\"    Tile2: \"{doorScanTile2.TileType}\"    Room: \"{roomNode.RoomBlueprint.RoomLevel}\"");
+
+                    // Check if the two doors that connected by chance are on the same floor in the dungeon.
+                    if (TileIsOnFloor(doorScanTile1, roomNode.RoomBlueprint.RoomLevel) &&
+                        TileIsOnFloor(doorScanTile2, roomNode.RoomBlueprint.RoomLevel))
                     {
-                        // Use our out parameter to return the position of the other door's tile 1 coordinate so the calliing code can use it to look up the doorway.
-                        otherDoor_Tile1WorldPos = tile1ScanPos;
+                        return LinearScanFromDoorResults.ChanceConnection_MatchingFloor;
+                    }
+                    else
+                    {
+                        return LinearScanFromDoorResults.ChanceConnection_FloorMismatch;
+                    }
 
-                        // Debug.Log($"LVL DATA:    Tile1: \"{doorScanTile1.TileType}\"    Tile2: \"{doorScanTile2.TileType}\"    Room: \"{roomNode.RoomBlueprint.RoomLevel}\"");
+                } // end if doorScanTile1 and doorScanTile2 are both door placeholder tiles
 
-                        // Check if the two doors that connected by chance are on the same floor in the dungeon.
-                        if (TileIsOnFloor(doorScanTile1, roomNode.RoomBlueprint.RoomLevel) &&
-                            TileIsOnFloor(doorScanTile2, roomNode.RoomBlueprint.RoomLevel))
-                        {
-                            return LinearScanFromDoorResults.ChanceConnection_MatchingFloor;
-                        }
-                        else
-                        {
-                            return LinearScanFromDoorResults.ChanceConnection_FloorMismatch;
-                        }
+                // ====================================================================================================
 
-                    } // end if doorScanTile1 and doorScanTile2 are both door placeholder tiles
-
-                } // end if i == 1
 
 
                 // Get wall map tile that is i tiles in front of each of the door's tiles.
@@ -213,8 +214,8 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction.PlaceholderUti
             SavedTileDictionary placeholderTilesDict = new SavedTileDictionary();
             SavedTileDictionary floorTilesDict = new SavedTileDictionary();
 
-            MiscellaneousUtils.CopyTilesListToDictionary(placeholders_Object_Tiles, placeholderTilesDict);
-            MiscellaneousUtils.CopyTilesListToDictionary(floorTiles, floorTilesDict);
+            DungeonGeneratorUtils.CopyTilesListToDictionary(placeholders_Object_Tiles, placeholderTilesDict);
+            DungeonGeneratorUtils.CopyTilesListToDictionary(floorTiles, floorTilesDict);
 
 
             // We pass in true for the final parameter to tell this function that it has been invoked from the room editor.

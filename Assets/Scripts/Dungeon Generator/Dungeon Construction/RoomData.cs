@@ -64,11 +64,11 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             Placeholders_Item_Tiles = new Dictionary<Vector3Int, SavedTile>();
             Placeholders_Enemy_Tiles = new Dictionary<Vector3Int, SavedTile>();
 
-            MiscellaneousUtils.CopyTilesListToDictionary(loadedRoom.FloorTiles, FloorTiles);
-            MiscellaneousUtils.CopyTilesListToDictionary(loadedRoom.WallTiles, WallTiles);
-            MiscellaneousUtils.CopyTilesListToDictionary(loadedRoom.Placeholders_Object_Tiles, Placeholders_Object_Tiles);
-            MiscellaneousUtils.CopyTilesListToDictionary(loadedRoom.Placeholders_Item_Tiles, Placeholders_Item_Tiles);
-            MiscellaneousUtils.CopyTilesListToDictionary(loadedRoom.Placeholders_Enemy_Tiles, Placeholders_Enemy_Tiles);
+            DungeonGeneratorUtils.CopyTilesListToDictionary(loadedRoom.FloorTiles, FloorTiles);
+            DungeonGeneratorUtils.CopyTilesListToDictionary(loadedRoom.WallTiles, WallTiles);
+            DungeonGeneratorUtils.CopyTilesListToDictionary(loadedRoom.Placeholders_Object_Tiles, Placeholders_Object_Tiles);
+            DungeonGeneratorUtils.CopyTilesListToDictionary(loadedRoom.Placeholders_Item_Tiles, Placeholders_Item_Tiles);
+            DungeonGeneratorUtils.CopyTilesListToDictionary(loadedRoom.Placeholders_Enemy_Tiles, Placeholders_Enemy_Tiles);
 
             Chest_RandomTreasure_Placeholders = new List<SavedTile>();
 

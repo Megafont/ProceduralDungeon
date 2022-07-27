@@ -66,7 +66,7 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
 
 
                     // Add the current node's children to the queue.
-                    MiscellaneousUtils.AddChildNodesToQueue(nodeQueue, curNode);
+                    DungeonGeneratorUtils.AddChildNodesToQueue(nodeQueue, curNode);
 
 
                     // Check if this is a terminal node.
@@ -309,8 +309,8 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
 
 
                 // Add child nodes to the queues.
-                MiscellaneousUtils.AddChildNodesToQueue(ruleNodeQueue, curRuleNode);
-                MiscellaneousUtils.AddChildNodesToQueue(nodeQueue, curNode);
+                DungeonGeneratorUtils.AddChildNodesToQueue(ruleNodeQueue, curRuleNode);
+                DungeonGeneratorUtils.AddChildNodesToQueue(nodeQueue, curNode);
 
 
             } // end while nodeQueue has at least one node

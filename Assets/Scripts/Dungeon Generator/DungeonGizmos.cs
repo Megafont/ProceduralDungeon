@@ -55,7 +55,7 @@ namespace ProceduralDungeon.DungeonGeneration
                 foreach (DungeonDoor door in node.Doorways)
                 {
                     // Get the upper-left-most of the two tiles of the door.
-                    Vector3Int doorPosition = MiscellaneousUtils.GetUpperLeftMostTile(door.ThisRoom_DoorTile1WorldPosition, door.ThisRoom_DoorTile2WorldPosition);
+                    Vector3Int doorPosition = DungeonGeneratorUtils.GetUpperLeftMostTile(door.ThisRoom_DoorTile1WorldPosition, door.ThisRoom_DoorTile2WorldPosition);
 
 
                     // Get the min and max values of X and Y.

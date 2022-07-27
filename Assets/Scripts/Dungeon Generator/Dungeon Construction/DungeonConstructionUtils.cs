@@ -76,7 +76,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
 
             // Get the upper-left-most of the two adjusted tile positions.
-            Vector3Int parentRoomDoor_UpperLeftTileWorldPos = MiscellaneousUtils.GetUpperLeftMostTile(parentRoomDoor.ThisRoom_DoorTile1WorldPosition, parentRoomDoor.ThisRoom_DoorTile2WorldPosition);
+            Vector3Int parentRoomDoor_UpperLeftTileWorldPos = DungeonGeneratorUtils.GetUpperLeftMostTile(parentRoomDoor.ThisRoom_DoorTile1WorldPosition, parentRoomDoor.ThisRoom_DoorTile2WorldPosition);
 
             // Get the direction the new room's door needs to face to be able to connect to the specified door on the first room.
             Directions room2Door_TargetDirection = parentRoomDoor.ThisRoom_DoorAdjustedDirection.FlipDirection();
@@ -96,7 +96,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
             Vector3Int room2Door_Tile2AdjustedLocalPos = AdjustTileCoordsForRoomPositionAndRotation(room2Door.Tile2Position, Vector3Int.zero, room2Direction);
 
             // Get the upper-left-most of the two adjusted tile positions.
-            Vector3Int room2Door_UpperLeftTileAdjustedLocalPos = MiscellaneousUtils.GetUpperLeftMostTile(room2Door_Tile1AdjustedLocalPos, room2Door_Tile2AdjustedLocalPos);
+            Vector3Int room2Door_UpperLeftTileAdjustedLocalPos = DungeonGeneratorUtils.GetUpperLeftMostTile(room2Door_Tile1AdjustedLocalPos, room2Door_Tile2AdjustedLocalPos);
 
 
 
@@ -468,7 +468,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
 
             // Get the position of the upper-left-most of the two tiles.
-            Vector3Int playerPos = MiscellaneousUtils.GetUpperLeftMostTile(entranceDoor.ThisRoom_DoorTile1WorldPosition,
+            Vector3Int playerPos = DungeonGeneratorUtils.GetUpperLeftMostTile(entranceDoor.ThisRoom_DoorTile1WorldPosition,
                                                                            entranceDoor.ThisRoom_DoorTile2WorldPosition);
 
 
@@ -560,7 +560,7 @@ namespace ProceduralDungeon.DungeonGeneration.DungeonConstruction
 
 
             // Place a wall tile at the first tile position.
-            tilesInfo.UpperLeftMostTile = MiscellaneousUtils.GetUpperLeftMostTile(door.ThisRoom_DoorTile1WorldPosition, door.ThisRoom_DoorTile2WorldPosition);
+            tilesInfo.UpperLeftMostTile = DungeonGeneratorUtils.GetUpperLeftMostTile(door.ThisRoom_DoorTile1WorldPosition, door.ThisRoom_DoorTile2WorldPosition);
 
 
             if (door.ThisRoom_DoorAdjustedDirection == Directions.North)
