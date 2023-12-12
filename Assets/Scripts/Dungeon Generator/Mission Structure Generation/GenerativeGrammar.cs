@@ -27,7 +27,7 @@ namespace ProceduralDungeon.DungeonGeneration.MissionStructureGeneration
         /// This enumeration defines the alphabet of the generative grammer we use to generate our mission graphs.
         /// </summary>
         /// <remarks>
-        /// This generative grammar idea is based off of the work of Joris Dormins. He wrote a paper on cyclic dungeon generation using generative grammars,
+        /// This generative grammar idea is based off of the work of Joris Dormans. He wrote a paper on cyclic dungeon generation using generative grammars,
         /// and is one of the developers behind the procedurally generated Unexplored games. He has some videos on YouTube as well, but I found his paper here in .PDF form:
         /// https://www.are.na/block/2378426
         /// 

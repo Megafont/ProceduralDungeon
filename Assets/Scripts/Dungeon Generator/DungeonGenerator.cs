@@ -216,7 +216,8 @@ namespace ProceduralDungeon.DungeonGeneration
 
 
             // Init the random number generators.
-            InitRNG(3664913279); // Previous test seed: 3660483198
+            InitRNG();
+            //InitRNG(3664913279); // Previous test seed: 3660483198
             Debug.Log($"SEED: {_RNG_Seed.GetSeed()}");
 
 
